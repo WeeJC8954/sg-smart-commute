@@ -5,14 +5,18 @@ import 'package:sg_smart_commute/core/time/clock.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_repository.dart';
 import 'package:sg_smart_commute/features/environment/environment_providers.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
+import 'package:sg_smart_commute/features/places/domain/place.dart';
+import 'package:sg_smart_commute/features/places/place_providers.dart';
 import 'package:sg_smart_commute/main.dart';
 
 import 'fake_environment_repository.dart';
+import 'fake_place_search_repository.dart';
 
 /// The real app with every external provider replaced by a fake (§18).
 Widget buildTestApp({
   required LocationService location,
   required EnvironmentRepository environment,
+  PlaceSearchRepository? places,
   Duration locationTimeout = const Duration(seconds: 10),
   Clock? clock,
 }) {
@@ -23,6 +27,9 @@ Widget buildTestApp({
       environmentRepositoryProvider.overrideWithValue(environment),
       locationTimeoutProvider.overrideWithValue(locationTimeout),
       clockProvider.overrideWithValue(clock ?? () => fakeNow),
+      placeSearchRepositoryProvider.overrideWithValue(
+        places ?? FakePlaceSearchRepository(),
+      ),
     ],
     child: const SmartCommuteApp(),
   );

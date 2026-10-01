@@ -22,12 +22,35 @@ Finder tile(String key) => find.byKey(Key(key));
 Finder inTile(String key, String text) =>
     find.descendant(of: tile(key), matching: find.text(text));
 
-Future<void> chooseArea(WidgetTester tester, String name) async {
-  await tester.enterText(find.byKey(const Key('manual-origin-field')), name);
+/// Types [query] into a place-search field, waits out the debounce and taps
+/// the result named [result]. Nothing is selected without the tap.
+Future<void> searchAndPick(
+  WidgetTester tester,
+  String query,
+  String result, {
+  Key field = const Key('manual-origin-field'),
+}) async {
+  await tester.enterText(find.byKey(field), query);
+  await tester.pump(const Duration(milliseconds: 400));
   await tester.pump();
-  await tester.tap(find.byKey(Key('area-$name')));
+  final hit = find.text(result);
+  await tester.ensureVisible(hit);
+  await tester.pump();
+  await tester.tap(hit);
   await tester.pump();
 }
+
+/// Pumps [app] on a tall test screen, so every card stays built. The home
+/// screen is a lazy list; after scrolling to a search result and selecting
+/// it, a short default screen could leave the origin card unbuilt.
+Future<void> pumpApp(WidgetTester tester, Widget app) async {
+  tester.view.physicalSize = const Size(1080, 4000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(app);
+}
+
+const tampinesHubLine = 'From: OUR TAMPINES HUB (chosen manually)';
 
 void main() {
   late FakeLocationService location;
@@ -39,7 +62,7 @@ void main() {
     tester,
   ) async {
     location = FakeLocationService();
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
 
     expect(find.text('Singapore Smart Commute'), findsOneWidget);
     expect(find.text('Checking location permission…'), findsOneWidget);
@@ -60,7 +83,7 @@ void main() {
       access: LocationAccess.granted,
       position: bishan,
     );
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     await tester.pump();
 
@@ -96,7 +119,7 @@ void main() {
     tester,
   ) async {
     location = FakeLocationService(access: LocationAccess.denied);
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
 
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
@@ -107,7 +130,7 @@ void main() {
 
   testWidgets('permanently denied → "Open settings" action', (tester) async {
     location = FakeLocationService(access: LocationAccess.deniedForever);
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
 
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
@@ -118,7 +141,7 @@ void main() {
 
   testWidgets('granted → no fix within 10 s → manual origin', (tester) async {
     location = FakeLocationService(access: LocationAccess.granted);
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     expect(find.text('Finding your location…'), findsOneWidget);
 
@@ -135,7 +158,7 @@ void main() {
       access: LocationAccess.granted,
       position: mountainView,
     );
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     await tester.pump();
 
@@ -147,16 +170,16 @@ void main() {
     expect(inTile('tile-psi', 'Waiting for your location'), findsOneWidget);
   });
 
-  testWidgets('manual area selection drives the area/region tiles', (
+  testWidgets('a searched manual origin drives the area/region tiles', (
     tester,
   ) async {
     location = FakeLocationService(access: LocationAccess.denied);
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
 
-    await chooseArea(tester, 'Tampines');
+    await searchAndPick(tester, 'Tampines Hub', 'OUR TAMPINES HUB');
 
-    expect(find.text('From: Tampines area (chosen manually)'), findsOneWidget);
+    expect(find.text(tampinesHubLine), findsOneWidget);
     expect(inTile('tile-forecast', 'Thundery Showers'), findsOneWidget);
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     expect(inTile('tile-psi', '24-hr PSI 61 (Moderate)'), findsOneWidget);
@@ -168,16 +191,16 @@ void main() {
     tester,
   ) async {
     location = FakeLocationService(access: LocationAccess.granted);
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     await tester.pump(const Duration(seconds: 10));
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
 
-    await chooseArea(tester, 'Tampines');
+    await searchAndPick(tester, 'Tampines Hub', 'OUR TAMPINES HUB');
     location.fix(bishan); // arrives late
     await tester.pump();
 
-    expect(find.text('From: Tampines area (chosen manually)'), findsOneWidget);
+    expect(find.text(tampinesHubLine), findsOneWidget);
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     expect(find.byKey(const Key('use-current-location')), findsOneWidget);
 
@@ -192,10 +215,10 @@ void main() {
     tester,
   ) async {
     location = FakeLocationService(access: LocationAccess.granted);
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     await tester.pump(const Duration(seconds: 10));
-    await chooseArea(tester, 'Tampines');
+    await searchAndPick(tester, 'Tampines Hub', 'OUR TAMPINES HUB');
 
     // Attempt B runs while the manual origin is set; A answers late too.
     location.reset();
@@ -209,7 +232,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 10));
 
-    expect(find.text('From: Tampines area (chosen manually)'), findsOneWidget);
+    expect(find.text(tampinesHubLine), findsOneWidget);
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
@@ -221,17 +244,20 @@ void main() {
     tester,
   ) async {
     location = FakeLocationService(access: LocationAccess.granted);
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     await tester.pump(const Duration(seconds: 10));
 
-    await tester.enterText(find.byKey(const Key('manual-origin-field')), 'Tam');
-    await tester.pump();
+    await tester.enterText(
+      find.byKey(const Key('manual-origin-field')),
+      'Tampines Hub',
+    );
+    await tester.pump(const Duration(milliseconds: 400));
     location.fix(bishan);
     await tester.pump();
 
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
-    expect(find.byKey(const Key('area-Tampines')), findsOneWidget);
+    expect(find.text('OUR TAMPINES HUB'), findsOneWidget); // still choosable
     expect(find.byKey(const Key('use-current-location')), findsOneWidget);
   });
 
@@ -243,7 +269,7 @@ void main() {
       access: LocationAccess.granted,
       position: bishan,
     );
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     await tester.pump();
 
@@ -274,7 +300,8 @@ void main() {
       access: LocationAccess.granted,
       position: bishan,
     );
-    await tester.pumpWidget(
+    await pumpApp(
+      tester,
       buildTestApp(
         location: location,
         environment: env,
@@ -295,7 +322,8 @@ void main() {
       access: LocationAccess.granted,
       position: bishan,
     );
-    await tester.pumpWidget(
+    await pumpApp(
+      tester,
       buildTestApp(location: location, environment: env, clock: () => now),
     );
     await tester.pump();

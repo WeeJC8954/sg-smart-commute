@@ -26,3 +26,27 @@ Future<void> scrollToAndTap(WidgetTester tester, Finder finder) async {
   await tester.tap(finder);
   await tester.pump();
 }
+
+/// Scrolls the home list back to the top, so the origin and destination
+/// cards are built again (the list is lazy).
+Future<void> scrollToTop(WidgetTester tester) async {
+  await tester.drag(find.byType(Scrollable).first, const Offset(0, 5000));
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
+/// Types [query] into a place-search field, waits for the (fake) result
+/// named [result] and taps it. Nothing is selected without the tap.
+Future<void> searchAndPick(
+  WidgetTester tester, {
+  required Key field,
+  required String query,
+  required String result,
+}) async {
+  final input = find.byKey(field);
+  await tester.ensureVisible(input);
+  await tester.pump();
+  await tester.enterText(input, query);
+  await pumpUntilFound(tester, find.text(result));
+  await scrollToAndTap(tester, find.text(result));
+  await scrollToTop(tester);
+}
