@@ -56,8 +56,16 @@ payloads captured once with curl on 2026-10-01 (`test/fixtures/*.json`).
   Repeat with `--target=` set to each integration test file as they are added (guide v2.1 §18), and record
   the result in the run log.
 - This does **not** block Milestone 1. It is carried forward from M1 and must be closed by Milestone 5 at the latest.
-- **M1 app not yet run manually on a device or in Chrome** (smoke tests §18 1–5: Chrome localhost, emulator with
-  an SG location, emulator default location, GPS denied, GPS timeout). Only automated tests with fakes ran in M1.
+- **Manual smoke tests (§18 1–5), partly done.** Item 2 (Android emulator with an SG location, real geolocator,
+  live data.gov.sg) passed in M1 (see the run log). Still not run: 1 (Chrome localhost), 3 (emulator default
+  location, outside SG), 4 (GPS denied) and 5 (GPS timeout) on a real device or browser. These are covered only by
+  automated tests with fakes.
+- **Android timeout runs while the system "Location Accuracy" prompt is open (observed in M1, not fixed).** On a
+  device where Location Accuracy is off, the geolocator request shows this Google Play services prompt. The 10 s
+  timeout keeps running while it is on screen, so a first-time user can land on "Finding your location took too
+  long" before answering it. The fallback itself is correct, and "Try location again" then succeeded. In that
+  session, the first attempt's request never delivered a late fix (cause not confirmed on the device). To be decided
+  by the reviewer: fix it, or leave it as an accepted limitation.
 - **Cross-platform integration coverage is not complete** until the Web run has been executed and its
   result recorded below. Until then, integration coverage is Android only.
 
@@ -117,3 +125,7 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-01 | M1 race fix (PR #3 review) | `dart format lib test integration_test`, `flutter analyze` | Formatted 2 files; analyze passes, no issues |
 | 2026-10-01 | M1 race fix (PR #3 review) | `flutter test` | Pass, 103/103 |
 | 2026-10-01 | M1 race fix (PR #3 review) | `flutter test integration_test -d emulator-5554` | **Not run**: no emulator was running (`flutter devices` listed no Android device) |
+| 2026-10-01 | M1 race fix (PR #3 review, re-run by the main session on ed44d63) | `flutter analyze`; `flutter test` | Pass, no issues; pass, 103/103 |
+| 2026-10-01 | M1 race fix (PR #3 review, re-run by the main session on ed44d63) | `flutter test integration_test -d emulator-5554` (API 37) | Pass, 5/5 (fake providers) |
+| 2026-10-01 | M1 real Android smoke (§18 item 2), run 1, release APK @ ed5085d | Emulator API 37, GPS set by `adb emu geo fix 103.8510 1.2840` (Raffles Place); real geolocator; live data.gov.sg | Android permission dialog → "While using the app". Google "Location Accuracy" prompt appeared; the app's 10 s timeout fired while it was open → "Finding your location took too long" + manual picker (UV tile already live). Tapped "Turn on", then "Try location again" → "From: Current location (from GPS)". Four live tiles: 2-hr forecast Cloudy, City area, as of 21:06 SGT; UV "not measured at night", last UV 0 (Low) 19:00 SGT, national; 1-hr PM2.5 36 µg/m³ (Normal), South region, 21:00 SGT; 24-hr PSI 72 (Moderate), South region, 21:00 SGT. Cold relaunch (permission granted): GPS accepted on the first attempt, same four tiles |
+| 2026-10-01 | M1 real Android smoke (§18 item 2), run 2, release APK @ ed44d63 (race fix) | Fresh install (`adb uninstall` + `adb install`), same SG fix, real geolocator, live data.gov.sg | Permission dialog → "While using the app" → GPS accepted as Singapore on the first attempt ("From: Current location (from GPS)"). All four live tiles rendered with scope + SGT timestamp + age (same values as run 1). Location Accuracy was already on device-wide from run 1, so that prompt did not appear |
