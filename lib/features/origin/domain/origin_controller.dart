@@ -142,7 +142,7 @@ class OriginController extends Notifier<OriginState> {
     );
   }
 
-  /// The user started manual entry (focused / opened the picker).
+  /// The user started manual entry (focused or typed in the origin search).
   void beginManualEntry() {
     if (state.phase == OriginPhase.needsManual &&
         !state.manualEntryInProgress) {

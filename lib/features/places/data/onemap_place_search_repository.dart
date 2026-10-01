@@ -24,19 +24,23 @@ class OneMapPlaceSearchRepository implements PlaceSearchRepository {
   OneMapPlaceSearchRepository(
     this._http, {
     required this.clock,
-    this.cacheTtl = const Duration(minutes: 5),
+    this.cacheTtl = PlaceSearchConfig.cacheTtl,
+    this.minQueryLength = PlaceSearchConfig.minQueryLength,
   });
 
   final JsonHttpClient _http;
   final Clock clock;
   final Duration cacheTtl;
 
+  /// Shorter non-postal-code queries return [] without a request.
+  final int minQueryLength;
+
   final Map<String, ({DateTime at, List<Place> places})> _cache = {};
 
   @override
   Future<List<Place>> search(String query, {required SearchMode mode}) async {
     // OneMap has no separate submit endpoint; both modes use the same call.
-    final q = PlaceQuery.normalise(query);
+    final q = PlaceQuery.normalise(query, minLength: minQueryLength);
     if (!q.isSearchable) return const [];
 
     final cached = _cache[q.text];

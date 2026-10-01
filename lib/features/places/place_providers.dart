@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/http/json_http_client.dart';
 import '../../core/time/clock.dart';
 import 'data/onemap_place_search_repository.dart';
@@ -11,10 +12,17 @@ final placeSearchRepositoryProvider = Provider<PlaceSearchRepository>(
   (ref) => OneMapPlaceSearchRepository(
     ref.watch(jsonHttpClientProvider),
     clock: ref.watch(clockProvider),
+    minQueryLength: ref.watch(placeSearchMinQueryLengthProvider),
   ),
 );
 
-/// Type-ahead debounce, injectable for tests.
+/// Type-ahead debounce. Defaults to [PlaceSearchConfig]; injectable for tests.
 final placeSearchDebounceProvider = Provider<Duration>(
-  (ref) => const Duration(milliseconds: 350),
+  (ref) => PlaceSearchConfig.debounce,
+);
+
+/// Minimum query length used by the search field and the repository.
+/// Defaults to [PlaceSearchConfig]; injectable for tests.
+final placeSearchMinQueryLengthProvider = Provider<int>(
+  (ref) => PlaceSearchConfig.minQueryLength,
 );

@@ -17,6 +17,8 @@ Widget buildTestApp({
   required LocationService location,
   required EnvironmentRepository environment,
   PlaceSearchRepository? places,
+  Duration? placeSearchDebounce,
+  int? placeSearchMinQueryLength,
   Duration locationTimeout = const Duration(seconds: 10),
   Clock? clock,
 }) {
@@ -30,6 +32,12 @@ Widget buildTestApp({
       placeSearchRepositoryProvider.overrideWithValue(
         places ?? FakePlaceSearchRepository(),
       ),
+      if (placeSearchDebounce != null)
+        placeSearchDebounceProvider.overrideWithValue(placeSearchDebounce),
+      if (placeSearchMinQueryLength != null)
+        placeSearchMinQueryLengthProvider.overrideWithValue(
+          placeSearchMinQueryLength,
+        ),
     ],
     child: const SmartCommuteApp(),
   );

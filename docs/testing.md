@@ -159,3 +159,10 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-01 | M2 places | `flutter build apk --release` | Pass (48.4 MB) |
 | 2026-10-01 | M2 places | `flutter build apk --debug` | Pass |
 | 2026-10-01 | M2 places | Web integration test (`flutter drive … -d chrome`) | **Not run**: chromedriver not installed (`command -v chromedriver` → not found) |
+| 2026-10-02 | M2 PR #5 review fix (`PlaceSearchConfig`) | Mutation checks on `test/features/places/place_search_config_test.dart`, each restored afterwards: (1) the search field no longer passes the provider's debounce (falls back to the 350 ms default); (2) the repository checks a hard-coded minimum of 3 instead of its injected value | Each caught by its target test: (1) `search field: overridden debounce and minimum are used`; (2) `repository minimum length: below it, no request is made`. Restored: 8/8 pass |
+| 2026-10-02 | M2 PR #5 review fix | `dart format --set-exit-if-changed .` | Pass, exit 0 (60 files, 0 changed) |
+| 2026-10-02 | M2 PR #5 review fix | `flutter analyze` | Pass, no issues (first run flagged an unused import and the removed `minPlaceQueryLength` alias in a test; both fixed) |
+| 2026-10-02 | M2 PR #5 review fix | `flutter test` | Pass, 176/176 (168 earlier + 8 new config tests) |
+| 2026-10-02 | M2 PR #5 review fix | `flutter test integration_test -d emulator-5554` (API 37) | Pass, 5/5 |
+| 2026-10-02 | M2 PR #5 review fix | `flutter build web` | Pass |
+| 2026-10-02 | M2 PR #5 review fix | `flutter build apk --release` | Pass (48.4 MB). On 2026-10-01 the same build and the integration run had failed in Gradle with `FileLock.writeFile … is null` (a cache lock; repositories were reachable). They were not re-run until the lock had cleared between sessions, and no Gradle processes were stopped by the agent |

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
 import '../domain/place.dart';
-import '../domain/place_query.dart';
 import '../domain/place_search_session.dart';
 import '../place_providers.dart';
 
@@ -44,6 +43,7 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
     _session = PlaceSearchSession(
       ref.read(placeSearchRepositoryProvider),
       debounce: ref.read(placeSearchDebounceProvider),
+      minQueryLength: ref.read(placeSearchMinQueryLengthProvider),
     );
     _focus.addListener(() {
       if (_focus.hasFocus) widget.onEditingStarted?.call();
@@ -116,8 +116,8 @@ class _SearchBody extends StatelessWidget {
     final small = Theme.of(context).textTheme.bodySmall;
     return switch (state) {
       PlaceSearchIdle() => const SizedBox.shrink(),
-      PlaceSearchTooShort() => const _Note(
-        'Type at least $minPlaceQueryLength characters, or a 6-digit postal code.',
+      PlaceSearchTooShort(:final minLength) => _Note(
+        'Type at least $minLength characters, or a 6-digit postal code.',
       ),
       PlaceSearchLoading() => Semantics(
         label: 'Searching places',

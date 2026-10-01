@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
 import 'place.dart';
 import 'place_query.dart';
@@ -15,9 +16,10 @@ final class PlaceSearchIdle extends PlaceSearchState {
   const PlaceSearchIdle();
 }
 
-/// Typed, but shorter than [minPlaceQueryLength] and not a postal code.
+/// Typed, but shorter than [minLength] and not a postal code.
 final class PlaceSearchTooShort extends PlaceSearchState {
-  const PlaceSearchTooShort();
+  const PlaceSearchTooShort(this.minLength);
+  final int minLength;
 }
 
 final class PlaceSearchLoading extends PlaceSearchState {
@@ -46,11 +48,15 @@ final class PlaceSearchFailed extends PlaceSearchState {
 class PlaceSearchSession {
   PlaceSearchSession(
     this._repository, {
-    this.debounce = const Duration(milliseconds: 350),
+    this.debounce = PlaceSearchConfig.debounce,
+    this.minQueryLength = PlaceSearchConfig.minQueryLength,
   });
 
   final PlaceSearchRepository _repository;
   final Duration debounce;
+
+  /// Shorter non-postal-code queries are not sent to the repository.
+  final int minQueryLength;
 
   final ValueNotifier<PlaceSearchState> state = ValueNotifier(
     const PlaceSearchIdle(),
@@ -87,9 +93,9 @@ class PlaceSearchSession {
   void _schedule(String raw, SearchMode mode) {
     _timer?.cancel();
     final sequence = ++_sequence;
-    final q = PlaceQuery.normalise(raw);
+    final q = PlaceQuery.normalise(raw, minLength: minQueryLength);
     if (q.text.isEmpty) return _set(const PlaceSearchIdle());
-    if (!q.isSearchable) return _set(const PlaceSearchTooShort());
+    if (!q.isSearchable) return _set(PlaceSearchTooShort(minQueryLength));
 
     _lastQuery = q.text;
     _set(PlaceSearchLoading(q.text));

@@ -33,6 +33,19 @@ abstract final class OneMapEndpoints {
       });
 }
 
+/// Place-search tunables (guide v2.1 §8.3, §15; docs/assumptions.md). The single
+/// source for these values.
+abstract final class PlaceSearchConfig {
+  /// Type-ahead waits this long after the last keystroke; submit is immediate.
+  static const Duration debounce = Duration(milliseconds: 350);
+
+  /// Successful results are cached in memory per normalised query this long.
+  static const Duration cacheTtl = Duration(minutes: 5);
+
+  /// Shorter queries are not searched, unless they are a 6-digit postal code.
+  static const int minQueryLength = 3;
+}
+
 /// Attribution shown wherever OneMap search results appear.
 const String oneMapAttribution =
     'Place search: OneMap © Singapore Land Authority';
