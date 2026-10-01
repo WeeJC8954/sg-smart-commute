@@ -1,0 +1,63 @@
+postal         238801                               onemap=0  photon=0  nominatim=0{photon: 21, nominatim: 3}
+postal         098585                               onemap=0  photon=0  nominatim=0{photon: 41, nominatim: 23}
+postal         119077                               onemap=0  photon=0  nominatim=0{photon: 46, nominatim: 147}
+postal         639798                               onemap=0  photon=0  nominatim=0{photon: 294, nominatim: 439}
+postal         018956                               onemap=0  photon=0  nominatim=0{photon: 136, nominatim: 82}
+postal         169608                               onemap=0  photon=0  nominatim=0{photon: 516, nominatim: 535}
+postal         560123                               onemap=0  photon=0  nominatim=0{photon: 2, nominatim: 2}
+postal         520201                               onemap=0  photon=0  nominatim=0{photon: 10, nominatim: 9}
+postal         760345                               onemap=0  photon=0  nominatim=0{photon: 0, nominatim: 0}
+hdb            123 Ang Mo Kio Avenue 6              onemap=0  photon=-1  nominatim=-1{}
+hdb            Blk 123 Ang Mo Kio Ave 6             onemap=-1  photon=-1  nominatim=-1
+hdb            201 Tampines Street 21               onemap=0  photon=0  nominatim=0{photon: 9, nominatim: 9}
+hdb            201 Tampines St 21                   onemap=0  photon=0  nominatim=0{photon: 9, nominatim: 9}
+hdb            345 Yishun Avenue 11                 onemap=0  photon=-1  nominatim=-1{}
+street         Orchard Road                         onemap=0  photon=0  nominatim=0{photon: 1310, nominatim: 895}
+street         Bencoolen Street                     onemap=0  photon=0  nominatim=0{photon: 188, nominatim: 140}
+street         Upper Thomson Road                   onemap=0  photon=0  nominatim=0{photon: 3490, nominatim: 1820}
+street         Jalan Besar                          onemap=0  photon=0  nominatim=0{photon: 632, nominatim: 632}
+street         Lorong Chuan                         onemap=0  photon=0  nominatim=0{photon: 829, nominatim: 805}
+mall           VivoCity                             onemap=0  photon=0  nominatim=0{photon: 73, nominatim: 73}
+mall           Jewel Changi Airport                 onemap=0  photon=0  nominatim=0{photon: 68, nominatim: 68}
+mall           Northpoint City                      onemap=0  photon=0  nominatim=0{photon: 182, nominatim: 182}
+mall           Tampines Mall                        onemap=0  photon=0  nominatim=0{photon: 3, nominatim: 3}
+mall           Junction 8                           onemap=0  photon=0  nominatim=0{photon: 12, nominatim: 12}
+mall           Causeway Point                       onemap=0  photon=0  nominatim=0{photon: 6, nominatim: 6}
+university     NUS                                  onemap=0  photon=-1  nominatim=0{nominatim: 221}
+university     National University of Singapore     onemap=0  photon=0  nominatim=0{photon: 648, nominatim: 648}
+university     NTU                                  onemap=0  photon=1  nominatim=0{photon: 1011, nominatim: 862}
+university     Singapore Management University      onemap=0  photon=0  nominatim=0{photon: 252, nominatim: 252}
+university     SUTD                                 onemap=0  photon=0  nominatim=0{photon: 270, nominatim: 270}
+university     Singapore Polytechnic                onemap=0  photon=0  nominatim=0{photon: 2379, nominatim: 2491}
+landmark       Marina Bay Sands                     onemap=0  photon=0  nominatim=0{photon: 145, nominatim: 145}
+landmark       Gardens by the Bay                   onemap=0  photon=0  nominatim=0{photon: 384, nominatim: 384}
+landmark       Changi Airport Terminal 3            onemap=0  photon=0  nominatim=0{photon: 27, nominatim: 262}
+landmark       Singapore General Hospital           onemap=1  photon=0  nominatim=0{photon: 691, nominatim: 795}
+landmark       Singapore Botanic Gardens            onemap=0  photon=0  nominatim=0{photon: 300, nominatim: 300}
+landmark       Merlion Park                         onemap=0  photon=0  nominatim=0{photon: 132, nominatim: 132}
+landmark       Bishan MRT                           onemap=0  photon=-1  nominatim=-1{}
+neighbourhood  Chong Pang Market                    onemap=0  photon=0  nominatim=0{photon: 67, nominatim: 67}
+neighbourhood  Tiong Bahru Market                   onemap=0  photon=0  nominatim=0{photon: 41, nominatim: 41}
+neighbourhood  Holland Village                      onemap=0  photon=0  nominatim=0{photon: 206, nominatim: 206}
+neighbourhood  Sembawang Park                       onemap=2  photon=0  nominatim=0{photon: 3804, nominatim: 3804}
+neighbourhood  Bukit Panjang Plaza                  onemap=0  photon=0  nominatim=0{photon: 289, nominatim: 11}
+neighbourhood  Pasir Ris Park                       onemap=5  photon=0  nominatim=0{photon: 516, nominatim: 239}
+neighbourhood  Kovan Hougang Market                 onemap=0  photon=0  nominatim=0{photon: 15, nominatim: 995}
+neighbourhood  Toa Payoh Lorong 1                   onemap=0  photon=0  nominatim=-1{photon: 590}
+prefix         vivoc                                onemap=0  photon=0{photon: 73}
+prefix         northpoi                             onemap=0  photon=0{photon: 182}
+prefix         gardens by                           onemap=0  photon=0{photon: 384}
+prefix         tiong bah                            onemap=0  photon=0{photon: 1227}
+negative       000000                               onemap=-1  photon=-1  nominatim=-1
+
+Summary (top1/top3 of n) per category:
+category       | onemap      | photon      | nominatim   
+postal         | 9/9 of 9    | 9/9 of 9    | 9/9 of 9    
+hdb            | 4/4 of 5    | 2/2 of 5    | 2/2 of 5    
+street         | 5/5 of 5    | 5/5 of 5    | 5/5 of 5    
+mall           | 6/6 of 6    | 6/6 of 6    | 6/6 of 6    
+university     | 6/6 of 6    | 4/5 of 6    | 6/6 of 6    
+landmark       | 6/7 of 7    | 6/6 of 7    | 6/6 of 7    
+neighbourhood  | 6/7 of 8    | 8/8 of 8    | 7/7 of 8    
+prefix         | 4/4 of 4    | 4/4 of 4    | n/a         
+negative       | 1/1 of 1    | 1/1 of 1    | 1/1 of 1    

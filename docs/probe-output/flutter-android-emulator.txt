@@ -1,0 +1,17 @@
+# Android emulator probe run: 2026-10-01T11:31:57Z
+# Device: Pixel_8_Pro AVD (sdk gphone16k x86_64), debug APK built with: flutter build apk --debug -t tool/api_probe_app.dart
+# Launched via: adb shell am start -n sg.smartcommute.sg_smart_commute/.MainActivity (flutter run's launch step hung on the warm emulator; cold boot + adb launch used)
+
+PROBE START platform=android
+PROBE data.gov.sg two-hr-forecast -> HTTP 200, 5916 bytes, 13422 ms
+PROBE data.gov.sg uv -> HTTP 200, 775 bytes, 419 ms
+PROBE data.gov.sg pm25 -> HTTP 200, 623 bytes, 338 ms
+PROBE data.gov.sg psi -> HTTP 200, 1454 bytes, 287 ms
+PROBE busrouter stops -> HTTP 200, 317155 bytes, 533 ms
+PROBE busrouter services -> HTTP 200, 255411 bytes, 659 ms
+PROBE ArriveLah 09048 -> HTTP 200, 7438 bytes, 451 ms
+PROBE OneMap search (tokenless) -> HTTP 200, 961 bytes, 270 ms
+PROBE Photon search -> HTTP 200, 1216 bytes, 3773 ms
+PROBE Nominatim search -> HTTP 200, 1543 bytes, 425 ms
+PROBE LTA DataMall (expected to fail) -> HTTP 404, 31 bytes, 220 ms
+PROBE DONE

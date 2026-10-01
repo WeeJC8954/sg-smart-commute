@@ -1,0 +1,131 @@
+# probe run: 2026-10-01T10:29:47Z
+
+=== data.gov.sg two-hr-forecast
+GET https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 5916
+body: {"code":0,"data":{"area_metadata":[{"name":"Ang Mo Kio","label_location":{"latitude":1.375,"longitude":103.839}},{"name":"Bedok","label_location":{"latitude":1.321,"longitude":103.924}},{"name":"Bishan","label_location":
+
+=== data.gov.sg uv
+GET https://api-open.data.gov.sg/v2/real-time/api/uv
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 728
+body: {"code":0,"data":{"records":[{"date":"2026-10-01","updatedTimestamp":"2026-10-01T18:11:21+08:00","timestamp":"2026-10-01T18:00:00+08:00","index":[{"hour":"2026-10-01T18:00:00+08:00","value":1},{"hour":"2026-10-01T17:00:0
+
+=== data.gov.sg pm25
+GET https://api-open.data.gov.sg/v2/real-time/api/pm25
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 623
+body: {"code":0,"data":{"regionMetadata":[{"name":"north","labelLocation":{"latitude":1.41803,"longitude":103.82}},{"name":"south","labelLocation":{"latitude":1.29587,"longitude":103.82}},{"name":"east","labelLocation":{"latit
+
+=== data.gov.sg psi
+GET https://api-open.data.gov.sg/v2/real-time/api/psi
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 1454
+body: {"code":0,"data":{"regionMetadata":[{"name":"north","labelLocation":{"latitude":1.41803,"longitude":103.82}},{"name":"south","labelLocation":{"latitude":1.29587,"longitude":103.82}},{"name":"east","labelLocation":{"latit
+
+=== PREFLIGHT data.gov.sg (optional x-api-key) (Access-Control-Request-Headers: x-api-key)
+HTTP/1.1 204 No Content
+access-control-allow-headers: x-api-key
+access-control-allow-origin: *
+
+=== busrouter stops
+GET https://data.busrouter.sg/v1/stops.min.json
+Access-Control-Allow-Origin: *
+HTTP/1.1 200 OK
+bytes: 317155
+body: {"10009":[103.81722,1.2821,"Bt Merah Int","Bt Merah Ctrl"],"10011":[103.8375,1.27774,"Bef Neil Rd","New Bridge Rd"],"10017":[103.83763,1.27832,"Aft Hosp Dr","Eu Tong Sen St"],"10018":[103.8386,1.27901,"Outram Pk Stn Exit
+
+=== busrouter services
+GET https://data.busrouter.sg/v1/services.min.json
+Access-Control-Allow-Origin: *
+HTTP/1.1 200 OK
+bytes: 255411
+body: {"2":{"name":"Changi Village Ter ⇄ Kampong Bahru Ter","routes":[["99009","99131","99049","99039","99029","99019","98079","98069","97099","97089","97079","97069","97209","97059","97049","97039","97019","96069","96059","
+
+=== busrouter routes (Phase 2)
+GET https://data.busrouter.sg/v1/routes.min.json
+Access-Control-Allow-Origin: *
+HTTP/1.1 200 OK
+bytes: 289256
+body: {"2":["olnG{`uyRX|AvDw@~EIyAt[NzBjCzKhB`DzCbCjCx@`CTnb@y@bE^jDfBnJtJ`DlC`BR`@I|AyBxCcSl@uAvAgA|A_@dAE`BVv@`@tG~GxI~LjA`AbPxDzBv@nA|@tAxBlClJxHfH~B~@`]`G`Bj@v@r@v@~A`EtS~M|@rbAhSrGjChLtHwFtFd\\raApC{A`U{O`ItXhGbYr@tG|E`v@
+
+=== ArriveLah 09048
+GET https://arrivelah2.busrouter.sg/?id=09048
+Access-Control-Allow-Headers: *
+Access-Control-Allow-Origin: *
+HTTP/1.1 200 OK
+bytes: 9542
+body: {"services":[{"no":"106","operator":"TTS","next":{"time":"2026-10-01T18:39:59+08:00","duration_ms":598812,"lat":1.308602,"lng":103.80956716666667,"load":"SEA","feature":"WAB","type":"DD","visit_number":1,"origin_code":"4
+
+=== OneMap search (no token)
+GET https://www.onemap.gov.sg/api/common/elastic/search?searchVal=vivocity&returnGeom=Y&getAddrDetails=Y&pageNum=1
+Access-Control-Allow-Headers: DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Accept,Authorization,x-signalr-user-agent
+Access-Control-Allow-Headers: DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Accept,Authorization,x-signalr-user-agent,X-Amz-Date,X-Api-Key,X-Amz-Security-Token
+Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, PURGE, HEAD, OPTIONS, FETCH
+Access-Control-Allow-Methods: GET,OPTIONS
+Access-Control-Allow-Origin: *
+HTTP/1.1 200 OK
+bytes: 961
+body: {   "error": "Authentication token missing. Please create an account and generate or renew your API Token.",   "found": 2,   "totalNumPages": 1,   "pageNum": 1,   "results": [     {       "SEARCHVAL": "VIVOCITY",       "
+
+=== OneMap routing (no token, expected 401)
+GET https://www.onemap.gov.sg/api/public/routingsvc/route?start=1.3,103.8&end=1.31,103.85&routeType=walk
+Access-Control-Allow-Headers: Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token
+Access-Control-Allow-Headers: DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Accept,Authorization,x-signalr-user-agent
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, PURGE, HEAD, OPTIONS, FETCH
+Access-Control-Allow-Methods: OPTIONS
+Access-Control-Allow-Origin: *
+HTTP/1.1 401 Unauthorized
+bytes: 26
+body: {"message":"Unauthorized"}
+
+=== Photon search
+GET https://photon.komoot.io/api/?q=vivocity&bbox=103.6,1.15,104.1,1.48&limit=3
+Access-Control-Allow-Origin: *
+HTTP/1.1 200 OK
+bytes: 1216
+body: {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"R","osm_id":2353588,"osm_key":"shop","osm_value":"mall","type":"house","housenumber":"1","name":"VivoCity","street":"Harbourfront Avenue
+
+=== Photon reverse
+GET https://photon.komoot.io/reverse?lat=1.3508&lon=103.8485
+Access-Control-Allow-Origin: *
+HTTP/1.1 200 OK
+bytes: 448
+body: {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"N","osm_id":6798079024,"osm_key":"shop","osm_value":"shoes","type":"house","housenumber":"#02-10/09A","name":"Bata","street":"9 Bishan P
+
+=== Nominatim search
+GET https://nominatim.openstreetmap.org/search?q=vivocity&countrycodes=sg&format=jsonv2&limit=3
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 1543
+body: [{"place_id":255839120,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"relation","osm_id":2353588,"lat":"1.2643707","lon":"103.8229537","category":"shop","type":"mall","plac
+
+=== Nominatim reverse
+GET https://nominatim.openstreetmap.org/reverse?lat=1.3508&lon=103.8485&format=jsonv2
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 715
+body: {"place_id":255665638,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"node","osm_id":6798079024,"lat":"1.3508038","lon":"103.8485208","category":"shop","type":"shoes","place
+
+=== data.gov.sg MRT exits poll-download
+GET https://api-open.data.gov.sg/v1/public/api/datasets/d_b39d3a0871985372d7e1637193335da5/poll-download
+HTTP/1.1 201 Created
+access-control-allow-origin: *
+bytes: 1766
+body: {"code":0,"data":{"url":"https://s3.ap-southeast-1.amazonaws.com/blobs.data.gov.sg/d_b39d3a0871985372d7e1637193335da5.geojson?X-Amz-Algorithm=REDACTED&X-Amz-Content-Sha256=REDACTED&X-Amz-Credential=REDACTED
+
+=== LTA DataMall BusArrival (excluded, expected 401)
+GET https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival?BusStopCode=09048
+HTTP/1.1 404 Not Found
+bytes: 31
+body: The requested API was not found
+
+=== PREFLIGHT LTA DataMall (excluded) (Access-Control-Request-Headers: accountkey)
+HTTP/1.1 403 Forbidden
+
