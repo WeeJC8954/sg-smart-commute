@@ -7,12 +7,16 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../errors/app_failure.dart';
+import 'rate_limiter.dart';
 
 /// GET-JSON client with the policy from guide §15:
 /// - per-request timeout (≈ 10 s);
 /// - bounded retry (max 2, exponential backoff) for network errors and 5xx only;
 /// - 4xx is never retried; 429 → [ApiRateLimited] carrying `Retry-After`;
-/// - concurrent identical requests are deduplicated.
+/// - concurrent identical requests are deduplicated;
+/// - optional client-side rate limits: [rateLimiterFor] picks the limiter (if
+///   any) for a URI. Each outgoing send, retries included, waits for a grant.
+///   The server's own 429 is still mapped as above.
 ///
 /// Every error leaves as a typed [AppFailure].
 class JsonHttpClient {
@@ -22,6 +26,7 @@ class JsonHttpClient {
     this.maxRetries = 2,
     this.baseBackoff = const Duration(milliseconds: 500),
     Future<void> Function(Duration)? delay,
+    this.rateLimiterFor,
   }) : _delay = delay ?? Future<void>.delayed;
 
   final http.Client _client;
@@ -29,6 +34,7 @@ class JsonHttpClient {
   final int maxRetries;
   final Duration baseBackoff;
   final Future<void> Function(Duration) _delay;
+  final RequestRateLimiter? Function(Uri uri)? rateLimiterFor;
 
   final Map<Uri, Future<Object?>> _inFlight = {};
 
@@ -56,6 +62,8 @@ class JsonHttpClient {
   }
 
   Future<Object?> _getOnce(Uri uri) async {
+    // Waiting for a grant is not part of the request timeout.
+    await rateLimiterFor?.call(uri)?.acquire();
     final http.Response response;
     try {
       response = await _client
@@ -111,6 +119,20 @@ final httpClientProvider = Provider<http.Client>((ref) {
   return client;
 });
 
-final jsonHttpClientProvider = Provider<JsonHttpClient>(
-  (ref) => JsonHttpClient(ref.watch(httpClientProvider)),
+/// The one limiter shared by every data.gov.sg real-time caller (launch,
+/// Refresh all, tile Retry, area-picker Retry, future datasets).
+final dataGovSgRateLimiterProvider = Provider<RequestRateLimiter>(
+  (ref) => RollingWindowRateLimiter(
+    maxRequests: DataGovSgRateLimit.maxRequests,
+    window: DataGovSgRateLimit.window + DataGovSgRateLimit.safetyMargin,
+  ),
 );
+
+final jsonHttpClientProvider = Provider<JsonHttpClient>((ref) {
+  final dataGovSg = ref.watch(dataGovSgRateLimiterProvider);
+  return JsonHttpClient(
+    ref.watch(httpClientProvider),
+    rateLimiterFor: (uri) =>
+        DataGovSgRateLimit.appliesTo(uri) ? dataGovSg : null,
+  );
+});

@@ -54,8 +54,10 @@ final environmentRefreshIntervalProvider = Provider<Duration>(
 final environmentRefresherProvider =
     NotifierProvider<EnvironmentRefresher, DateTime?>(EnvironmentRefresher.new);
 
-/// Manual "refresh all" with a cooldown, so repeated taps can't exceed the
-/// data.gov.sg anonymous limit (6 calls / 10 s; a refresh is 4 calls).
+/// Manual "refresh all" with a cooldown that debounces repeated taps. The
+/// data.gov.sg limit (6 calls in any 10 s) is enforced separately, for every
+/// caller, by `dataGovSgRateLimiterProvider` in the HTTP client: calls beyond
+/// it wait for capacity instead of being sent.
 /// State: when the last accepted refresh happened.
 class EnvironmentRefresher extends Notifier<DateTime?> {
   @override

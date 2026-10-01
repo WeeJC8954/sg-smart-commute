@@ -37,7 +37,10 @@ proxied**:
 - OneMap tokenless search was chosen because it scored best among the tested providers (OneMap, Photon,
   Nominatim) on the M0 51-query test set, not because it is best in general. It may be withdrawn. The
   tested fallbacks are OSM-based (Photon and Nominatim, see `api-feasibility.md` §4). They would be added only when needed, as client-side adapters.
-- data.gov.sg anonymous limit: 6 real-time calls per 10 s. Requests are session-cached and deduplicated.
+- data.gov.sg anonymous limit: 6 real-time calls per 10 s. Requests are session-cached and deduplicated, and
+  every send to the v2 real-time API (launch, Refresh all, tile Retry, area-picker Retry, HTTP retries) passes
+  one shared rolling-window limiter: at most 6 in any 10 s window plus a 1 s latency margin. Calls beyond it
+  wait for capacity instead of being sent. A real 429 is still mapped to `ApiRateLimited`.
 
 ## Layering (target for Milestone 1+)
 
@@ -62,7 +65,8 @@ lib/
 
 - `lib/core/`: `config/app_config.dart` (SG bounds, endpoints, timings, stale thresholds), `errors/app_failure.dart`
   (sealed `AppFailure`), `geo/geo.dart` (`LatLng`, `isWithinSingapore`, haversine), `time/` (SGT formatting,
-  injectable `Clock`), `http/json_http_client.dart` (timeout, bounded retry, 429, dedup),
+  injectable `Clock`), `http/json_http_client.dart` (timeout, bounded retry, 429, dedup, optional per-URI rate limiter),
+  `http/rate_limiter.dart` (generic `RollingWindowRateLimiter`; only the provider wiring maps data.gov.sg to it),
   `location/` (`LocationService` seam + geolocator adapter).
 - `lib/features/origin/`: `OriginController` (Riverpod `Notifier`) is the permission → timeout → fallback →
   late-fix state machine. `Origin` carries provenance (`gps` | `manual`). `OriginCard` is the UI. Each
@@ -72,6 +76,7 @@ lib/
   `EnvironmentLocator`, band tables), `environment_providers.dart` (one session-cached `FutureProvider` per
   dataset, refresh cooldown), `presentation/` (dashboard tiles, display strings).
 - Seams overridden in tests: `locationServiceProvider`, `locationTimeoutProvider`, `environmentRepositoryProvider`,
+  `httpClientProvider` (the rate-limit widget tests swap only the transport for a fake data.gov.sg),
   `clockProvider`. Fakes are in `test/fakes/` and shared with `integration_test/`.
 - `ProviderScope(retry: noAutomaticRetry)`: Riverpod 3's automatic retry is off (rate limits; explicit Retry).
 - Dependencies added: `flutter_riverpod` 3.4.3, `geolocator` 14.1.1, `fake_async` (dev).
