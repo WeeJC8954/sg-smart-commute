@@ -101,8 +101,27 @@ lib/
 - `ProviderScope(retry: noAutomaticRetry)`: Riverpod 3's automatic retry is off (rate limits; explicit Retry).
 - Dependencies added: `flutter_riverpod` 3.4.3, `geolocator` 14.1.1, `fake_async` (dev).
 
+## Milestone 3 (direct bus + MRT alternative)
+
+- `lib/features/journey/domain/`: `bus_network.dart` (`BusStop`, `BusService`, `BusNetwork`),
+  `bus_network_repository.dart` (interface, so busrouter can be replaced), `walking.dart` (`WalkEstimate`),
+  `direct_bus_planner.dart` (pure `planDirectBus` → sealed `JourneyPlan`: `WalkOnly` / `DirectBusOptions` /
+  `NoNearbyStops` / `NoDirectBus`), `mrt.dart` (`MrtStation`, `nearestMrtStation`).
+- `lib/features/journey/data/`: `busrouter_parser.dart` + `busrouter_repository.dart` (lazy, session-cached,
+  `StaticDataUnavailable`), `mrt_grouping.dart` + `mrt_asset.dart` (pure Dart, shared with the `tool/`
+  generator), and `mrt_asset_repository.dart` (rootBundle).
+- `journey_providers.dart`: `busNetworkProvider` (holds the network for the session), `journeyPlanProvider`
+  and `mrtSuggestionProvider` (both watch the origin and destination, so they recalculate on change).
+  `presentation/journey_card.dart` shows the result.
+- "No direct bus" and "no nearby stop" are planner results, not exceptions (so `RouteNotFound` from the guide's
+  §13 list is modelled as `NoDirectBus` / `NoNearbyStops`). Only data failures are `AppFailure`s.
+- Tunables live in `JourneyConfig` / `TransportDataBounds` (`app_config.dart`), injectable via
+  `plannerConfigProvider`. Test seams: `busNetworkRepositoryProvider`, `mrtRepositoryProvider`.
+- No live calls are made during the candidate search, and no arrival data is fetched in M3.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),
   `api_probe_app.dart` (an alternative Flutter entry point for Chrome/Android), and
-  `place_search_eval.dart` (Dart VM).
+  `place_search_eval.dart` (Dart VM). M3 adds `build_mrt_asset.dart` (generates the bundled MRT asset) and
+  `journey_smoke.dart` (a real-data planner check against live busrouter, with a raw-route cross-check).

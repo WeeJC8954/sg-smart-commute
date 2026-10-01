@@ -4,8 +4,9 @@ A **front-end-only** Flutter app (Android + Web) for Singapore. It shows current
 UV, 1-hr PM2.5, 24-hr PSI) and suggests how to start a journey: a direct bus with live arrival times, and the
 nearest MRT station as an alternative. University course project.
 
-> **Status:** Milestone 0 (feasibility + skeleton). There are no app features yet. See
-> [`docs/api-feasibility.md`](docs/api-feasibility.md).
+> **Status:** Milestone 3. The app has location with manual fallback, the environmental dashboard, OneMap
+> place search for origin and destination, and a direct-bus suggestion with an MRT alternative. Live bus
+> arrival times arrive in Milestone 4; none are shown yet.
 
 ## No credentials required
 
@@ -60,13 +61,19 @@ The dev-only feasibility probes are described in [`docs/testing.md`](docs/testin
 
 ## Data sources and attribution
 
-NEA / data.gov.sg (Singapore Open Data Licence) · busrouter.sg and ArriveLah (community projects over LTA
-DataMall data) · OneMap © SLA. Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
+NEA / data.gov.sg (Singapore Open Data Licence) · busrouter.sg (community project; bus data © LTA) ·
+MRT station exits: LTA via data.gov.sg (Singapore Open Data Licence), bundled as `assets/mrt_stations.json`
+(regenerate with `dart run tool/build_mrt_asset.dart`) · OneMap © SLA. ArriveLah (live arrivals) arrives in M4.
+Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 
 ## Known limitations
 
 - Walking times are **estimates** (straight-line × 1.3 at 80 m/min), not routed.
-- Phase 1 suggests **direct buses only** (no transfers). MRT is shown as information only.
+- Phase 1 suggests **direct buses only** (no transfers), ranked by a documented heuristic, not "the best"
+  route. MRT is shown as information only: the nearest station name and an estimated walk, with no lines,
+  codes, routes or arrivals.
+- Bus stop data comes from busrouter.sg and is loaded on the first journey request (about 570 KB).
+- Tokenless OneMap search can rate-limit (HTTP 429 after a few quick calls was seen in M3 testing).
 - busrouter, ArriveLah and tokenless OneMap search are third-party services with no SLA.
 
 ## Documentation

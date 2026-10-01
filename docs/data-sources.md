@@ -25,12 +25,13 @@ All Phase 1 sources are keyless and called directly from the client. Verificatio
 |---|---|
 | Owner | busrouter.sg (community project by Lim Chee Aun, `github.com/cheeaun/busrouter-sg`), derived from LTA data |
 | Endpoints | `https://data.busrouter.sg/v1/stops.min.json` (~317 KB), `services.min.json` (~255 KB); `routes.min.json` (polylines, Phase 2) |
-| Data used | Stops `code → [lng, lat, name, road]` (**lng first**); services `{name, routes: [[stop codes per direction]]}` |
-| Auth | None |
+| Data used (M3) | Stops `{code: [lng, lat, name, road]}` (**lng first**; converted to latitude-first once, in `busrouter_parser.dart`). Services `{number: {name, routes: [[codes], [codes]?]}}`: one list per direction, in stop order. On 2026-10-01: 5,208 stops, 602 services (406 one-direction, 222 loops with first == last stop) |
+| Auth | None. HTTP 200, CORS `*`, `Cache-Control: public,max-age=86400` |
 | Update cadence | Static; refreshed by the project periodically |
-| Licence / attribution | Verify the repo licence before release. Attribute "Bus data: busrouter.sg (LTA DataMall)" |
-| Limitations | No SLA, and the schema could change without notice |
-| Fallback | `StaticDataUnavailable` → journey shows "Bus data unavailable" plus the MRT alternative |
+| Licence / attribution | The busrouter README says the data is "© LTA", mostly scraped from lta.gov.sg (via `cheeaun/sgbusdata`); the code is MIT. The app shows "Bus data: busrouter.sg (data © LTA)". Suitable for this course project; re-check before any wider release |
+| Caching | Loaded lazily on the first journey request, once per session (see `docs/assumptions.md`) |
+| Limitations | No SLA, and the schema could change without notice. Stop 46239 Larkin Ter is in Johor Bahru |
+| Fallback | `StaticDataUnavailable` → the journey card shows "Bus data is unavailable right now." with Retry, plus the MRT alternative. Nothing is fabricated |
 
 ## ArriveLah
 
@@ -65,10 +66,18 @@ All Phase 1 sources are keyless and called directly from the client. Verificatio
 - **Nominatim** (`nominatim.openstreetmap.org`, ODbL / OSM): keyless, CORS-enabled. Policy: ≤ 1 req/s,
   **no client-side autocomplete**, identify the app via Referer/User-Agent, show attribution.
 
-## LTA MRT Station Exit (bundled asset — generation in Milestone 3)
+## LTA MRT Station Exit (bundled asset `assets/mrt_stations.json`)
 
-- data.gov.sg dataset `d_b39d3a0871985372d7e1637193335da5` (GeoJSON), via `poll-download`. Singapore Open
-  Data Licence.
+| | |
+|---|---|
+| Source | data.gov.sg dataset `d_b39d3a0871985372d7e1637193335da5`, "LTA MRT Station Exit (GEOJSON)", published by the Land Transport Authority. Fetched with `poll-download` (HTTP 201 → a signed URL) |
+| Licence / attribution | Singapore Open Data Licence v1.0. The app shows "MRT exits: LTA via data.gov.sg (Singapore Open Data Licence)" |
+| Fields used | `STATION_NA`, `EXIT_CODE`, Point `[lng, lat]`. There is **no line or station-code field**, so the app shows station names only |
+| Generation | `dart run tool/build_mrt_asset.dart` (or `--input exits.geojson --retrieved YYYY-MM-DD` for an offline rebuild). It groups exits with `groupMrtExits`, applies the cited code-only mapping, round-trips the output through the app's parser, and writes sorted, rounded JSON. Two builds from the same input are byte-identical |
+| Recorded in the asset | Source and dataset ID, licence, retrieval date (UTC), the latest feature update in the data, each code-only mapping with its evidence, and validation counts |
+| Current build | Retrieved 2026-10-01 (UTC); latest feature update 2026-07-17. 613 features, 0 skipped, 613 exits, 0 duplicates → **188 stations**; 7 code-only names mapped, 0 unverified |
+| Code-only records | CC9 → Paya Lebar, DT18 → Telok Ayer, DT4 → Hume, NE18 → Punggol Coast, CC30 → Keppel, CC31 → Cantonment, CC32 → Prince Edward Road. Each is verified by OneMap returning exactly that code label 41–85 m from the exits (searched 2026-10-02) |
+| Update procedure | Re-run the generator, review the printed counts (any "unverified code-only" warning needs a cited mapping or stays code-labelled), run `flutter test test/features/journey/mrt_test.dart` (update the expected counts if the dataset legitimately changed), and commit the asset |
 
 ## Excluded
 
