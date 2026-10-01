@@ -1,0 +1,92 @@
+/// Typed failures carried in `AsyncValue.error` (guide v2.1 §13).
+///
+/// Only the failures Milestone 1 can produce are defined here. The rest of the
+/// §13 list (place search, journey, bus arrival) arrives with those features.
+sealed class AppFailure implements Exception {
+  const AppFailure();
+
+  /// Friendly, user-facing message. No technical detail.
+  String get message;
+
+  @override
+  String toString() => '$runtimeType: $message';
+}
+
+// --- Location -------------------------------------------------------------
+
+sealed class LocationFailure extends AppFailure {
+  const LocationFailure();
+}
+
+final class LocationPermissionDenied extends LocationFailure {
+  const LocationPermissionDenied();
+  @override
+  String get message => 'Location permission was not granted.';
+}
+
+final class LocationPermissionPermanentlyDenied extends LocationFailure {
+  const LocationPermissionPermanentlyDenied();
+  @override
+  String get message =>
+      'Location permission is blocked. You can allow it in settings.';
+}
+
+final class LocationServiceDisabled extends LocationFailure {
+  const LocationServiceDisabled();
+  @override
+  String get message => 'Location services are turned off.';
+}
+
+final class LocationTimeout extends LocationFailure {
+  const LocationTimeout();
+  @override
+  String get message => 'Finding your location took too long.';
+}
+
+final class LocationOutsideSingapore extends LocationFailure {
+  const LocationOutsideSingapore();
+  @override
+  String get message => 'Your reported location is outside Singapore.';
+}
+
+/// Any other acquisition error (not in the §13 list; see docs/assumptions.md).
+final class LocationUnavailable extends LocationFailure {
+  const LocationUnavailable();
+  @override
+  String get message => 'Your location is unavailable right now.';
+}
+
+// --- Network / API --------------------------------------------------------
+
+final class NetworkUnavailable extends AppFailure {
+  const NetworkUnavailable();
+  @override
+  String get message => 'Network unavailable. Check your connection and retry.';
+}
+
+final class ApiRateLimited extends AppFailure {
+  const ApiRateLimited({this.retryAfter});
+  final Duration? retryAfter;
+  @override
+  String get message => 'The data service is busy. Please retry in a moment.';
+}
+
+final class ApiUnauthorized extends AppFailure {
+  const ApiUnauthorized();
+  @override
+  String get message => 'The data service refused the request.';
+}
+
+final class ApiUnavailable extends AppFailure {
+  const ApiUnavailable([this.detail]);
+  final String? detail;
+  @override
+  String get message => 'The data service is unavailable right now.';
+}
+
+final class InvalidApiResponse extends AppFailure {
+  const InvalidApiResponse([this.detail]);
+  final String? detail;
+  @override
+  String get message => 'The data service returned something unexpected.';
+}

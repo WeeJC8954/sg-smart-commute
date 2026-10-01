@@ -42,7 +42,9 @@ Re-run any of them with the commands above. None needs credentials.
 2. **data.gov.sg anonymous rate limit: 6 real-time calls per 10 s**
    (guide.data.gov.sg → API Rate Limits; exceeding it returns 429). The dashboard makes 4 calls at launch, so
    it fits. Refresh must be **debounced and session-cached**: never refetch per widget, and never all four
-   datasets in a tight loop. Handle `ApiRateLimited`. An optional (non-secret, public) API key raises the
+   datasets in a tight loop. Handle `ApiRateLimited`. **Implemented in M1:** one client-side rolling-window
+   limiter shared by every data.gov.sg real-time call (6 per 10 s, plus a 1 s latency margin), so calls
+   beyond the limit wait instead of drawing a 429 (`lib/core/http/rate_limiter.dart`). An optional (non-secret, public) API key raises the
    limit to 12/10 s, but it is **not required and not planned**.
 3. **OneMap tokenless search scored best among the tested providers (OneMap, Photon, Nominatim) on this
    51-query test set.** See §4. This is not a general guarantee. The response explicitly says a token is
