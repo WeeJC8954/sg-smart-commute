@@ -33,6 +33,7 @@ Re-run any of them with the commands above. None needs credentials.
 | Place search / reverse (fallback candidate) | Nominatim (OSMF public) | None | 200, `ACAO: *` | 200 | 200 | **≤ 1 req/s; client-side autocomplete forbidden**; identify app via Referer/User-Agent | ODbL; attribution required | Candidate (submit-only) |
 | MRT stations / exits | data.gov.sg LTA MRT Station Exit GeoJSON | None | poll-download 201 → signed S3 URL | n/a (build-time asset) | n/a | static | SODL | **Yes, as bundled asset** (generation deferred to M3) |
 | Walking / PT routing | OneMap routing | Token | **401** | not tested | not tested | — | — | **No** (needs credential) |
+| Reverse geocode | OneMap `/api/public/revgeocode` | Token | **401** (`{"message":"Unauthorized"}`, CORS `*`; probed 2026-10-01 in M2) | not tested | not tested | — | — | **No** (needs credential); a GPS origin stays "Current location" |
 | Bus (official) | LTA DataMall v3 | AccountKey | preflight **403** | **`Failed to fetch` (CORS)** | reachable natively (404 without key); not used | — | — | **No** (Phase 1) |
 
 ## 2. Findings that change or confirm the design

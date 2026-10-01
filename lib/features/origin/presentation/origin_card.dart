@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
-import '../../environment/domain/environment_models.dart';
-import '../../environment/environment_providers.dart';
+import '../../places/presentation/place_search_field.dart';
 import '../domain/origin.dart';
 import '../domain/origin_controller.dart';
 
@@ -33,6 +32,7 @@ class OriginCard extends ConsumerWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
+              key: const Key('change-origin'),
               onPressed: controller.changeOrigin,
               child: const Text('Change'),
             ),
@@ -54,7 +54,18 @@ class OriginCard extends ConsumerWidget {
           }
         }
         children.add(const SizedBox(height: 8));
-        children.add(const ManualOriginPicker());
+        children.add(
+          PlaceSearchField(
+            fieldKey: const Key('manual-origin-field'),
+            label: 'Your location',
+            onEditingStarted: controller.beginManualEntry,
+            onSelected: (place) => controller.selectManualOrigin(
+              place.displayName,
+              place.position,
+              detail: place.address,
+            ),
+          ),
+        );
     }
 
     if (state.offeredGpsFix != null) {
@@ -93,7 +104,7 @@ class _OriginLine extends StatelessWidget {
       OriginProvenance.gps => 'from GPS',
       OriginProvenance.manual => 'chosen manually',
     };
-    return Row(
+    final line = Row(
       children: [
         Icon(
           origin.provenance == OriginProvenance.gps
@@ -109,6 +120,15 @@ class _OriginLine extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
+      ],
+    );
+    final detail = origin.detail;
+    if (detail == null) return line;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        line,
+        Text(detail, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -160,113 +180,4 @@ class _Busy extends StatelessWidget {
       ],
     ),
   );
-}
-
-/// Milestone 1 manual origin: choose one of the NEA two-hour forecast areas
-/// (the ~47 names and label locations in the live payload). Milestone 2
-/// replaces this with place search (§5.3). See docs/assumptions.md.
-class ManualOriginPicker extends ConsumerStatefulWidget {
-  const ManualOriginPicker({super.key});
-
-  static const int maxResults = 8;
-
-  @override
-  ConsumerState<ManualOriginPicker> createState() => _ManualOriginPickerState();
-}
-
-class _ManualOriginPickerState extends ConsumerState<ManualOriginPicker> {
-  final _controller = TextEditingController();
-  final _focus = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    _focus.addListener(() {
-      if (_focus.hasFocus) _beginEntry();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focus.dispose();
-    super.dispose();
-  }
-
-  void _beginEntry() =>
-      ref.read(originControllerProvider.notifier).beginManualEntry();
-
-  @override
-  Widget build(BuildContext context) {
-    final areas = ref.watch(forecastSnapshotProvider);
-    if (areas.isLoading && !areas.hasValue) {
-      return const _Busy('Loading areas…');
-    }
-    if (areas.hasError && !areas.isLoading) {
-      final failure = areas.error;
-      return Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Area list unavailable. '
-              '${failure is AppFailure ? failure.message : ''}',
-            ),
-          ),
-          TextButton(
-            onPressed: () => ref.invalidate(forecastSnapshotProvider),
-            child: const Text('Retry'),
-          ),
-        ],
-      );
-    }
-
-    final query = _controller.text.trim().toLowerCase();
-    final all = areas.requireValue.areas;
-    final matches = query.isEmpty
-        ? const <ForecastArea>[]
-        : all
-              .where((a) => a.name.toLowerCase().contains(query))
-              .take(ManualOriginPicker.maxResults)
-              .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          key: const Key('manual-origin-field'),
-          controller: _controller,
-          focusNode: _focus,
-          decoration: const InputDecoration(
-            labelText: 'Your area',
-            hintText: 'e.g. Bishan, Tampines, City, Jurong East',
-            prefixIcon: Icon(Icons.search),
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (_) {
-            _beginEntry();
-            setState(() {});
-          },
-        ),
-        if (query.isNotEmpty && matches.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Text('No matching area. Try a nearby town name.'),
-          ),
-        for (final area in matches)
-          ListTile(
-            key: Key('area-${area.name}'),
-            leading: const Icon(Icons.place_outlined),
-            title: Text(area.name),
-            subtitle: const Text('NEA forecast area'),
-            onTap: () {
-              ref
-                  .read(originControllerProvider.notifier)
-                  .selectManualOrigin('${area.name} area', area.location);
-              _controller.clear();
-              _focus.unfocus();
-            },
-          ),
-      ],
-    );
-  }
 }

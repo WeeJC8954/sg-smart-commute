@@ -9,11 +9,15 @@ class Origin {
     required this.position,
     required this.label,
     required this.provenance,
+    this.detail,
   });
 
   final LatLng position;
   final String label;
   final OriginProvenance provenance;
+
+  /// Address detail of a searched place (e.g. road + postcode), if any.
+  final String? detail;
 }
 
 enum OriginPhase {

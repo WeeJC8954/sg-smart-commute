@@ -1,7 +1,8 @@
 /// Typed failures carried in `AsyncValue.error` (guide v2.1 §13).
 ///
-/// Only the failures Milestone 1 can produce are defined here. The rest of the
-/// §13 list (place search, journey, bus arrival) arrives with those features.
+/// Only the failures Milestones 1–2 can produce are defined here. The rest of
+/// the §13 list (journey, bus arrival) arrives with those features. An empty
+/// place search is an empty result list, not a failure.
 sealed class AppFailure implements Exception {
   const AppFailure();
 
@@ -89,4 +90,15 @@ final class InvalidApiResponse extends AppFailure {
   final String? detail;
   @override
   String get message => 'The data service returned something unexpected.';
+}
+
+// --- Place search ---------------------------------------------------------
+
+/// A 6-digit postal-code query returned results, but none with exactly that
+/// postcode (§8.2, §8.3). Fuzzy near-misses are never offered as the match.
+final class NoExactPostalMatch extends AppFailure {
+  const NoExactPostalMatch(this.postalCode);
+  final String postalCode;
+  @override
+  String get message => 'No exact match for $postalCode.';
 }

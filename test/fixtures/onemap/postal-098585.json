@@ -1,0 +1,20 @@
+{
+  "error": "Authentication token missing. Please create an account and generate or renew your API Token.",
+  "found": 1,
+  "totalNumPages": 1,
+  "pageNum": 1,
+  "results": [
+    {
+      "SEARCHVAL": "VIVOCITY",
+      "BLK_NO": "1",
+      "ROAD_NAME": "HARBOURFRONT WALK",
+      "BUILDING": "VIVOCITY",
+      "ADDRESS": "1 HARBOURFRONT WALK VIVOCITY SINGAPORE 098585",
+      "POSTAL": "098585",
+      "X": "26774.23631787673",
+      "Y": "27424.63917111978",
+      "LATITUDE": "1.264293167839738",
+      "LONGITUDE": "103.8223046936493"
+    }
+  ]
+}

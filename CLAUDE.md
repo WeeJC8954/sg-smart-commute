@@ -76,8 +76,9 @@ Key flows that span several files:
   10 s timeout (started only after permission is granted) → GPS fix validated against SG bounds → manual
   fallback. Each acquisition attempt has an id and superseded attempts' results are dropped. **No location
   attempt may replace a manual origin**; a late or retried fix is only offered via the "Use my current
-  location" chip (`useCurrentLocation()`). In M1 the manual origin is a pick from the NEA forecast areas
-  (place search arrives in M2). Full rules: the "Late fix" row of `docs/assumptions.md`.
+  location" chip (`useCurrentLocation()`). Since M2 the manual origin is a searched place
+  (`features/places/`, OneMap), the same search component as the destination. Full rules: the "Late fix"
+  row of `docs/assumptions.md`.
 - **Environment** (`features/environment/`): `environment_providers.dart` exposes one session-cached
   `FutureProvider` per dataset plus a refresh-all with cooldown; `domain/environment_locator.dart` picks the
   nearest forecast area / PM2.5–PSI region to the origin by haversine; `domain/bands.dart` holds the band
@@ -88,8 +89,10 @@ Key flows that span several files:
 ## Testing
 
 - Test seams overridden via providers: `locationServiceProvider`, `environmentRepositoryProvider`,
-  `locationTimeoutProvider`, `clockProvider`. `test/fakes/test_app.dart` (`buildTestApp`) builds the real app
-  with all of them faked; the fakes are shared by widget tests and `integration_test/`.
+  `locationTimeoutProvider`, `clockProvider`, `placeSearchRepositoryProvider` (plus
+  `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`). `test/fakes/test_app.dart`
+  (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
+  `integration_test/`.
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual
   smoke tests and probes in `docs/testing.md`.
 - NEA parser tests use real payloads captured once in `test/fixtures/*.json`.

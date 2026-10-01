@@ -1,28 +1,30 @@
-// Phase 1 happy-path integration test (guide v2.1 §18, item 1), M1 portion:
+// Phase 1 happy-path integration test (guide v2.1 §18, item 1), M1–M2:
 // fake GPS inside Singapore → dashboard shows the fake forecast / UV /
-// PM2.5 / PSI with scope labels and timestamps.
+// PM2.5 / PSI with scope labels and timestamps → the user searches for and
+// selects a destination (fake place search).
 //
-// The destination search → direct bus → ETA → manual refresh steps are added
-// by Milestones 2–4 when those features exist. Every provider is a fake; no
-// live API is called.
+// The direct bus → ETA → manual refresh steps are added by Milestones 3–4
+// when those features exist. Every provider is a fake; no live API is called.
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
 
 import '../test/fakes/fake_environment_repository.dart';
 import '../test/fakes/fake_location_service.dart';
+import '../test/fakes/fake_place_search_repository.dart';
 import '../test/fakes/test_app.dart';
 import 'support.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('GPS in Singapore → scoped environmental dashboard', (
-    tester,
-  ) async {
+  testWidgets('GPS in Singapore → scoped environmental dashboard → '
+      'search and select a destination', (tester) async {
     final env = FakeEnvironmentRepository();
+    final places = FakePlaceSearchRepository();
     await tester.pumpWidget(
       buildTestApp(
         location: FakeLocationService(
@@ -30,6 +32,7 @@ void main() {
           position: const LatLng(1.3508, 103.8485), // Bishan
         ),
         environment: env,
+        places: places,
       ),
     );
 
@@ -62,5 +65,19 @@ void main() {
     // One fetch per dataset at launch.
     expect(env.calls, {'forecast': 1, 'uv': 1, 'pm25': 1, 'psi': 1});
     expect(find.byKey(const Key('manual-origin-field')), findsNothing);
+
+    // M2: destination search (same component as the manual origin).
+    await scrollToTop(tester);
+    await pumpUntilFound(tester, find.text(DestinationCard.prompt));
+    await searchAndPick(
+      tester,
+      field: const Key('destination-field'),
+      query: 'VivoCity',
+      result: 'VIVOCITY',
+    );
+    await pumpUntilFound(tester, find.text('To: VIVOCITY'));
+    // Choosing a destination does not change the GPS origin.
+    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(places.queries, ['vivocity']);
   });
 }

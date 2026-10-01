@@ -120,7 +120,7 @@ final httpClientProvider = Provider<http.Client>((ref) {
 });
 
 /// The one limiter shared by every data.gov.sg real-time caller (launch,
-/// Refresh all, tile Retry, area-picker Retry, future datasets).
+/// Refresh all, tile Retry, future datasets).
 final dataGovSgRateLimiterProvider = Provider<RequestRateLimiter>(
   (ref) => RollingWindowRateLimiter(
     maxRequests: DataGovSgRateLimit.maxRequests,

@@ -19,6 +19,37 @@ abstract final class NeaEndpoints {
   static final Uri psi = Uri.parse('$_base/psi');
 }
 
+/// OneMap (Singapore Land Authority) search, used tokenless (docs/api-feasibility.md
+/// §4). Tokenless access is undocumented and may be withdrawn: a 401/403 is
+/// surfaced as `ApiUnauthorized`, never worked around. Reverse geocoding
+/// (`/api/public/revgeocode`) answers 401 without a token, so it is not used.
+abstract final class OneMapEndpoints {
+  static Uri search(String query) =>
+      Uri.https('www.onemap.gov.sg', '/api/common/elastic/search', {
+        'searchVal': query,
+        'returnGeom': 'Y',
+        'getAddrDetails': 'Y',
+        'pageNum': '1',
+      });
+}
+
+/// Place-search tunables (guide v2.1 §8.3, §15; docs/assumptions.md). The single
+/// source for these values.
+abstract final class PlaceSearchConfig {
+  /// Type-ahead waits this long after the last keystroke; submit is immediate.
+  static const Duration debounce = Duration(milliseconds: 350);
+
+  /// Successful results are cached in memory per normalised query this long.
+  static const Duration cacheTtl = Duration(minutes: 5);
+
+  /// Shorter queries are not searched, unless they are a 6-digit postal code.
+  static const int minQueryLength = 3;
+}
+
+/// Attribution shown wherever OneMap search results appear.
+const String oneMapAttribution =
+    'Place search: OneMap © Singapore Land Authority';
+
 /// data.gov.sg anonymous limit for the v2 real-time API: 6 calls in any 10 s
 /// (docs/api-feasibility.md). It is enforced client-side by one shared
 /// rolling-window limiter, so every caller is covered.

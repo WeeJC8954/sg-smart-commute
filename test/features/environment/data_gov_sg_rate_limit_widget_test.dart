@@ -1,8 +1,10 @@
 // The data.gov.sg anonymous limit (6 real-time calls per 10 s) through the
-// real UI paths: launch, "Refresh all", a tile's Retry and the area picker's
-// Retry. Only the HTTP transport is fake: a server that enforces the limit
-// and answers 429 above it. The real repository, JsonHttpClient and limiter
-// run unchanged. Time is the test binding's fake clock.
+// real UI paths: launch, "Refresh all" and a tile's Retry. (The M1 area
+// picker's Retry was a third path; Milestone 2 replaced that picker with
+// OneMap place search, so its test was removed.) Only the HTTP transport is
+// fake: a server that enforces the limit and answers 429 above it. The real
+// repository, JsonHttpClient and limiter run unchanged. Time is the test
+// binding's fake clock.
 import 'dart:io';
 
 import 'package:clock/clock.dart';
@@ -15,7 +17,6 @@ import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/http/json_http_client.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
-import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 import 'package:sg_smart_commute/main.dart';
 
 import '../../fakes/fake_location_service.dart';
@@ -166,36 +167,5 @@ void main() {
     expect(server.rateLimited, 0);
     await tester.pump();
     expect(retryIn(tile('tile-psi')), findsNothing);
-  });
-
-  testWidgets('the area picker Retry (same forecast endpoint) is limited too', (
-    tester,
-  ) async {
-    tallScreen(tester);
-    final server = FakeDataGovSg()..failNext.addAll(allDatasets);
-    await tester.pumpWidget(
-      app(server, FakeLocationService(access: LocationAccess.denied)),
-    );
-    await tester.pump();
-    await tester.pump();
-    expect(server.requests, hasLength(4));
-    expect(find.textContaining('Area list unavailable'), findsOneWidget);
-
-    await advance(tester, const Duration(seconds: 1));
-    await tapRetry(tester, tile('tile-uv'));
-    await tapRetry(tester, tile('tile-pm25'));
-    expect(server.requests, hasLength(6));
-
-    await advance(tester, const Duration(seconds: 1)); // t = 2 s
-    await tapRetry(tester, find.byType(OriginCard));
-    expect(server.requests, hasLength(6), reason: 'the 7th call must wait');
-
-    await advance(tester, const Duration(seconds: 9)); // t = 11 s
-    expect(server.requests, hasLength(7));
-    expect(server.requests.last.dataset, 'two-hr-forecast');
-    expect(server.requests.last.status, 200);
-    expect(server.rateLimited, 0);
-    await tester.pump();
-    expect(find.textContaining('Area list unavailable'), findsNothing);
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../features/environment/environment_providers.dart';
+import '../features/destination/presentation/destination_card.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
 import '../features/origin/presentation/origin_card.dart';
 import 'app.dart';
@@ -46,6 +47,7 @@ class HomeScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(12),
               children: [
                 const OriginCard(),
+                const DestinationCard(),
                 const SizedBox(height: 8),
                 Text(
                   'Conditions',
@@ -54,7 +56,8 @@ class HomeScreen extends ConsumerWidget {
                 const EnvironmentDashboard(),
                 const SizedBox(height: 12),
                 Text(
-                  'Data: $neaSourceLabel (Singapore Open Data Licence)',
+                  'Data: $neaSourceLabel (Singapore Open Data Licence) · '
+                  '$oneMapAttribution',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

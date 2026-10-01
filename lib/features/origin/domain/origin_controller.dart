@@ -142,7 +142,7 @@ class OriginController extends Notifier<OriginState> {
     );
   }
 
-  /// The user started manual entry (focused / opened the picker).
+  /// The user started manual entry (focused or typed in the origin search).
   void beginManualEntry() {
     if (state.phase == OriginPhase.needsManual &&
         !state.manualEntryInProgress) {
@@ -150,9 +150,9 @@ class OriginController extends Notifier<OriginState> {
     }
   }
 
-  /// The user explicitly selected an origin. Throws [ArgumentError] if it is
-  /// outside Singapore.
-  void selectManualOrigin(String label, LatLng position) {
+  /// The user explicitly selected an origin (a place-search result). Throws
+  /// [ArgumentError] if it is outside Singapore.
+  void selectManualOrigin(String label, LatLng position, {String? detail}) {
     if (!isWithinSingapore(position)) {
       throw ArgumentError.value(position, 'position', 'outside Singapore');
     }
@@ -165,6 +165,7 @@ class OriginController extends Notifier<OriginState> {
         position: position,
         label: label,
         provenance: OriginProvenance.manual,
+        detail: detail,
       ),
       offeredGpsFix: state.offeredGpsFix,
     );

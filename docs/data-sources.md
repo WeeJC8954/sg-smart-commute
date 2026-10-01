@@ -51,11 +51,12 @@ All Phase 1 sources are keyless and called directly from the client. Verificatio
 |---|---|
 | Owner | Singapore Land Authority |
 | Endpoint | `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=…&returnGeom=Y&getAddrDetails=Y&pageNum=1` |
-| Data used | `SEARCHVAL`, `ADDRESS`, `POSTAL`, `LATITUDE`, `LONGITUDE` |
-| Auth | Documented as token-required. Currently answers without a token, with an `error` message in the body |
-| Licence / attribution | OneMap terms of use. Attribute "OneMap © SLA" |
-| Limitations | Access could be withdrawn. Weak ranking for some parks (see feasibility §4.3) |
-| Fallback | Detect 401/403, or `error` with empty `results` → `ApiUnauthorized`. The tested OSM adapters are candidates (not built yet) |
+| Data used (M2) | `SEARCHVAL` (name), `ADDRESS`, `POSTAL` (a string; `"NIL"` → none), `BUILDING` / `BLK_NO` (type inference only), `LATITUDE`, `LONGITUDE` (strings, parsed; out-of-SG or invalid rows are dropped). `X`/`Y` (SVY21) unused. Only page 1 (≤ 10 results) |
+| Auth | Documented as token-required. Currently answers without a token (HTTP 200, CORS `*`), with an `error` message in every body, including empty ones (fixtures in `test/fixtures/onemap/`, captured 2026-10-01) |
+| Reverse geocode | `/api/public/revgeocode` → **401 Unauthorized** without a token (2026-10-01). Not used |
+| Licence / attribution | OneMap terms of use. The app shows "Place search: OneMap © Singapore Land Authority" under every result list and in the footer |
+| Limitations | Access could be withdrawn. Weak ranking for some parks (see feasibility §4.3). Upper-case names. No result-type field |
+| Failure handling | HTTP 401/403, or an `error` with no `results` list → `ApiUnauthorized`: a clear "requires sign-in" state, no workaround. `error` + empty `results` → no results. The tested OSM adapters remain contingency providers (not built) |
 
 ## Candidate fallbacks (evaluated, not integrated)
 
