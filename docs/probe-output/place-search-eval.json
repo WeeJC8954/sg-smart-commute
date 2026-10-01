@@ -1,0 +1,3926 @@
+{
+  "runAtUtc": "2026-10-01T10:40:06.801906Z",
+  "matchRule": "matchIndex = first hit (0-based) inside SG bbox whose name/address contains an expected keyword; postal-code queries require exact postcode equality; HDB address queries accept exact postcode or keyword; -1 = not found in returned results. negative case passes when nothing matches.",
+  "score": {
+    "onemap": {
+      "postal": [
+        9,
+        9,
+        9
+      ],
+      "hdb": [
+        4,
+        4,
+        5
+      ],
+      "street": [
+        5,
+        5,
+        5
+      ],
+      "mall": [
+        6,
+        6,
+        6
+      ],
+      "university": [
+        6,
+        6,
+        6
+      ],
+      "landmark": [
+        6,
+        7,
+        7
+      ],
+      "neighbourhood": [
+        6,
+        7,
+        8
+      ],
+      "prefix": [
+        4,
+        4,
+        4
+      ],
+      "negative": [
+        1,
+        1,
+        1
+      ]
+    },
+    "photon": {
+      "postal": [
+        9,
+        9,
+        9
+      ],
+      "hdb": [
+        2,
+        2,
+        5
+      ],
+      "street": [
+        5,
+        5,
+        5
+      ],
+      "mall": [
+        6,
+        6,
+        6
+      ],
+      "university": [
+        4,
+        5,
+        6
+      ],
+      "landmark": [
+        6,
+        6,
+        7
+      ],
+      "neighbourhood": [
+        8,
+        8,
+        8
+      ],
+      "prefix": [
+        4,
+        4,
+        4
+      ],
+      "negative": [
+        1,
+        1,
+        1
+      ]
+    },
+    "nominatim": {
+      "postal": [
+        9,
+        9,
+        9
+      ],
+      "hdb": [
+        2,
+        2,
+        5
+      ],
+      "street": [
+        5,
+        5,
+        5
+      ],
+      "mall": [
+        6,
+        6,
+        6
+      ],
+      "university": [
+        6,
+        6,
+        6
+      ],
+      "landmark": [
+        6,
+        6,
+        7
+      ],
+      "neighbourhood": [
+        7,
+        7,
+        8
+      ],
+      "negative": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "rows": [
+    {
+      "category": "postal",
+      "query": "238801",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 297,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "ION ORCHARD",
+            "address": "2 ORCHARD TURN ION ORCHARD SINGAPORE 238801",
+            "postcode": "238801",
+            "lat": 1.303979741445055,
+            "lng": 103.832032328465
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1962,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "238801",
+            "address": "Orchard",
+            "postcode": "238801",
+            "lat": 1.3039532964285714,
+            "lng": 103.83222367142858
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 59,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "238801",
+            "address": "238801, Orchard, Central Region, Singapore",
+            "postcode": "238801",
+            "lat": 1.3039961,
+            "lng": 103.8320067
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 21,
+        "nominatim": 3
+      }
+    },
+    {
+      "category": "postal",
+      "query": "098585",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 54,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "VIVOCITY",
+            "address": "1 HARBOURFRONT WALK VIVOCITY SINGAPORE 098585",
+            "postcode": "098585",
+            "lat": 1.264293167839738,
+            "lng": 103.8223046936493
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1273,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "098585",
+            "address": "Central Region",
+            "postcode": "098585",
+            "lat": 1.2639381918367347,
+            "lng": 103.82222129183674
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 26,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "098585",
+            "address": "098585, Bukit Merah, Central Region, Singapore",
+            "postcode": "098585",
+            "lat": 1.2640878,
+            "lng": 103.8223286
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 41,
+        "nominatim": 23
+      }
+    },
+    {
+      "category": "postal",
+      "query": "119077",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 77,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NATIONAL UNIVERSITY OF SINGAPORE",
+            "address": "21 LOWER KENT RIDGE ROAD NATIONAL UNIVERSITY OF SINGAPORE SINGAPORE 119077",
+            "postcode": "119077",
+            "lat": 1.295467181444465,
+            "lng": 103.7797739499254
+          },
+          {
+            "name": "NATIONAL UNIVERSITY OF SINGAPORE (FIRE FIGHTING TRAINING SHED)",
+            "address": "21 LOWER KENT RIDGE ROAD NATIONAL UNIVERSITY OF SINGAPORE (FIRE FIGHTING TRAINING SHED) SINGAPORE 119077",
+            "postcode": "119077",
+            "lat": 1.301327318853279,
+            "lng": 103.7742772562969
+          },
+          {
+            "name": "NATIONAL UNIVERSITY OF SINGAPORE (FRONTIER CANTEEN)",
+            "address": "21 LOWER KENT RIDGE ROAD NATIONAL UNIVERSITY OF SINGAPORE (FRONTIER CANTEEN) SINGAPORE 119077",
+            "postcode": "119077",
+            "lat": 1.296522072469859,
+            "lng": 103.7804625721294
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1519,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "119077",
+            "address": "Queenstown",
+            "postcode": "119077",
+            "lat": 1.2952671355555554,
+            "lng": 103.78014079777778
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 13,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "119077",
+            "address": "119077, Queenstown, Central Region, Singapore",
+            "postcode": "119077",
+            "lat": 1.2953452,
+            "lng": 103.7784546
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 46,
+        "nominatim": 147
+      }
+    },
+    {
+      "category": "postal",
+      "query": "639798",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 93,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NANYANG TECHNOLOGICAL UNIVERSITY (ADMINISTRATION BUILDING)",
+            "address": "50 NANYANG AVENUE NANYANG TECHNOLOGICAL UNIVERSITY (ADMINISTRATION BUILDING) SINGAPORE 639798",
+            "postcode": "639798",
+            "lat": 1.344483563067563,
+            "lng": 103.6810317408953
+          },
+          {
+            "name": "NANYANG TECHNOLOGICAL UNIVERSITY (CANTEEN 1)",
+            "address": "50 NANYANG AVENUE NANYANG TECHNOLOGICAL UNIVERSITY (CANTEEN 1) SINGAPORE 639798",
+            "postcode": "639798",
+            "lat": 1.346561984654176,
+            "lng": 103.6859715485076
+          },
+          {
+            "name": "NANYANG TECHNOLOGICAL UNIVERSITY (CANTEEN B)",
+            "address": "50 NANYANG AVENUE NANYANG TECHNOLOGICAL UNIVERSITY (CANTEEN B) SINGAPORE 639798",
+            "postcode": "639798",
+            "lat": 1.342375826783566,
+            "lng": 103.682467769982
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1649,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "639798",
+            "address": "Western Water Catchment",
+            "postcode": "639798",
+            "lat": 1.346959546031746,
+            "lng": 103.68196133492063
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 12,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "639798",
+            "address": "639798, Western Water Catchment, West Region, Singapore",
+            "postcode": "639798",
+            "lat": 1.3469229,
+            "lng": 103.6841335
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 294,
+        "nominatim": 439
+      }
+    },
+    {
+      "category": "postal",
+      "query": "018956",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 86,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "SANDS EXPO AND CONVENTION CENTRE",
+            "address": "10 BAYFRONT AVENUE SANDS EXPO AND CONVENTION CENTRE SINGAPORE 018956",
+            "postcode": "018956",
+            "lat": 1.282397137717063,
+            "lng": 103.8584053916593
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1246,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "018956",
+            "address": "Downtown Core",
+            "postcode": "018956",
+            "lat": 1.2835299636363637,
+            "lng": 103.85886238181818
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 13,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "018956",
+            "address": "018956, Downtown Core, Central Region, Singapore",
+            "postcode": "018956",
+            "lat": 1.282966,
+            "lng": 103.8588789
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 136,
+        "nominatim": 82
+      }
+    },
+    {
+      "category": "postal",
+      "query": "169608",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 90,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "MSCP 'H'",
+            "address": "1 HOSPITAL CRESCENT MSCP 'H' SINGAPORE 169608",
+            "postcode": "169608",
+            "lat": 1.279939687521296,
+            "lng": 103.8307217735341
+          },
+          {
+            "name": "SINGAPORE GENERAL HOSPITAL (BLK 1)",
+            "address": "1 HOSPITAL CRESCENT SINGAPORE GENERAL HOSPITAL (BLK 1) SINGAPORE 169608",
+            "postcode": "169608",
+            "lat": 1.278428732767789,
+            "lng": 103.834043063918
+          },
+          {
+            "name": "SINGAPORE GENERAL HOSPITAL (BLK 10)",
+            "address": "1 HOSPITAL CRESCENT SINGAPORE GENERAL HOSPITAL (BLK 10) SINGAPORE 169608",
+            "postcode": "169608",
+            "lat": 1.280621900642232,
+            "lng": 103.837372757602
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1232,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "169608",
+            "address": "Central Region",
+            "postcode": "169608",
+            "lat": 1.279914456521739,
+            "lng": 103.83535949130435
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 16,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "169608",
+            "address": "169608, Bukit Merah, Central Region, Singapore",
+            "postcode": "169608",
+            "lat": 1.2801203,
+            "lng": 103.8355339
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 516,
+        "nominatim": 535
+      }
+    },
+    {
+      "category": "postal",
+      "query": "560123",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 65,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "123 ANG MO KIO AVENUE 6 SINGAPORE 560123",
+            "address": "123 ANG MO KIO AVENUE 6 SINGAPORE 560123",
+            "postcode": "560123",
+            "lat": 1.370481187931938,
+            "lng": 103.8448058007904
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1478,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "560123",
+            "address": "Ang Mo Kio",
+            "postcode": "560123",
+            "lat": 1.3704877,
+            "lng": 103.8447931
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 20,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "560123",
+            "address": "560123, Ang Mo Kio, North-east Region, Singapore",
+            "postcode": "560123",
+            "lat": 1.3704877,
+            "lng": 103.8447931
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 2,
+        "nominatim": 2
+      }
+    },
+    {
+      "category": "postal",
+      "query": "520201",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 51,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "201 TAMPINES STREET 21 SINGAPORE 520201",
+            "address": "201 TAMPINES STREET 21 SINGAPORE 520201",
+            "postcode": "520201",
+            "lat": 1.35289506312913,
+            "lng": 103.9535856831844
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1750,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "520201",
+            "address": "Tampines",
+            "postcode": "520201",
+            "lat": 1.35289945,
+            "lng": 103.95367115
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 19,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "520201",
+            "address": "520201, Tampines, East Region, Singapore",
+            "postcode": "520201",
+            "lat": 1.3529756,
+            "lng": 103.9535753
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 10,
+        "nominatim": 9
+      }
+    },
+    {
+      "category": "postal",
+      "query": "760345",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 86,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "345 YISHUN AVENUE 11 SINGAPORE 760345",
+            "address": "345 YISHUN AVENUE 11 SINGAPORE 760345",
+            "postcode": "760345",
+            "lat": 1.42847591927492,
+            "lng": 103.844070961331
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1489,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "760345",
+            "address": "Yishun",
+            "postcode": "760345",
+            "lat": 1.4284774,
+            "lng": 103.8440734
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 16,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "760345",
+            "address": "760345, Yishun, North Region, Singapore",
+            "postcode": "760345",
+            "lat": 1.4284774,
+            "lng": 103.8440734
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 0,
+        "nominatim": 0
+      }
+    },
+    {
+      "category": "hdb",
+      "query": "123 Ang Mo Kio Avenue 6",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 80,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "123 ANG MO KIO AVENUE 6 SINGAPORE 560123",
+            "address": "123 ANG MO KIO AVENUE 6 SINGAPORE 560123",
+            "postcode": "560123",
+            "lat": 1.370481187931938,
+            "lng": 103.8448058007904
+          },
+          {
+            "name": "ASIAN WOMEN'S WELFARE ASSOCIATION COMMUNITY HOME FOR SENIOR CITIZENS",
+            "address": "123 ANG MO KIO AVENUE 6 ASIAN WOMEN'S WELFARE ASSOCIATION COMMUNITY HOME FOR SENIOR CITIZENS",
+            "postcode": null,
+            "lat": 1.370510524887771,
+            "lng": 103.8446523042996
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": -1,
+        "ms": 2450,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Ang Mo Kio Avenue 6",
+            "address": "Ang Mo Kio 569770",
+            "postcode": "569770",
+            "lat": 1.3812964,
+            "lng": 103.8442737
+          },
+          {
+            "name": "Ang Mo Kio Avenue 6",
+            "address": "Ang Mo Kio 569878",
+            "postcode": "569878",
+            "lat": 1.3775524,
+            "lng": 103.8449985
+          },
+          {
+            "name": "Ang Mo Kio Avenue 6",
+            "address": "Ang Mo Kio 569845",
+            "postcode": "569845",
+            "lat": 1.3844049,
+            "lng": 103.8437178
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": -1,
+        "ms": 14,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Ang Mo Kio Avenue 6",
+            "address": "Ang Mo Kio Avenue 6, Yio Chu Kang, Thomson, Ang Mo Kio, North-east Region, Singapore, 569845, Singapore",
+            "postcode": "569845",
+            "lat": 1.3850604,
+            "lng": 103.8433
+          },
+          {
+            "name": "Ang Mo Kio Avenue 6",
+            "address": "Ang Mo Kio Avenue 6, Ang Mo Kio Town Centre, Kebun Baru, Ang Mo Kio, North-east Region, Singapore, 560734, Singapore",
+            "postcode": "560734",
+            "lat": 1.3759122,
+            "lng": 103.8448833
+          },
+          {
+            "name": "Ang Mo Kio Avenue 6",
+            "address": "Ang Mo Kio Avenue 6, Yio Chu Kang, Thomson, Ang Mo Kio, North-east Region, Singapore, 567728, Singapore",
+            "postcode": "567728",
+            "lat": 1.3826761,
+            "lng": 103.8439288
+          }
+        ]
+      },
+      "distFromOneMapM": {}
+    },
+    {
+      "category": "hdb",
+      "query": "Blk 123 Ang Mo Kio Ave 6",
+      "onemap": {
+        "matchIndex": -1,
+        "ms": 296,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": []
+      },
+      "photon": {
+        "matchIndex": -1,
+        "ms": 2848,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Opposite Blk 604",
+            "address": "Ang Mo Kio Ave 5 Park Connector Ang Mo Kio 560601",
+            "postcode": "560601",
+            "lat": 1.3793467,
+            "lng": 103.835204
+          },
+          {
+            "name": "Blk 151",
+            "address": "Ang Mo Kio Ave 5 Park Connector Ang Mo Kio 560151",
+            "postcode": "560151",
+            "lat": 1.3769204,
+            "lng": 103.8410785
+          },
+          {
+            "name": "Blk 180",
+            "address": "Ang Mo Kio Ave 5 Park Connector Ang Mo Kio 560180",
+            "postcode": "560180",
+            "lat": 1.3768887,
+            "lng": 103.8379116
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": -1,
+        "ms": 16,
+        "error": null,
+        "note": null,
+        "top": []
+      }
+    },
+    {
+      "category": "hdb",
+      "query": "201 Tampines Street 21",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 94,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "201 TAMPINES STREET 21 SINGAPORE 520201",
+            "address": "201 TAMPINES STREET 21 SINGAPORE 520201",
+            "postcode": "520201",
+            "lat": 1.35289506312913,
+            "lng": 103.9535856831844
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1588,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Tampines Street 21",
+            "address": "201 Tampines Street 21 Tampines 520201",
+            "postcode": "520201",
+            "lat": 1.3529756,
+            "lng": 103.9535753
+          },
+          {
+            "name": "San Lou Mee Hoon三楼米粉",
+            "address": "201 Tampines Street 21 Tampines 520201",
+            "postcode": "520201",
+            "lat": 1.3528233,
+            "lng": 103.953767
+          },
+          {
+            "name": "Tampines Street 21",
+            "address": "201A Tampines Street 21 Tampines 521201",
+            "postcode": "521201",
+            "lat": 1.3533215,
+            "lng": 103.952649
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 27,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "",
+            "address": "201, Tampines Street 21, Tampines East, Changi Business Park, Tampines, East Region, Singapore, 520201, Singapore",
+            "postcode": "520201",
+            "lat": 1.3529756,
+            "lng": 103.9535753
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 9,
+        "nominatim": 9
+      }
+    },
+    {
+      "category": "hdb",
+      "query": "201 Tampines St 21",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 82,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "201 TAMPINES STREET 21 SINGAPORE 520201",
+            "address": "201 TAMPINES STREET 21 SINGAPORE 520201",
+            "postcode": "520201",
+            "lat": 1.35289506312913,
+            "lng": 103.9535856831844
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1192,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Tampines Street 21",
+            "address": "201 Tampines Street 21 Tampines 520201",
+            "postcode": "520201",
+            "lat": 1.3529756,
+            "lng": 103.9535753
+          },
+          {
+            "name": "San Lou Mee Hoon三楼米粉",
+            "address": "201 Tampines Street 21 Tampines 520201",
+            "postcode": "520201",
+            "lat": 1.3528233,
+            "lng": 103.953767
+          },
+          {
+            "name": "Tampines Street 21",
+            "address": "201A Tampines Street 21 Tampines 521201",
+            "postcode": "521201",
+            "lat": 1.3533215,
+            "lng": 103.952649
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 17,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "",
+            "address": "201, Tampines Street 21, Tampines East, Changi Business Park, Tampines, East Region, Singapore, 520201, Singapore",
+            "postcode": "520201",
+            "lat": 1.3529756,
+            "lng": 103.9535753
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 9,
+        "nominatim": 9
+      }
+    },
+    {
+      "category": "hdb",
+      "query": "345 Yishun Avenue 11",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 103,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "345 YISHUN AVENUE 11 SINGAPORE 760345",
+            "address": "345 YISHUN AVENUE 11 SINGAPORE 760345",
+            "postcode": "760345",
+            "lat": 1.42847591927492,
+            "lng": 103.844070961331
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": -1,
+        "ms": 3905,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Yishun Avenue 11",
+            "address": "Yishun 760442",
+            "postcode": "760442",
+            "lat": 1.4242658,
+            "lng": 103.8449309
+          },
+          {
+            "name": "Yishun Avenue 11",
+            "address": "Yishun 760350",
+            "postcode": "760350",
+            "lat": 1.4255731,
+            "lng": 103.8435276
+          },
+          {
+            "name": "Yishun Avenue 11",
+            "address": "Yishun 761428",
+            "postcode": "761428",
+            "lat": 1.4234306,
+            "lng": 103.8475514
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": -1,
+        "ms": 21,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Yishun Avenue 11",
+            "address": "Yishun Avenue 11, Yishun South, Yishun, North Region, Singapore, 760348, Singapore",
+            "postcode": "760348",
+            "lat": 1.4260113,
+            "lng": 103.8430732
+          },
+          {
+            "name": "Yishun Avenue 11",
+            "address": "Yishun Avenue 11, Yishun East, Yishun, North Region, Singapore, 760423, Singapore",
+            "postcode": "760423",
+            "lat": 1.423445,
+            "lng": 103.8479101
+          },
+          {
+            "name": "Yishun Avenue 11",
+            "address": "Yishun Avenue 11, Yishun South, Yishun, North Region, Singapore, 762348, Singapore",
+            "postcode": "762348",
+            "lat": 1.4269639,
+            "lng": 103.8416628
+          }
+        ]
+      },
+      "distFromOneMapM": {}
+    },
+    {
+      "category": "street",
+      "query": "Orchard Road",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 59,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "HOLIDAY INN EXPRESS SINGAPORE ORCHARD ROAD",
+            "address": "20 BIDEFORD ROAD HOLIDAY INN EXPRESS SINGAPORE ORCHARD ROAD SINGAPORE 229921",
+            "postcode": "229921",
+            "lat": 1.303227965302059,
+            "lng": 103.8366803615233
+          },
+          {
+            "name": "ORCHARD ROAD",
+            "address": "ORCHARD ROAD",
+            "postcode": null,
+            "lat": 1.301617598346111,
+            "lng": 103.8382102926642
+          },
+          {
+            "name": "ORCHARD ROAD",
+            "address": "2 ORCHARD TURN ORCHARD ROAD",
+            "postcode": null,
+            "lat": 1.304097857878989,
+            "lng": 103.8322519024681
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1832,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Orchard Road Presbyterian Church",
+            "address": "3 Orchard Road Museum 238825",
+            "postcode": "238825",
+            "lat": 1.297815,
+            "lng": 103.8471505
+          },
+          {
+            "name": "Orchard Road",
+            "address": "Museum 238825",
+            "postcode": "238825",
+            "lat": 1.2986921,
+            "lng": 103.8474582
+          },
+          {
+            "name": "library@Orchard",
+            "address": "277 Orchard Road Orchard 238896",
+            "postcode": "238896",
+            "lat": 1.3003822,
+            "lng": 103.8396813
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 15,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Orchard Road",
+            "address": "Orchard Road, Boulevard, Orchard, Central Region, Singapore, 238875, Singapore",
+            "postcode": "238875",
+            "lat": 1.3064186,
+            "lng": 103.8292864
+          },
+          {
+            "name": "Orchard Road",
+            "address": "Orchard Road, Somerset, Orchard, Central Region, Singapore, 238851, Singapore",
+            "postcode": "238851",
+            "lat": 1.301465,
+            "lng": 103.838515
+          },
+          {
+            "name": "Orchard Road",
+            "address": "Orchard Road, Boulevard, Orchard, Central Region, Singapore, 348548, Singapore",
+            "postcode": "348548",
+            "lat": 1.3033737,
+            "lng": 103.8349377
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 1310,
+        "nominatim": 895
+      }
+    },
+    {
+      "category": "street",
+      "query": "Bencoolen Street",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 134,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "BENCOOLEN STREET",
+            "address": "BENCOOLEN STREET",
+            "postcode": null,
+            "lat": 1.300150219854671,
+            "lng": 103.8513879895135
+          },
+          {
+            "name": "BENCOOLEN STREET - ERP(9)",
+            "address": "BENCOOLEN STREET - ERP(9)",
+            "postcode": null,
+            "lat": 1.302625681018089,
+            "lng": 103.8534154434354
+          },
+          {
+            "name": "HOTEL BENCOOLEN @ HONG KONG STREET",
+            "address": "47 HONGKONG STREET HOTEL BENCOOLEN @ HONG KONG STREET SINGAPORE 059685",
+            "postcode": "059685",
+            "lat": 1.287093597173411,
+            "lng": 103.8476723043485
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1494,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Bencoolen Street",
+            "address": "Rochor 189642",
+            "postcode": "189642",
+            "lat": 1.3014488,
+            "lng": 103.8524763
+          },
+          {
+            "name": "Bencoolen Street",
+            "address": "Rochor 187967",
+            "postcode": "187967",
+            "lat": 1.2996393,
+            "lng": 103.8510185
+          },
+          {
+            "name": "Bencoolen Street",
+            "address": "Rochor 189655",
+            "postcode": "189655",
+            "lat": 1.3002337,
+            "lng": 103.8515172
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 19,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Bencoolen Street",
+            "address": "Bencoolen Street, Victoria, Little India, Rochor, Central Region, Singapore, 189641, Singapore",
+            "postcode": "189641",
+            "lat": 1.301109,
+            "lng": 103.8522038
+          },
+          {
+            "name": "Bencoolen Street",
+            "address": "Bencoolen Street, Victoria, Little India, Rochor, Central Region, Singapore, 188980, Singapore",
+            "postcode": "188980",
+            "lat": 1.3006747,
+            "lng": 103.8518582
+          },
+          {
+            "name": "Bencoolen Street",
+            "address": "Bencoolen Street, Victoria, Little India, Rochor, Central Region, Singapore, 189655, Singapore",
+            "postcode": "189655",
+            "lat": 1.3002337,
+            "lng": 103.8515172
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 188,
+        "nominatim": 140
+      }
+    },
+    {
+      "category": "street",
+      "query": "Upper Thomson Road",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 53,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "OLD UPPER THOMSON ROAD",
+            "address": "OLD UPPER THOMSON ROAD",
+            "postcode": null,
+            "lat": 1.370075179567306,
+            "lng": 103.827677980584
+          },
+          {
+            "name": "UPPER THOMSON ROAD",
+            "address": "UPPER THOMSON ROAD",
+            "postcode": null,
+            "lat": 1.37267910577559,
+            "lng": 103.8285177571038
+          },
+          {
+            "name": "UPPER THOMSON ROAD 14KM",
+            "address": "UPPER THOMSON ROAD 14KM",
+            "postcode": null,
+            "lat": 1.392729248715199,
+            "lng": 103.8184052913686
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1251,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Upper Thomson Road",
+            "address": "Yishun 787124",
+            "postcode": "787124",
+            "lat": 1.3997704,
+            "lng": 103.8175046
+          },
+          {
+            "name": "Upper Thomson Road",
+            "address": "Central Water Catchment 573849",
+            "postcode": "573849",
+            "lat": 1.3672208,
+            "lng": 103.8282301
+          },
+          {
+            "name": "Upper Thomson Road",
+            "address": "Central Water Catchment 788979",
+            "postcode": "788979",
+            "lat": 1.3936363,
+            "lng": 103.8187065
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 15,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Upper Thomson Road",
+            "address": "Upper Thomson Road, Tagore, Thomson, Ang Mo Kio, North-east Region, Singapore, 787478, Singapore",
+            "postcode": "787478",
+            "lat": 1.385616,
+            "lng": 103.8225533
+          },
+          {
+            "name": "Upper Thomson Road",
+            "address": "Upper Thomson Road, Upper Thomson, Sin Ming, Bishan, Central Region, Singapore, 570308, Singapore",
+            "postcode": "570308",
+            "lat": 1.3497405,
+            "lng": 103.8368378
+          },
+          {
+            "name": "Upper Thomson Road",
+            "address": "Upper Thomson Road, Upper Thomson, Sin Ming, Bishan, Central Region, Singapore, 574356, Singapore",
+            "postcode": "574356",
+            "lat": 1.3527897,
+            "lng": 103.8349954
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 3490,
+        "nominatim": 1820
+      }
+    },
+    {
+      "category": "street",
+      "query": "Jalan Besar",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 75,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "AQUEEN PRESTIGE HOTEL - JALAN BESAR",
+            "address": "29 TYRWHITT ROAD AQUEEN PRESTIGE HOTEL - JALAN BESAR SINGAPORE 207533",
+            "postcode": "207533",
+            "lat": 1.309776616886611,
+            "lng": 103.8587174697503
+          },
+          {
+            "name": "JALAN BESAR COMMUNITY CLUB",
+            "address": "69 JELLICOE ROAD JALAN BESAR COMMUNITY CLUB SINGAPORE 208737",
+            "postcode": "208737",
+            "lat": 1.308004174711576,
+            "lng": 103.8617865683514
+          },
+          {
+            "name": "JALAN BESAR MRT STATION (DT22)",
+            "address": "90 JALAN BESAR JALAN BESAR MRT STATION (DT22) SINGAPORE 208826",
+            "postcode": "208826",
+            "lat": 1.3051713878069,
+            "lng": 103.855295713435
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1377,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Jalan Besar",
+            "address": "90 Jalan Besar Rochor 208804",
+            "postcode": "208804",
+            "lat": 1.3052419,
+            "lng": 103.8552882
+          },
+          {
+            "name": "Jalan Besar Stadium",
+            "address": "King George's Avenue Kallang 200807",
+            "postcode": "200807",
+            "lat": 1.3099506,
+            "lng": 103.8603458
+          },
+          {
+            "name": "Jalan Besar",
+            "address": "Kallang 209001",
+            "postcode": "209001",
+            "lat": 1.3132606,
+            "lng": 103.8599079
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 13,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Jalan Besar",
+            "address": "Jalan Besar, 90, Jalan Besar, Little India, Rochor, Central Region, Singapore, 208804, Singapore",
+            "postcode": "208804",
+            "lat": 1.3052419,
+            "lng": 103.8552882
+          },
+          {
+            "name": "Jalan Besar",
+            "address": "Jalan Besar, Lavender, Kallang, Central Region, Singapore, 208934, Singapore",
+            "postcode": "208934",
+            "lat": 1.3102074,
+            "lng": 103.8584343
+          },
+          {
+            "name": "Jalan Besar",
+            "address": "Jalan Besar, Lavender, Kallang, Central Region, Singapore, 208973, Singapore",
+            "postcode": "208973",
+            "lat": 1.3114311,
+            "lng": 103.8592531
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 632,
+        "nominatim": 632
+      }
+    },
+    {
+      "category": "street",
+      "query": "Lorong Chuan",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 71,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "CALTEX LORONG CHUAN",
+            "address": "277 LORONG CHUAN CALTEX LORONG CHUAN SINGAPORE 556771",
+            "postcode": "556771",
+            "lat": 1.357831492124907,
+            "lng": 103.8679074401678
+          },
+          {
+            "name": "ESSO LORONG CHUAN",
+            "address": "384 LORONG CHUAN ESSO LORONG CHUAN SINGAPORE 556810",
+            "postcode": "556810",
+            "lat": 1.362480177527141,
+            "lng": 103.8681572721174
+          },
+          {
+            "name": "LORONG CHUAN",
+            "address": "LORONG CHUAN",
+            "postcode": null,
+            "lat": 1.35126030066694,
+            "lng": 103.8622189688295
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1149,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Lorong Chuan",
+            "address": "150 Serangoon Avenue 3 Serangoon 556744",
+            "postcode": "556744",
+            "lat": 1.3515658,
+            "lng": 103.8638622
+          },
+          {
+            "name": "Lorong Chuan",
+            "address": "Serangoon",
+            "postcode": null,
+            "lat": 1.348471,
+            "lng": 103.8632208
+          },
+          {
+            "name": "Lorong Chuan",
+            "address": "Serangoon 550308",
+            "postcode": "550308",
+            "lat": 1.3542655,
+            "lng": 103.8654452
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 19,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Lorong Chuan",
+            "address": "Lorong Chuan, 150, Serangoon Avenue 3, Lorong Chuan, Serangoon, North-east Region, Singapore, 556121, Singapore",
+            "postcode": "556121",
+            "lat": 1.3515773,
+            "lng": 103.8642514
+          },
+          {
+            "name": "Lorong Chuan",
+            "address": "Lorong Chuan, Serangoon, North-east Region, Singapore",
+            "postcode": null,
+            "lat": 1.348471,
+            "lng": 103.8632208
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 829,
+        "nominatim": 805
+      }
+    },
+    {
+      "category": "mall",
+      "query": "VivoCity",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 122,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "VIVOCITY",
+            "address": "1 HARBOURFRONT WALK VIVOCITY SINGAPORE 098585",
+            "postcode": "098585",
+            "lat": 1.264293167839738,
+            "lng": 103.8223046936493
+          },
+          {
+            "name": "VIVOCITY STATION (S1)",
+            "address": "83 TELOK BLANGAH ROAD VIVOCITY STATION (S1) SINGAPORE 098886",
+            "postcode": "098886",
+            "lat": 1.265050842627599,
+            "lng": 103.8216245803924
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1101,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "VivoCity",
+            "address": "1 Harbourfront Avenue HarbourFront 098585",
+            "postcode": "098585",
+            "lat": 1.2643707,
+            "lng": 103.8229537
+          },
+          {
+            "name": "VivoCity",
+            "address": "Telok Blangah Road HarbourFront 098585",
+            "postcode": "098585",
+            "lat": 1.2650806,
+            "lng": 103.8223037
+          },
+          {
+            "name": "VivoCity",
+            "address": "Telok Blangah Road HarbourFront 098585",
+            "postcode": "098585",
+            "lat": 1.265099,
+            "lng": 103.8223324
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 13,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "VivoCity",
+            "address": "VivoCity, 1, Harbourfront Avenue, Maritime Square, HarbourFront, Bukit Merah, Central Region, Singapore, 098585, Singapore",
+            "postcode": "098585",
+            "lat": 1.2643707,
+            "lng": 103.8229537
+          },
+          {
+            "name": "VivoCity",
+            "address": "VivoCity, 1, Harbourfront Avenue, Maritime Square, HarbourFront, Bukit Merah, Central Region, Singapore, 098585, Singapore",
+            "postcode": "098585",
+            "lat": 1.265099,
+            "lng": 103.8223324
+          },
+          {
+            "name": "VivoCity",
+            "address": "VivoCity, 1, Harbourfront Avenue, Maritime Square, HarbourFront, Bukit Merah, Central Region, Singapore, 098585, Singapore",
+            "postcode": "098585",
+            "lat": 1.2650806,
+            "lng": 103.8223037
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 73,
+        "nominatim": 73
+      }
+    },
+    {
+      "category": "mall",
+      "query": "Jewel Changi Airport",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 62,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "JEWEL CHANGI AIRPORT",
+            "address": "78 AIRPORT BOULEVARD JEWEL CHANGI AIRPORT SINGAPORE 819666",
+            "postcode": "819666",
+            "lat": 1.360341006610217,
+            "lng": 103.9890775502096
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 912,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Jewel Changi Airport",
+            "address": "78 Airport Boulevard Changi 819666",
+            "postcode": "819666",
+            "lat": 1.3602243,
+            "lng": 103.9896749
+          },
+          {
+            "name": "The Coffee Bean & Tea Leaf",
+            "address": "78 Airport Boulevard Changi 819666",
+            "postcode": "819666",
+            "lat": 1.3602785,
+            "lng": 103.9901555
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 11,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Jewel Changi Airport",
+            "address": "Jewel Changi Airport, 78, T1 Boulevard, Changi, East Region, Singapore, 819666, Singapore",
+            "postcode": "819666",
+            "lat": 1.3602243,
+            "lng": 103.9896749
+          },
+          {
+            "name": "The Coffee Bean & Tea Leaf",
+            "address": "The Coffee Bean & Tea Leaf, 78, Airport Boulevard, Changi, East Region, Singapore, 819666, Singapore",
+            "postcode": "819666",
+            "lat": 1.3602785,
+            "lng": 103.9901555
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 68,
+        "nominatim": 68
+      }
+    },
+    {
+      "category": "mall",
+      "query": "Northpoint City",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 52,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NORTHPOINT CITY",
+            "address": "930 YISHUN AVENUE 2 NORTHPOINT CITY SINGAPORE 769098",
+            "postcode": "769098",
+            "lat": 1.429698486262892,
+            "lng": 103.8357764914675
+          },
+          {
+            "name": "NORTHPOINT CITY",
+            "address": "1 NORTHPOINT DRIVE NORTHPOINT CITY SINGAPORE 768019",
+            "postcode": "768019",
+            "lat": 1.427902889913047,
+            "lng": 103.8361776509722
+          },
+          {
+            "name": "NORTHPOINT CITY",
+            "address": "920 YISHUN AVENUE 2 NORTHPOINT CITY SINGAPORE 769100",
+            "postcode": "769100",
+            "lat": 1.42790289018678,
+            "lng": 103.8361776507003
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1264,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Northpoint City",
+            "address": "930 Yishun Avenue 2 Yishun 769098",
+            "postcode": "769098",
+            "lat": 1.4281326,
+            "lng": 103.8362451
+          },
+          {
+            "name": "Phone Repair Singapore - NorthPoint City for iPhone Samsung Pixel Xiaomi",
+            "address": "Yishun Central Service Road Yishun 768794",
+            "postcode": "768794",
+            "lat": 1.4293334,
+            "lng": 103.8363723
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 10,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Northpoint City",
+            "address": "Northpoint City, 930, Yishun Avenue 2, Yishun South, Chong Pang, Yishun, North Region, Singapore, 769098, Singapore",
+            "postcode": "769098",
+            "lat": 1.4281326,
+            "lng": 103.8362451
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 182,
+        "nominatim": 182
+      }
+    },
+    {
+      "category": "mall",
+      "query": "Tampines Mall",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 57,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "TAMPINES MALL",
+            "address": "4 TAMPINES CENTRAL 5 TAMPINES MALL SINGAPORE 529510",
+            "postcode": "529510",
+            "lat": 1.352527372785196,
+            "lng": 103.9446987510717
+          },
+          {
+            "name": "TAMPINES MALL (CAR PARK ENTRANCE A)",
+            "address": "TAMPINES MALL (CAR PARK ENTRANCE A)",
+            "postcode": null,
+            "lat": 1.352759258679618,
+            "lng": 103.9451461508028
+          },
+          {
+            "name": "TAMPINES MALL (CAR PARK ENTRANCE B)",
+            "address": "TAMPINES MALL (CAR PARK ENTRANCE B)",
+            "postcode": null,
+            "lat": 1.352831913092814,
+            "lng": 103.94439771475
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1633,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Tampines Mall",
+            "address": "4 Tampines Central 5 Tampines 529509",
+            "postcode": "529509",
+            "lat": 1.3525218,
+            "lng": 103.9447221
+          },
+          {
+            "name": "Tampines Mall",
+            "address": "Tampines Avenue 4 Tampines 529510",
+            "postcode": "529510",
+            "lat": 1.352249,
+            "lng": 103.9449276
+          },
+          {
+            "name": "Eastlink Mall",
+            "address": "8 Tampines Central 1 Tampines 529543",
+            "postcode": "529543",
+            "lat": 1.3543254,
+            "lng": 103.9443553
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 11,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Tampines Mall",
+            "address": "Tampines Mall, 4, Tampines Central 5, Tampines East, Tampines, East Region, Singapore, 529509, Singapore",
+            "postcode": "529509",
+            "lat": 1.3525218,
+            "lng": 103.9447221
+          },
+          {
+            "name": "Tampines Mall",
+            "address": "Tampines Mall, Tampines Avenue 4, Tampines East, Tampines, East Region, Singapore, 529510, Singapore",
+            "postcode": "529510",
+            "lat": 1.352249,
+            "lng": 103.9449276
+          },
+          {
+            "name": "UOB",
+            "address": "UOB, 4, Tampines Central 5, Tampines East, Tampines, East Region, Singapore, 529510, Singapore",
+            "postcode": "529510",
+            "lat": 1.3524554,
+            "lng": 103.9443688
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 3,
+        "nominatim": 3
+      }
+    },
+    {
+      "category": "mall",
+      "query": "Junction 8",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 70,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "JUNCTION 8",
+            "address": "9 BISHAN PLACE JUNCTION 8 SINGAPORE 579837",
+            "postcode": "579837",
+            "lat": 1.350481253450499,
+            "lng": 103.848760473211
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1988,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Junction 8",
+            "address": "9 Bishan Place Bishan 579837",
+            "postcode": "579837",
+            "lat": 1.3505893,
+            "lng": 103.8487447
+          },
+          {
+            "name": "Junction 8",
+            "address": "Bishan Place Bishan 579837",
+            "postcode": "579837",
+            "lat": 1.3507077,
+            "lng": 103.8490772
+          },
+          {
+            "name": "Junction 8 Roof Garden",
+            "address": "Bishan Place Bishan 579827",
+            "postcode": "579827",
+            "lat": 1.3508921,
+            "lng": 103.8486344
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 15,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Junction 8",
+            "address": "Junction 8, 9, Bishan Place, Bishan East, Bishan, Central Region, Singapore, 579837, Singapore",
+            "postcode": "579837",
+            "lat": 1.3505893,
+            "lng": 103.8487447
+          },
+          {
+            "name": "Junction 8",
+            "address": "Junction 8, Bishan Place, Bishan East, Bishan, Central Region, Singapore, 579837, Singapore",
+            "postcode": "579837",
+            "lat": 1.3507077,
+            "lng": 103.8490772
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 12,
+        "nominatim": 12
+      }
+    },
+    {
+      "category": "mall",
+      "query": "Causeway Point",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 90,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "CAUSEWAY POINT",
+            "address": "1 WOODLANDS SQUARE CAUSEWAY POINT SINGAPORE 738099",
+            "postcode": "738099",
+            "lat": 1.436070065080311,
+            "lng": 103.7859815242531
+          },
+          {
+            "name": "CAUSEWAY POINT (CAR PARK ENTRANCE)",
+            "address": "CAUSEWAY POINT (CAR PARK ENTRANCE)",
+            "postcode": null,
+            "lat": 1.43593382656025,
+            "lng": 103.7866212255665
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 2040,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Causeway Point",
+            "address": "1 Woodlands Square Woodlands 738099",
+            "postcode": "738099",
+            "lat": 1.4360395,
+            "lng": 103.7860225
+          },
+          {
+            "name": "Causeway Point",
+            "address": "1 Woodlands Square Woodlands 738099",
+            "postcode": "738099",
+            "lat": 1.4361853,
+            "lng": 103.7858156
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 25,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Causeway Point",
+            "address": "Causeway Point, 1, Woodlands Square, Woodlands Regional Centre, Woodlands, North Region, Singapore, 738099, Singapore",
+            "postcode": "738099",
+            "lat": 1.4360395,
+            "lng": 103.7860225
+          },
+          {
+            "name": "UOB",
+            "address": "UOB, 1, Woodlands Square, Woodlands Regional Centre, Woodlands, North Region, Singapore, 738099, Singapore",
+            "postcode": "738099",
+            "lat": 1.4361853,
+            "lng": 103.7858156
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 6,
+        "nominatim": 6
+      }
+    },
+    {
+      "category": "university",
+      "query": "NUS",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 56,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NUS (RIDGE VIEW RESIDENTIAL COLLEGE (RVRC))",
+            "address": "25 LOWER KENT RIDGE ROAD NUS (RIDGE VIEW RESIDENTIAL COLLEGE (RVRC)) SINGAPORE 119081",
+            "postcode": "119081",
+            "lat": 1.29795051423399,
+            "lng": 103.7759508147812
+          },
+          {
+            "name": "NUS BABA HOUSE",
+            "address": "157 NEIL ROAD NUS BABA HOUSE",
+            "postcode": null,
+            "lat": 1.277211894929703,
+            "lng": 103.8373452643598
+          },
+          {
+            "name": "NUS COLLEGE",
+            "address": "14 COLLEGE AVENUE WEST NUS COLLEGE SINGAPORE 138611",
+            "postcode": "138611",
+            "lat": 1.3060880953711,
+            "lng": 103.7719930130663
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": -1,
+        "ms": 1549,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "NUS High School of Mathematics and Science",
+            "address": "Clementi Avenue 1 Clementi 129955",
+            "postcode": "129955",
+            "lat": 1.3068172,
+            "lng": 103.7700098
+          },
+          {
+            "name": "NUS Hill",
+            "address": "119392",
+            "postcode": "119392",
+            "lat": 1.2957181,
+            "lng": 103.7766893
+          },
+          {
+            "name": "NUS Kent Vale Residence",
+            "address": "Clementi Road Clementi 129790",
+            "postcode": "129790",
+            "lat": 1.3028641,
+            "lng": 103.7688104
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 18,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "National University of Singapore",
+            "address": "National University of Singapore, 21, Lower Kent Ridge Road, National University of Singapore, one-north, Queenstown, Central Region, Singapore, 119077, Singapore",
+            "postcode": "119077",
+            "lat": 1.2962018,
+            "lng": 103.7768975
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "nominatim": 221
+      }
+    },
+    {
+      "category": "university",
+      "query": "National University of Singapore",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 114,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NATIONAL UNIVERSITY OF SINGAPORE",
+            "address": "5 ARTS LINK NATIONAL UNIVERSITY OF SINGAPORE SINGAPORE 117570",
+            "postcode": "117570",
+            "lat": 1.294201230793541,
+            "lng": 103.7710715818037
+          },
+          {
+            "name": "NATIONAL UNIVERSITY OF SINGAPORE",
+            "address": "2 MEDICAL DRIVE NATIONAL UNIVERSITY OF SINGAPORE SINGAPORE 117593",
+            "postcode": "117593",
+            "lat": 1.296723049391616,
+            "lng": 103.7813184527897
+          },
+          {
+            "name": "NATIONAL UNIVERSITY OF SINGAPORE",
+            "address": "1 BUSINESS LINK NATIONAL UNIVERSITY OF SINGAPORE SINGAPORE 117592",
+            "postcode": "117592",
+            "lat": 1.293501683947368,
+            "lng": 103.7742639311498
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1464,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "National University of Singapore",
+            "address": "Queenstown",
+            "postcode": null,
+            "lat": 1.2959845,
+            "lng": 103.7766186
+          },
+          {
+            "name": "National University of Singapore",
+            "address": "21 Lower Kent Ridge Road Queenstown 119077",
+            "postcode": "119077",
+            "lat": 1.2962018,
+            "lng": 103.7768975
+          },
+          {
+            "name": "National University of Singapore (Bukit Timah)",
+            "address": "469 Bukit Timah Road Tanglin 259756",
+            "postcode": "259756",
+            "lat": 1.3196385,
+            "lng": 103.8187049
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 14,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "National University of Singapore",
+            "address": "National University of Singapore, one-north, Queenstown, Central Region, Singapore",
+            "postcode": null,
+            "lat": 1.2959845,
+            "lng": 103.7766186
+          },
+          {
+            "name": "National University of Singapore",
+            "address": "National University of Singapore, 21, Lower Kent Ridge Road, National University of Singapore, one-north, Queenstown, Central Region, Singapore, 119077, Singapore",
+            "postcode": "119077",
+            "lat": 1.2962018,
+            "lng": 103.7768975
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 648,
+        "nominatim": 648
+      }
+    },
+    {
+      "category": "university",
+      "query": "NTU",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 49,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NANYANG TECHNOLOGICAL UNIVERSITY",
+            "address": "94 NANYANG CRESCENT NANYANG TECHNOLOGICAL UNIVERSITY SINGAPORE 637034",
+            "postcode": "637034",
+            "lat": 1.352949370203277,
+            "lng": 103.6892235086704
+          },
+          {
+            "name": "NANYANG TECHNOLOGICAL UNIVERSITY",
+            "address": "71 NANYANG CRESCENT NANYANG TECHNOLOGICAL UNIVERSITY SINGAPORE 637035",
+            "postcode": "637035",
+            "lat": 1.354282743739479,
+            "lng": 103.6894395003443
+          },
+          {
+            "name": "NANYANG TECHNOLOGICAL UNIVERSITY",
+            "address": "50 NANYANG AVENUE NANYANG TECHNOLOGICAL UNIVERSITY SINGAPORE 639798",
+            "postcode": "639798",
+            "lat": 1.343058936358113,
+            "lng": 103.6809726894903
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 1,
+        "ms": 1592,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "NTUC Centre",
+            "address": "1 Marina Boulevard Downtown Core 018989",
+            "postcode": "018989",
+            "lat": 1.2822887,
+            "lng": 103.8526812
+          },
+          {
+            "name": "NTU FACTS @ N4.1",
+            "address": "50 Nanyang Drive Block N4.1-B4-10, Western Water Catchment 639798",
+            "postcode": "639798",
+            "lat": 1.3463868,
+            "lng": 103.682934
+          },
+          {
+            "name": "NTUC Fairprice",
+            "address": "Woodlands Avenue 3 Woodlands 739044",
+            "postcode": "739044",
+            "lat": 1.4325561,
+            "lng": 103.7744928
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 15,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Nanyang Technological University",
+            "address": "Nanyang Technological University, 50, Nanyang Avenue, Murai, Western Water Catchment, West Region, Singapore, 639798, Singapore",
+            "postcode": "639798",
+            "lat": 1.3484104,
+            "lng": 103.6829332
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 1011,
+        "nominatim": 862
+      }
+    },
+    {
+      "category": "university",
+      "query": "Singapore Management University",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 72,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "SINGAPORE MANAGEMENT UNIVERSITY (ADMIN BLDG)",
+            "address": "81 VICTORIA STREET SINGAPORE MANAGEMENT UNIVERSITY (ADMIN BLDG) SINGAPORE 188065",
+            "postcode": "188065",
+            "lat": 1.296846713984232,
+            "lng": 103.8522079431716
+          },
+          {
+            "name": "SINGAPORE MANAGEMENT UNIVERSITY (LEE KONG CHIAN SCH OF BUSINESS)",
+            "address": "50 STAMFORD ROAD SINGAPORE MANAGEMENT UNIVERSITY (LEE KONG CHIAN SCH OF BUSINESS) SINGAPORE 178899",
+            "postcode": "178899",
+            "lat": 1.295090451908732,
+            "lng": 103.8505662002827
+          },
+          {
+            "name": "SINGAPORE MANAGEMENT UNIVERSITY (LI KA SHING LIBRARY)",
+            "address": "70 STAMFORD ROAD SINGAPORE MANAGEMENT UNIVERSITY (LI KA SHING LIBRARY) SINGAPORE 178901",
+            "postcode": "178901",
+            "lat": 1.296656758186516,
+            "lng": 103.850105946307
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1311,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore Management University",
+            "address": "81 Victoria Street Downtown Core 188065",
+            "postcode": "188065",
+            "lat": 1.296168,
+            "lng": 103.8500437
+          },
+          {
+            "name": "Singapore Management University Campus",
+            "address": "Waterloo Link Rochor 188549",
+            "postcode": "188549",
+            "lat": 1.296168,
+            "lng": 103.8500437
+          },
+          {
+            "name": "Singapore Management University",
+            "address": "Stamford Road Museum 188065",
+            "postcode": "188065",
+            "lat": 1.296126,
+            "lng": 103.8496233
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 14,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore Management University",
+            "address": "Singapore Management University, 81, Victoria Street, Bras Basah, Museum, Central Region, Singapore, 188065, Singapore",
+            "postcode": "188065",
+            "lat": 1.296168,
+            "lng": 103.8500437
+          },
+          {
+            "name": "Singapore Management University",
+            "address": "Singapore Management University, 81, Victoria Street, Bras Basah, Museum, Central Region, Singapore, 188065, Singapore",
+            "postcode": "188065",
+            "lat": 1.296126,
+            "lng": 103.8496233
+          },
+          {
+            "name": "UOB",
+            "address": "UOB, 70, Stamford Road, Bras Basah, Museum, Central Region, Singapore, 178901, Singapore",
+            "postcode": "178901",
+            "lat": 1.296373,
+            "lng": 103.850176
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 252,
+        "nominatim": 252
+      }
+    },
+    {
+      "category": "university",
+      "query": "SUTD",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 7201,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "SINGAPORE UNIVERSITY OF TECHNOLOGY AND DESIGN (SUTD)",
+            "address": "8 SOMAPAH ROAD SINGAPORE UNIVERSITY OF TECHNOLOGY AND DESIGN (SUTD)",
+            "postcode": null,
+            "lat": 1.340676860287683,
+            "lng": 103.9629959004659
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1229,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "SUTD Sports Field",
+            "address": "Changi South Avenue 1 Tampines 489722",
+            "postcode": "489722",
+            "lat": 1.3410532,
+            "lng": 103.9653974
+          },
+          {
+            "name": "SUTD Parcel D Building",
+            "address": "696 Upper Changi Road East Tampines 486826",
+            "postcode": "486826",
+            "lat": 1.342098,
+            "lng": 103.9623941
+          },
+          {
+            "name": "SUTD Parcel D",
+            "address": "696 Upper Changi Road East Tampines 486826",
+            "postcode": "486826",
+            "lat": 1.3423955,
+            "lng": 103.9623955
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 19,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "SUTD Sports Field",
+            "address": "SUTD Sports Field, Changi South Avenue 1, Xilin, Changi Business Park, Tampines, East Region, Singapore, 486001, Singapore",
+            "postcode": "486001",
+            "lat": 1.3410532,
+            "lng": 103.9653974
+          },
+          {
+            "name": "SUTD Parcel D",
+            "address": "SUTD Parcel D, 696, Upper Changi Road East, Xilin, Changi Business Park, Tampines, East Region, Singapore, 486826, Singapore",
+            "postcode": "486826",
+            "lat": 1.3423955,
+            "lng": 103.9623955
+          },
+          {
+            "name": "SUTD Multifunction Sport Center",
+            "address": "SUTD Multifunction Sport Center, Changi South Avenue 1, Xilin, Changi Business Park, Tampines, East Region, Singapore, 485998, Singapore",
+            "postcode": "485998",
+            "lat": 1.3415971,
+            "lng": 103.9648681
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 270,
+        "nominatim": 270
+      }
+    },
+    {
+      "category": "university",
+      "query": "Singapore Polytechnic",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 117,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "POLY MARINA SINGAPORE POLYTECHNIC",
+            "address": "50 WEST COAST FERRY ROAD POLY MARINA SINGAPORE POLYTECHNIC SINGAPORE 126980",
+            "postcode": "126980",
+            "lat": 1.293921066256936,
+            "lng": 103.7631002650159
+          },
+          {
+            "name": "SINGAPORE POLYTECHNIC",
+            "address": "500 DOVER ROAD SINGAPORE POLYTECHNIC SINGAPORE 139651",
+            "postcode": "139651",
+            "lat": 1.311038992839573,
+            "lng": 103.7767958183583
+          },
+          {
+            "name": "SINGAPORE POLYTECHNIC (ADMIN BUILDING)",
+            "address": "500 DOVER ROAD SINGAPORE POLYTECHNIC (ADMIN BUILDING) SINGAPORE 139651",
+            "postcode": "139651",
+            "lat": 1.30787792644497,
+            "lng": 103.7795746707994
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1386,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore Polytechnic",
+            "address": "500 Dover Road Queenstown 139651",
+            "postcode": "139651",
+            "lat": 1.309137,
+            "lng": 103.7781437
+          },
+          {
+            "name": "Singapore Polytechnic",
+            "address": "Queenstown",
+            "postcode": null,
+            "lat": 1.3113489,
+            "lng": 103.7771814
+          },
+          {
+            "name": "Singapore Polytechnic",
+            "address": "Dover Avenue Queenstown 139790",
+            "postcode": "139790",
+            "lat": 1.3073906,
+            "lng": 103.7820329
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 16,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore Polytechnic",
+            "address": "Singapore Polytechnic, one-north, Queenstown, Central Region, Singapore",
+            "postcode": null,
+            "lat": 1.3113489,
+            "lng": 103.7771814
+          },
+          {
+            "name": "Singapore Polytechnic",
+            "address": "Singapore Polytechnic, 500, Dover Road, Dover, one-north, Queenstown, Central Region, Singapore, 139651, Singapore",
+            "postcode": "139651",
+            "lat": 1.309137,
+            "lng": 103.7781437
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 2379,
+        "nominatim": 2491
+      }
+    },
+    {
+      "category": "landmark",
+      "query": "Marina Bay Sands",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 235,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "MARINA BAY SANDS",
+            "address": "MARINA BAY SANDS",
+            "postcode": null,
+            "lat": 1.283994101392069,
+            "lng": 103.859450636919
+          },
+          {
+            "name": "MARINA BAY SANDS (ARTSCIENCE MUSEUM)",
+            "address": "6 BAYFRONT AVENUE MARINA BAY SANDS (ARTSCIENCE MUSEUM) SINGAPORE 018974",
+            "postcode": "018974",
+            "lat": 1.286223958762737,
+            "lng": 103.8592711215884
+          },
+          {
+            "name": "MARINA BAY SANDS (CASINO)",
+            "address": "8 BAYFRONT AVENUE MARINA BAY SANDS (CASINO) SINGAPORE 018955",
+            "postcode": "018955",
+            "lat": 1.284062698686274,
+            "lng": 103.8595227438632
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1583,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Marina Bay Sands",
+            "address": "10 Bayfront Avenue Downtown Core 018956",
+            "postcode": "018956",
+            "lat": 1.2836965,
+            "lng": 103.8607226
+          },
+          {
+            "name": "Marina Bay Sands",
+            "address": "Bayfront Avenue Downtown Core 018971",
+            "postcode": "018971",
+            "lat": 1.2856301,
+            "lng": 103.8610186
+          },
+          {
+            "name": "Marina Bay Sands",
+            "address": "Bayfront Avenue Downtown Core 018971",
+            "postcode": "018971",
+            "lat": 1.2856255,
+            "lng": 103.8610678
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 10,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Marina Bay Sands",
+            "address": "Marina Bay Sands, 10, Bayfront Avenue, Bayfront Subzone, Civic District, Downtown Core, Central Region, Singapore, 018956, Singapore",
+            "postcode": "018956",
+            "lat": 1.2836965,
+            "lng": 103.8607226
+          },
+          {
+            "name": "Marina Bay Sands",
+            "address": "Marina Bay Sands, Bayfront Avenue, Bayfront, Civic District, Downtown Core, Central Region, Singapore, 018971, Singapore",
+            "postcode": "018971",
+            "lat": 1.2856255,
+            "lng": 103.8610678
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 145,
+        "nominatim": 145
+      }
+    },
+    {
+      "category": "landmark",
+      "query": "Gardens by the Bay",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 55,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "GARDENS BY THE BAY",
+            "address": "18 MARINA GARDENS DRIVE GARDENS BY THE BAY SINGAPORE 018953",
+            "postcode": "018953",
+            "lat": 1.284588588663125,
+            "lng": 103.8646565996385
+          },
+          {
+            "name": "GARDENS BY THE BAY (BAY EAST GARDEN)",
+            "address": "GARDENS BY THE BAY (BAY EAST GARDEN)",
+            "postcode": null,
+            "lat": 1.29093310289855,
+            "lng": 103.8686615063512
+          },
+          {
+            "name": "GARDENS BY THE BAY (CHINESE GARDEN)",
+            "address": "GARDENS BY THE BAY (CHINESE GARDEN)",
+            "postcode": null,
+            "lat": 1.283073048529821,
+            "lng": 103.8635204838623
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1587,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Gardens by the Bay",
+            "address": "Central Region 018593",
+            "postcode": "018593",
+            "lat": 1.2811486,
+            "lng": 103.86496
+          },
+          {
+            "name": "Gardens by the Bay",
+            "address": "11 Marina Mall Marina South 019396",
+            "postcode": "019396",
+            "lat": 1.2791404,
+            "lng": 103.8679277
+          },
+          {
+            "name": "Gardens by the Bay",
+            "address": "Marina South 018593",
+            "postcode": "018593",
+            "lat": 1.2813417,
+            "lng": 103.8658097
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 17,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Gardens by the Bay",
+            "address": "Gardens by the Bay, Central Region, Singapore, 018593, Singapore",
+            "postcode": "018593",
+            "lat": 1.2811486,
+            "lng": 103.86496
+          },
+          {
+            "name": "Gardens by the Bay",
+            "address": "Gardens by the Bay, 11, Marina Gardens Drive, Marina South, Central Region, Singapore, 019396, Singapore",
+            "postcode": "019396",
+            "lat": 1.2791404,
+            "lng": 103.8679277
+          },
+          {
+            "name": "Gardens by the Bay",
+            "address": "Gardens by the Bay, Marina South, Central Region, Singapore, 018593, Singapore",
+            "postcode": "018593",
+            "lat": 1.2813417,
+            "lng": 103.8658097
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 384,
+        "nominatim": 384
+      }
+    },
+    {
+      "category": "landmark",
+      "query": "Changi Airport Terminal 3",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 63,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "CHANGI AIRPORT TERMINAL 3 BUILDING",
+            "address": "65 AIRPORT BOULEVARD CHANGI AIRPORT TERMINAL 3 BUILDING SINGAPORE 819663",
+            "postcode": "819663",
+            "lat": 1.356626094134892,
+            "lng": 103.9865622084943
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1241,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Changi Airport Terminal 3",
+            "address": "T3 Basement Drive Changi 819663",
+            "postcode": "819663",
+            "lat": 1.3565005,
+            "lng": 103.9863523
+          },
+          {
+            "name": "Changi Airport Terminal 3",
+            "address": "65 Airport Boulevard Changi 819663",
+            "postcode": "819663",
+            "lat": 1.3545752,
+            "lng": 103.9854051
+          },
+          {
+            "name": "Changi Airport Terminal 3",
+            "address": "T3 Departure Drive Changi 819663",
+            "postcode": "819663",
+            "lat": 1.3550774,
+            "lng": 103.9867549
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 15,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Changi Airport Terminal 3",
+            "address": "Changi Airport Terminal 3, 65, T1 Boulevard, Changi, East Region, Singapore, 819663, Singapore",
+            "postcode": "819663",
+            "lat": 1.3545752,
+            "lng": 103.9854051
+          },
+          {
+            "name": "Changi Airport Terminal 3",
+            "address": "Changi Airport Terminal 3, T3 Basement Drive, Changi, East Region, Singapore, 819663, Singapore",
+            "postcode": "819663",
+            "lat": 1.3550774,
+            "lng": 103.9867549
+          },
+          {
+            "name": "Changi Airport Terminal 3",
+            "address": "Changi Airport Terminal 3, 65, T1 Boulevard, Changi, East Region, Singapore, 819663, Singapore",
+            "postcode": "819663",
+            "lat": 1.3565005,
+            "lng": 103.9863523
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 27,
+        "nominatim": 262
+      }
+    },
+    {
+      "category": "landmark",
+      "query": "Singapore General Hospital",
+      "onemap": {
+        "matchIndex": 1,
+        "ms": 56,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "SGH BLK 4 (TAXI STAND)",
+            "address": "SGH BLK 4 (TAXI STAND)",
+            "postcode": null,
+            "lat": 1.279334573070614,
+            "lng": 103.8352493454929
+          },
+          {
+            "name": "SINGAPORE GENERAL HOSPITAL",
+            "address": "1 HOSPITAL CRESCENT SINGAPORE GENERAL HOSPITAL SINGAPORE 169608",
+            "postcode": "169608",
+            "lat": 1.279643839702221,
+            "lng": 103.8355417646629
+          },
+          {
+            "name": "SINGAPORE GENERAL HOSPITAL (ALUMNI MEDICAL CENTRE)",
+            "address": "2 COLLEGE ROAD SINGAPORE GENERAL HOSPITAL (ALUMNI MEDICAL CENTRE) SINGAPORE 169850",
+            "postcode": "169850",
+            "lat": 1.28236238792241,
+            "lng": 103.8360161725103
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1266,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore General Hospital",
+            "address": "Outram",
+            "postcode": null,
+            "lat": 1.2822792,
+            "lng": 103.841169
+          },
+          {
+            "name": "Singapore General Hospital",
+            "address": "Bukit Merah",
+            "postcode": null,
+            "lat": 1.279725,
+            "lng": 103.8346394
+          },
+          {
+            "name": "Singapore General Hospital",
+            "address": "Spooner Road Bukit Merah 160150",
+            "postcode": "160150",
+            "lat": 1.2794489,
+            "lng": 103.8362739
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 26,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore General Hospital",
+            "address": "Singapore General Hospital, Tanjong Pagar, Outram, Central Region, Singapore",
+            "postcode": null,
+            "lat": 1.2854865,
+            "lng": 103.8396604
+          },
+          {
+            "name": "Singapore General Hospital",
+            "address": "Singapore General Hospital, HarbourFront, Bukit Merah, Central Region, Singapore",
+            "postcode": null,
+            "lat": 1.279725,
+            "lng": 103.8346394
+          },
+          {
+            "name": "Singapore General Hospital",
+            "address": "Singapore General Hospital, First Hospital Avenue, Singapore General Hospital, HarbourFront, Bukit Merah, Central Region, Singapore, 168937, Singapore",
+            "postcode": "168937",
+            "lat": 1.2794489,
+            "lng": 103.8362739
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 691,
+        "nominatim": 795
+      }
+    },
+    {
+      "category": "landmark",
+      "query": "Singapore Botanic Gardens",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 68,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "SINGAPORE BOTANIC GARDENS",
+            "address": "1 CLUNY ROAD SINGAPORE BOTANIC GARDENS SINGAPORE 259569",
+            "postcode": "259569",
+            "lat": 1.313479419101338,
+            "lng": 103.8131800399221
+          },
+          {
+            "name": "SINGAPORE BOTANIC GARDENS (BANDSTAND GAZEBO)",
+            "address": "1 CLUNY ROAD SINGAPORE BOTANIC GARDENS (BANDSTAND GAZEBO) SINGAPORE 259569",
+            "postcode": "259569",
+            "lat": 1.310386574197282,
+            "lng": 103.816319662593
+          },
+          {
+            "name": "SINGAPORE BOTANIC GARDENS (BOTANY CENTRE)",
+            "address": "1 CLUNY ROAD SINGAPORE BOTANIC GARDENS (BOTANY CENTRE) SINGAPORE 259569",
+            "postcode": "259569",
+            "lat": 1.308466908673194,
+            "lng": 103.817947000372
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1210,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore Botanic Gardens",
+            "address": "1 Cluny Road Central Region 259569",
+            "postcode": "259569",
+            "lat": 1.3146321,
+            "lng": 103.8156151
+          },
+          {
+            "name": "Singapore Botanic Gardens",
+            "address": "Bukit Timah Road Tanglin 259760",
+            "postcode": "259760",
+            "lat": 1.3225301,
+            "lng": 103.8148531
+          },
+          {
+            "name": "Singapore Botanic Gardens Gallop Extension",
+            "address": "Tanglin 259015",
+            "postcode": "259015",
+            "lat": 1.3131833,
+            "lng": 103.8107834
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 40,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Singapore Botanic Gardens",
+            "address": "Singapore Botanic Gardens, 1, Central Region, Singapore, 259569, Singapore",
+            "postcode": "259569",
+            "lat": 1.3146321,
+            "lng": 103.8156151
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 300,
+        "nominatim": 300
+      }
+    },
+    {
+      "category": "landmark",
+      "query": "Merlion Park",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 89,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "MERLION PARK (ONE FULLERTON)",
+            "address": "21 ESPLANADE DRIVE MERLION PARK (ONE FULLERTON)",
+            "postcode": null,
+            "lat": 1.286810774104943,
+            "lng": 103.8545349361403
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 937,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Merlion Park",
+            "address": "Downtown Core",
+            "postcode": null,
+            "lat": 1.2856852,
+            "lng": 103.8541592
+          },
+          {
+            "name": "Merlion Park",
+            "address": "Downtown Core 049215",
+            "postcode": "049215",
+            "lat": 1.2869646,
+            "lng": 103.8544639
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 41,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Merlion Park",
+            "address": "Merlion Park, Civic District, Downtown Core, Central Region, Singapore",
+            "postcode": null,
+            "lat": 1.2856852,
+            "lng": 103.8541592
+          },
+          {
+            "name": "Merlion Park",
+            "address": "Merlion Park, Clifford Pier, Civic District, Downtown Core, Central Region, Singapore, 049215, Singapore",
+            "postcode": "049215",
+            "lat": 1.2869646,
+            "lng": 103.8544639
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 132,
+        "nominatim": 132
+      }
+    },
+    {
+      "category": "landmark",
+      "query": "Bishan MRT",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 86,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "BISHAN MRT STATION",
+            "address": "17 BISHAN PLACE BISHAN MRT STATION",
+            "postcode": null,
+            "lat": 1.35101889777846,
+            "lng": 103.8500572086081
+          },
+          {
+            "name": "BISHAN MRT STATION (CC15)",
+            "address": "17 BISHAN PLACE BISHAN MRT STATION (CC15) SINGAPORE 579842",
+            "postcode": "579842",
+            "lat": 1.351315801466592,
+            "lng": 103.8491402653198
+          },
+          {
+            "name": "BISHAN MRT STATION (NS17)",
+            "address": "200 BISHAN ROAD BISHAN MRT STATION (NS17) SINGAPORE 579827",
+            "postcode": "579827",
+            "lat": 1.350838987847369,
+            "lng": 103.8481439645419
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": -1,
+        "ms": 2314,
+        "error": null,
+        "note": null,
+        "top": []
+      },
+      "nominatim": {
+        "matchIndex": -1,
+        "ms": 12,
+        "error": null,
+        "note": null,
+        "top": []
+      },
+      "distFromOneMapM": {}
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Chong Pang Market",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 92,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "CHONG PANG HAWKER CENTRE & MARKET",
+            "address": "21 YISHUN RING ROAD CHONG PANG HAWKER CENTRE & MARKET",
+            "postcode": null,
+            "lat": 1.431058544327201,
+            "lng": 103.8290030992661
+          },
+          {
+            "name": "CHONG PANG MARKET & FOOD CENTRE",
+            "address": "105 YISHUN RING ROAD CHONG PANG MARKET & FOOD CENTRE SINGAPORE 760105",
+            "postcode": "760105",
+            "lat": 1.431718366628382,
+            "lng": 103.8281142569749
+          },
+          {
+            "name": "CHONG PANG MARKET & FOOD CENTRE",
+            "address": "104 YISHUN RING ROAD CHONG PANG MARKET & FOOD CENTRE SINGAPORE 760104",
+            "postcode": "760104",
+            "lat": 1.431447751589842,
+            "lng": 103.8285376718845
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1393,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Chong Pang Market",
+            "address": "Yishun Ring Road Yishun 760137",
+            "postcode": "760137",
+            "lat": 1.4314592,
+            "lng": 103.8285501
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 11,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Chong Pang Market",
+            "address": "Chong Pang Market, Yishun Ring Road, Yishun West, Chong Pang, Yishun, North Region, Singapore, 760137, Singapore",
+            "postcode": "760137",
+            "lat": 1.4314592,
+            "lng": 103.8285501
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 67,
+        "nominatim": 67
+      }
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Tiong Bahru Market",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 298,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "TIONG BAHRU MARKET",
+            "address": "30 SENG POH ROAD TIONG BAHRU MARKET SINGAPORE 168898",
+            "postcode": "168898",
+            "lat": 1.284785598103721,
+            "lng": 103.8321815468844
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1634,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Tiong Bahru Market",
+            "address": "30 Seng Poh Road Bukit Merah 168898",
+            "postcode": "168898",
+            "lat": 1.2847924,
+            "lng": 103.832551
+          },
+          {
+            "name": "Tiong Bahru Market",
+            "address": "Lim Liak Street Bukit Merah 168898",
+            "postcode": "168898",
+            "lat": 1.2852317,
+            "lng": 103.8323396
+          },
+          {
+            "name": "Foodie Market Place (Tiong Bahru)",
+            "address": "1 Eng Hoon Street Bukit Merah 169753",
+            "postcode": "169753",
+            "lat": 1.2834095,
+            "lng": 103.8353737
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 12,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Tiong Bahru Market",
+            "address": "Tiong Bahru Market, 30, Seng Poh Road, Tiong Bahru, Bukit Merah, Central Region, Singapore, 168898, Singapore",
+            "postcode": "168898",
+            "lat": 1.2847924,
+            "lng": 103.832551
+          },
+          {
+            "name": "Tiong Bahru Market",
+            "address": "Tiong Bahru Market, Lim Liak Street, Tiong Bahru, Telok Blangah, Bukit Merah, Central Region, Singapore, 168898, Singapore",
+            "postcode": "168898",
+            "lat": 1.2852317,
+            "lng": 103.8323396
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 41,
+        "nominatim": 41
+      }
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Holland Village",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 65,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "HOLLAND VILLAGE",
+            "address": "19 LORONG LIPUT HOLLAND VILLAGE SINGAPORE 277732",
+            "postcode": "277732",
+            "lat": 1.310213107939612,
+            "lng": 103.795010190754
+          },
+          {
+            "name": "HOLLAND VILLAGE",
+            "address": "259 HOLLAND AVENUE HOLLAND VILLAGE SINGAPORE 278985",
+            "postcode": "278985",
+            "lat": 1.31146648839895,
+            "lng": 103.7955230900501
+          },
+          {
+            "name": "HOLLAND VILLAGE",
+            "address": "22 LORONG MAMBONG HOLLAND VILLAGE SINGAPORE 277681",
+            "postcode": "277681",
+            "lat": 1.311567768413562,
+            "lng": 103.7949647148271
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1551,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Holland Village",
+            "address": "200 Holland Avenue Bukit Timah 278995",
+            "postcode": "278995",
+            "lat": 1.311722,
+            "lng": 103.7960797
+          },
+          {
+            "name": "Holland Village",
+            "address": "Bukit Timah 267829",
+            "postcode": "267829",
+            "lat": 1.3126017,
+            "lng": 103.7971262
+          },
+          {
+            "name": "Holland Village Park",
+            "address": "Queenstown 278621",
+            "postcode": "278621",
+            "lat": 1.3115828,
+            "lng": 103.7956975
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 13,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Holland Village",
+            "address": "Holland Village, 200, Holland Avenue, Leedon Park, Holland Village, Bukit Timah, Central Region, Singapore, 278995, Singapore",
+            "postcode": "278995",
+            "lat": 1.311722,
+            "lng": 103.7960797
+          },
+          {
+            "name": "Holland Village",
+            "address": "Holland Village, Bukit Timah, Central Region, Singapore, 267829, Singapore",
+            "postcode": "267829",
+            "lat": 1.3126017,
+            "lng": 103.7971262
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 206,
+        "nominatim": 206
+      }
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Sembawang Park",
+      "onemap": {
+        "matchIndex": 2,
+        "ms": 84,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "PARK AT SEMBAWANG ALLEY",
+            "address": "PARK AT SEMBAWANG ALLEY",
+            "postcode": null,
+            "lat": 1.448723768735239,
+            "lng": 103.8190030007164
+          },
+          {
+            "name": "SEMBAWANG HOT SPRING PARK",
+            "address": "SEMBAWANG HOT SPRING PARK",
+            "postcode": null,
+            "lat": 1.434309953684392,
+            "lng": 103.8226076654145
+          },
+          {
+            "name": "SEMBAWANG PARK",
+            "address": "443 SEMBAWANG ROAD SEMBAWANG PARK SINGAPORE 758402",
+            "postcode": "758402",
+            "lat": 1.428525679882975,
+            "lng": 103.8265486987198
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1134,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Sembawang Park",
+            "address": "Sembawang 759837",
+            "postcode": "759837",
+            "lat": 1.4613623,
+            "lng": 103.8361482
+          },
+          {
+            "name": "Sembawang Park",
+            "address": "Sembawang Road Sembawang 757600",
+            "postcode": "757600",
+            "lat": 1.4620777,
+            "lng": 103.8378981
+          },
+          {
+            "name": "Sembawang Park Connector",
+            "address": "Sembawang 752469",
+            "postcode": "752469",
+            "lat": 1.4477167,
+            "lng": 103.8128963
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 10,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Sembawang Park",
+            "address": "Sembawang Park, Sembawang, North Region, Singapore, 759837, Singapore",
+            "postcode": "759837",
+            "lat": 1.4613623,
+            "lng": 103.8361482
+          },
+          {
+            "name": "Sembawang Park",
+            "address": "Sembawang Park, Sembawang Road, Sembawang Straits, Sembawang, North Region, Singapore, 757600, Singapore",
+            "postcode": "757600",
+            "lat": 1.4620777,
+            "lng": 103.8378981
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 3804,
+        "nominatim": 3804
+      }
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Bukit Panjang Plaza",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 52,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "BUKIT PANJANG PLAZA",
+            "address": "1 JELEBU ROAD BUKIT PANJANG PLAZA SINGAPORE 677743",
+            "postcode": "677743",
+            "lat": 1.379920451762434,
+            "lng": 103.764357180314
+          },
+          {
+            "name": "BUKIT PANJANG PLAZA (CAR PARK ENTRANCE)",
+            "address": "BUKIT PANJANG PLAZA (CAR PARK ENTRANCE)",
+            "postcode": null,
+            "lat": 1.37944303332006,
+            "lng": 103.7647799908155
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 871,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Bukit Panjang Plaza",
+            "address": "Bukit Panjang Flyover Bukit Panjang 678213",
+            "postcode": "678213",
+            "lat": 1.378655,
+            "lng": 103.7620908
+          },
+          {
+            "name": "Bukit Panjang Plaza",
+            "address": "Jelebu Road Bukit Panjang 677743",
+            "postcode": "677743",
+            "lat": 1.3800249,
+            "lng": 103.7639688
+          },
+          {
+            "name": "Bukit Panjang Plaza",
+            "address": "Jelebu Road Bukit Panjang 677743",
+            "postcode": "677743",
+            "lat": 1.3799465,
+            "lng": 103.7641083
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 13,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Bukit Panjang Plaza",
+            "address": "Bukit Panjang Plaza, 1, Jelebu Road, Jelebu, Bukit Panjang, West Region, Singapore, 677743, Singapore",
+            "postcode": "677743",
+            "lat": 1.3800081,
+            "lng": 103.7643116
+          },
+          {
+            "name": "Bukit Panjang Plaza",
+            "address": "Bukit Panjang Plaza, Bukit Panjang Station Square, Jelebu, Bukit Panjang, West Region, Singapore, 679278, Singapore",
+            "postcode": "679278",
+            "lat": 1.378655,
+            "lng": 103.7620908
+          },
+          {
+            "name": "Bukit Panjang Plaza",
+            "address": "Bukit Panjang Plaza, Jelebu Road, Jelebu, Bukit Panjang, West Region, Singapore, 677743, Singapore",
+            "postcode": "677743",
+            "lat": 1.3800249,
+            "lng": 103.7639688
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 289,
+        "nominatim": 11
+      }
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Pasir Ris Park",
+      "onemap": {
+        "matchIndex": 5,
+        "ms": 56,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NAUTICAL PARK @ PASIR RIS",
+            "address": "NAUTICAL PARK @ PASIR RIS",
+            "postcode": null,
+            "lat": 1.367703372591457,
+            "lng": 103.9619605815939
+          },
+          {
+            "name": "PASIR RIS BEACH PARK",
+            "address": "2 PASIR RIS LANE PASIR RIS BEACH PARK SINGAPORE 519170",
+            "postcode": "519170",
+            "lat": 1.380999388858507,
+            "lng": 103.9471253158095
+          },
+          {
+            "name": "PASIR RIS BEACH PARK",
+            "address": "59 PASIR RIS TERRACE PASIR RIS BEACH PARK SINGAPORE 518703",
+            "postcode": "518703",
+            "lat": 1.382183172995138,
+            "lng": 103.943403809301
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1246,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Pasir Ris Park",
+            "address": "Pasir Ris",
+            "postcode": null,
+            "lat": 1.3800026,
+            "lng": 103.9549458
+          },
+          {
+            "name": "Pasir Ris Park",
+            "address": "East Region",
+            "postcode": null,
+            "lat": 1.3790773,
+            "lng": 103.9504783
+          },
+          {
+            "name": "Pasir Ris Park",
+            "address": "Pasir Ris 512591",
+            "postcode": "512591",
+            "lat": 1.377904,
+            "lng": 103.9497545
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 15,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Pasir Ris Park",
+            "address": "Pasir Ris Park, East Region, Singapore",
+            "postcode": null,
+            "lat": 1.3790773,
+            "lng": 103.9504783
+          },
+          {
+            "name": "Pasir Ris Park",
+            "address": "Pasir Ris Park, Pasir Ris, East Region, Singapore",
+            "postcode": null,
+            "lat": 1.3800026,
+            "lng": 103.9549458
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 516,
+        "nominatim": 239
+      }
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Kovan Hougang Market",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 52,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "KOVAN HOUGANG MARKET AND FOOD CENTRE",
+            "address": "209 HOUGANG STREET 21 KOVAN HOUGANG MARKET AND FOOD CENTRE SINGAPORE 530209",
+            "postcode": "530209",
+            "lat": 1.359083840910492,
+            "lng": 103.8860553680639
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1310,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Kovan 209 Market & Food Centre",
+            "address": "209 Hougang Street 21 Hougang 530209",
+            "postcode": "530209",
+            "lat": 1.3589714,
+            "lng": 103.8861271
+          },
+          {
+            "name": "Nature's Market",
+            "address": "767 Upper Serangoon Road Hougang 534635",
+            "postcode": "534635",
+            "lat": 1.3546312,
+            "lng": 103.8782882
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": 0,
+        "ms": 20,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Nature's Market",
+            "address": "Nature's Market, 767, Upper Serangoon Road, Kovan, Tai Seng, Hougang, North-east Region, Singapore, 534635, Singapore",
+            "postcode": "534635",
+            "lat": 1.3546312,
+            "lng": 103.8782882
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 15,
+        "nominatim": 995
+      }
+    },
+    {
+      "category": "neighbourhood",
+      "query": "Toa Payoh Lorong 1",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 57,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "LORONG 1 TOA PAYOH",
+            "address": "LORONG 1 TOA PAYOH",
+            "postcode": null,
+            "lat": 1.336988166800255,
+            "lng": 103.8435344610493
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1193,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Lorong 1 Toa Payoh",
+            "address": "Toa Payoh 310107",
+            "postcode": "310107",
+            "lat": 1.3409379,
+            "lng": 103.8470781
+          },
+          {
+            "name": "Lorong 1 Toa Payoh",
+            "address": "Toa Payoh 310118",
+            "postcode": "310118",
+            "lat": 1.3397553,
+            "lng": 103.8443089
+          },
+          {
+            "name": "Lorong 1 Toa Payoh",
+            "address": "Toa Payoh 310403",
+            "postcode": "310403",
+            "lat": 1.3388682,
+            "lng": 103.8438445
+          }
+        ]
+      },
+      "nominatim": {
+        "matchIndex": -1,
+        "ms": 14,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "",
+            "address": "1, Lorong 7 Toa Payoh, Kim Keat Court, Braddell, Toa Payoh, Central Region, Singapore, 310001, Singapore",
+            "postcode": "310001",
+            "lat": 1.3396161,
+            "lng": 103.8533722
+          },
+          {
+            "name": "",
+            "address": "1, Lorong 5 Toa Payoh, GEM Residences, Braddell, Toa Payoh, Central Region, Singapore, 319458, Singapore",
+            "postcode": "319458",
+            "lat": 1.3387219,
+            "lng": 103.8508969
+          },
+          {
+            "name": "Braddell House",
+            "address": "Braddell House, 1, Lorong 2 Toa Payoh, Braddell, Toa Payoh, Central Region, Singapore, 319637, Singapore",
+            "postcode": "319637",
+            "lat": 1.3402985,
+            "lng": 103.8474565
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 590
+      }
+    },
+    {
+      "category": "prefix",
+      "query": "vivoc",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 47,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "VIVOCITY",
+            "address": "1 HARBOURFRONT WALK VIVOCITY SINGAPORE 098585",
+            "postcode": "098585",
+            "lat": 1.264293167839738,
+            "lng": 103.8223046936493
+          },
+          {
+            "name": "VIVOCITY STATION (S1)",
+            "address": "83 TELOK BLANGAH ROAD VIVOCITY STATION (S1) SINGAPORE 098886",
+            "postcode": "098886",
+            "lat": 1.265050842627599,
+            "lng": 103.8216245803924
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1672,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "VivoCity",
+            "address": "1 Harbourfront Avenue HarbourFront 098585",
+            "postcode": "098585",
+            "lat": 1.2643707,
+            "lng": 103.8229537
+          },
+          {
+            "name": "VivoCity",
+            "address": "Telok Blangah Road HarbourFront 098585",
+            "postcode": "098585",
+            "lat": 1.2650806,
+            "lng": 103.8223037
+          },
+          {
+            "name": "VivoCity",
+            "address": "Telok Blangah Road HarbourFront 098585",
+            "postcode": "098585",
+            "lat": 1.265099,
+            "lng": 103.8223324
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 73
+      }
+    },
+    {
+      "category": "prefix",
+      "query": "northpoi",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 59,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "NORTHPOINT CITY",
+            "address": "930 YISHUN AVENUE 2 NORTHPOINT CITY SINGAPORE 769098",
+            "postcode": "769098",
+            "lat": 1.429698486262892,
+            "lng": 103.8357764914675
+          },
+          {
+            "name": "NORTHPOINT CITY",
+            "address": "1 NORTHPOINT DRIVE NORTHPOINT CITY SINGAPORE 768019",
+            "postcode": "768019",
+            "lat": 1.427902889913047,
+            "lng": 103.8361776509722
+          },
+          {
+            "name": "NORTHPOINT CITY",
+            "address": "920 YISHUN AVENUE 2 NORTHPOINT CITY SINGAPORE 769100",
+            "postcode": "769100",
+            "lat": 1.42790289018678,
+            "lng": 103.8361776507003
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1215,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Northpoint City",
+            "address": "930 Yishun Avenue 2 Yishun 769098",
+            "postcode": "769098",
+            "lat": 1.4281326,
+            "lng": 103.8362451
+          },
+          {
+            "name": "Northpoint Drive",
+            "address": "Yishun 768020",
+            "postcode": "768020",
+            "lat": 1.4268526,
+            "lng": 103.8364369
+          },
+          {
+            "name": "Northpoint Drive",
+            "address": "Yishun 760925",
+            "postcode": "760925",
+            "lat": 1.427484,
+            "lng": 103.8367467
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 182
+      }
+    },
+    {
+      "category": "prefix",
+      "query": "gardens by",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 83,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "GARDENS BY THE BAY",
+            "address": "18 MARINA GARDENS DRIVE GARDENS BY THE BAY SINGAPORE 018953",
+            "postcode": "018953",
+            "lat": 1.284588588663125,
+            "lng": 103.8646565996385
+          },
+          {
+            "name": "GARDENS BY THE BAY (BAY EAST GARDEN)",
+            "address": "GARDENS BY THE BAY (BAY EAST GARDEN)",
+            "postcode": null,
+            "lat": 1.29093310289855,
+            "lng": 103.8686615063512
+          },
+          {
+            "name": "GARDENS BY THE BAY (CHINESE GARDEN)",
+            "address": "GARDENS BY THE BAY (CHINESE GARDEN)",
+            "postcode": null,
+            "lat": 1.283073048529821,
+            "lng": 103.8635204838623
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1114,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Gardens by the Bay",
+            "address": "Central Region 018593",
+            "postcode": "018593",
+            "lat": 1.2811486,
+            "lng": 103.86496
+          },
+          {
+            "name": "Gardens by the Bay",
+            "address": "11 Marina Mall Marina South 019396",
+            "postcode": "019396",
+            "lat": 1.2791404,
+            "lng": 103.8679277
+          },
+          {
+            "name": "Gardens by the Bay East",
+            "address": "2 Founders Drive Central Region 438663",
+            "postcode": "438663",
+            "lat": 1.2884085,
+            "lng": 103.8696143
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 384
+      }
+    },
+    {
+      "category": "prefix",
+      "query": "tiong bah",
+      "onemap": {
+        "matchIndex": 0,
+        "ms": 159,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": [
+          {
+            "name": "REDHILL MRT STATION (EW18)",
+            "address": "920 TIONG BAHRU ROAD REDHILL MRT STATION (EW18) SINGAPORE 158792",
+            "postcode": "158792",
+            "lat": 1.289634534128879,
+            "lng": 103.8167409720498
+          },
+          {
+            "name": "SHELL TIONG BAHRU",
+            "address": "603 TIONG BAHRU ROAD SHELL TIONG BAHRU SINGAPORE 158788",
+            "postcode": "158788",
+            "lat": 1.288374253121411,
+            "lng": 103.81951732881
+          },
+          {
+            "name": "TIONG BAHRU ESTATE",
+            "address": "55 TIONG BAHRU ROAD TIONG BAHRU ESTATE SINGAPORE 160055",
+            "postcode": "160055",
+            "lat": 1.284413964597512,
+            "lng": 103.83413547764
+          }
+        ]
+      },
+      "photon": {
+        "matchIndex": 0,
+        "ms": 1160,
+        "error": null,
+        "note": null,
+        "top": [
+          {
+            "name": "Tiong Bahru",
+            "address": "300 Tiong Bahru Road Bukit Merah 168731",
+            "postcode": "168731",
+            "lat": 1.2861793,
+            "lng": 103.8272252
+          },
+          {
+            "name": "Tiong Bahru",
+            "address": "Central Region",
+            "postcode": null,
+            "lat": 1.2838796,
+            "lng": 103.8313928
+          },
+          {
+            "name": "Tiong Bahru Plaza",
+            "address": "302 Tiong Bahru Road Bukit Merah 164019",
+            "postcode": "164019",
+            "lat": 1.2863599,
+            "lng": 103.827333
+          }
+        ]
+      },
+      "distFromOneMapM": {
+        "photon": 1227
+      }
+    },
+    {
+      "category": "negative",
+      "query": "000000",
+      "onemap": {
+        "matchIndex": -1,
+        "ms": 108,
+        "error": null,
+        "note": "Authentication token missing. Please create an account and generate or renew your API Token.",
+        "top": []
+      },
+      "photon": {
+        "matchIndex": -1,
+        "ms": 2307,
+        "error": null,
+        "note": null,
+        "top": []
+      },
+      "nominatim": {
+        "matchIndex": -1,
+        "ms": 16,
+        "error": null,
+        "note": null,
+        "top": []
+      }
+    }
+  ]
+}

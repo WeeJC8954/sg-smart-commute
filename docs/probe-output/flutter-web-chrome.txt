@@ -1,0 +1,15 @@
+# Flutter Web (Chrome) probe run: 2026-10-01 (SGT), flutter run -d chrome -t tool/api_probe_app.dart
+
+PROBE START platform=web
+PROBE data.gov.sg two-hr-forecast -> HTTP 200, 5916 bytes, 727 ms
+PROBE data.gov.sg uv -> HTTP 200, 728 bytes, 45 ms
+PROBE data.gov.sg pm25 -> HTTP 200, 623 bytes, 100 ms
+PROBE data.gov.sg psi -> HTTP 200, 1454 bytes, 43 ms
+PROBE busrouter stops -> HTTP 200, 317155 bytes, 98 ms
+PROBE busrouter services -> HTTP 200, 255411 bytes, 73 ms
+PROBE ArriveLah 09048 -> HTTP 200, 8903 bytes, 155 ms
+PROBE OneMap search (tokenless) -> HTTP 200, 961 bytes, 113 ms
+PROBE Photon search -> HTTP 200, 1216 bytes, 1368 ms
+PROBE Nominatim search -> HTTP 200, 1543 bytes, 820 ms
+PROBE LTA DataMall (expected to fail) -> FAILED (ClientException: ClientException: Failed to fetch, uri=https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival?BusStopCode=09048) after 101 ms
+PROBE DONE
