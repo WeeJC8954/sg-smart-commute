@@ -2,6 +2,10 @@
     <!-- Required in release builds: the app calls public HTTPS APIs. Flutter's templates add
          this permission only to the debug and profile manifests. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Startup location (guide v2.1 §5.1), foreground only. Both are requested
+         together so Android 12+ users can choose approximate location. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <application
         android:label="sg_smart_commute"
         android:name="${applicationName}"
