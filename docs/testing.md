@@ -31,16 +31,21 @@ flutter drive --driver=test_driver/integration_test.dart \
 | Test | Status |
 |---|---|
 | `integration_test/app_boot_test.dart` (harness check) | Milestone 0. See the run log |
-| Happy path (fake GPS in SG → dashboard → destination → direct bus + ETA → manual refresh) | Built up across M1–M4 |
-| Fallback/error path (permission denied or outside SG → manual origin → provider failure → error + Retry → recovery) | M1, error states extended in M4 |
+| `integration_test/happy_path_test.dart` (fake GPS in SG → dashboard → destination → direct bus + ETA → manual refresh) | M1 portion written (fake GPS → scoped dashboard). Destination/bus/ETA steps come in M2–M4 |
+| `integration_test/fallback_path_test.dart` (permission denied or outside SG → manual origin → provider failure → error + Retry → recovery) | Written in M1 (provider failure = 24-hr PSI `NetworkUnavailable`; also out-of-SG and timeout + late-fix cases). Bus-arrival failure added in M4 |
+
+Since M1, `app_boot_test.dart` also uses fake providers (the app now requests location and calls data.gov.sg at
+launch). Fakes live in `test/fakes/` and are shared by widget and integration tests. NEA parser tests use real
+payloads captured once with curl on 2026-10-01 (`test/fixtures/*.json`).
 
 **chromedriver is not installed** on the Milestone 0 machine. One way to get a version matching Chrome:
 `npx @puppeteer/browsers install chromedriver@stable`. Until it's installed, Web integration runs are pending.
 
 ## Open acceptance items
 
-- **Web (Chrome) integration test: not run.** chromedriver was not available in Milestone 0, so no
-  `flutter drive … -d chrome` run has happened. Run it once chromedriver is available:
+- **Web (Chrome) integration test: not run.** chromedriver was not available in Milestone 0, and was still not
+  installed in Milestone 1 (`command -v chromedriver` → not found), so no `flutter drive … -d chrome` run has
+  happened. The M1 targets are `app_boot_test.dart`, `happy_path_test.dart` and `fallback_path_test.dart`. Run it once chromedriver is available:
 
   ```bash
   chromedriver --port=4444 &
@@ -50,7 +55,9 @@ flutter drive --driver=test_driver/integration_test.dart \
 
   Repeat with `--target=` set to each integration test file as they are added (guide v2.1 §18), and record
   the result in the run log.
-- This does **not** block Milestone 1. It is carried into M1 and must be closed by Milestone 5 at the latest.
+- This does **not** block Milestone 1. It is carried forward from M1 and must be closed by Milestone 5 at the latest.
+- **M1 app not yet run manually on a device or in Chrome** (smoke tests §18 1–5: Chrome localhost, emulator with
+  an SG location, emulator default location, GPS denied, GPS timeout). Only automated tests with fakes ran in M1.
 - **Cross-platform integration coverage is not complete** until the Web run has been executed and its
   result recorded below. Until then, integration coverage is Android only.
 
@@ -94,3 +101,15 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-01 | M0 | Place-search eval (51 queries) | See `api-feasibility.md` §4 |
 | 2026-10-01 | M0 cleanup | `flutter analyze` (after adding INTERNET to the main manifest) | Pass, no issues |
 | 2026-10-01 | M0 cleanup | `flutter build apk --release` | Pass. Merged release manifest contains `android.permission.INTERNET`. APK not run on a device |
+| 2026-10-01 | M0 / PR #2 post-merge (main @ 0d5cf66, run by the main session) | `flutter test` | Pass, 1 test ("All tests passed!") |
+| 2026-10-01 | M0 / PR #2 post-merge (main @ 0d5cf66, run by the main session) | `flutter build apk --release` + `adb install -r` on emulator-5554 (API 37) | Success. `dumpsys package` shows `android.permission.INTERNET: granted=true` |
+| 2026-10-01 | M0 / PR #2 post-merge (main @ 0d5cf66, run by the main session) | Temporary uncommitted probe (dart:io `HttpClient` GET data.gov.sg `/uv`) in a release APK | logcat `NETPROBE status=200`. Details: PR #2 comment 5931287026 |
+| 2026-10-01 | M1 | `curl` once per NEA dataset (two-hr-forecast, uv, pm25, psi) to capture `test/fixtures/` | 4 × 200 (4 calls, within the 6 / 10 s limit) |
+| 2026-10-01 | M1 | `flutter test` before implementation (TDD red run) | Fail as expected: 7 test files failed to load (missing implementation) |
+| 2026-10-01 | M1 | `dart format lib test integration_test` | Formatted; run before each commit |
+| 2026-10-01 | M1 | `flutter analyze` | Pass, no issues (earlier runs flagged `curly_braces_in_flow_control_structures` infos, fixed) |
+| 2026-10-01 | M1 | `flutter test` | Pass, 94/94 (unit + widget) |
+| 2026-10-01 | M1 | `flutter test integration_test -d emulator-5554` (sdk gphone16k x86 64, Android 17 / API 37) | Pass, 5/5 (`app_boot` 1, `fallback_path` 3, `happy_path` 1), fake providers only |
+| 2026-10-01 | M1 | Web integration test (`flutter drive … -d chrome`) | **Not run**: chromedriver not installed |
+| 2026-10-01 | M1 | `flutter build web` | Pass (Wasm dry run succeeded; informational notice only) |
+| 2026-10-01 | M1 | `flutter build apk --release` | Pass (48.3 MB; Gradle/javac warnings only, no errors). Release APK not run on a device in M1 |

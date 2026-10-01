@@ -58,11 +58,24 @@ lib/
 - DTOs stay in `data/`. Widgets consume domain models only.
 - Time: parse ISO `+08:00`, store UTC, display at a fixed +08:00 offset (no `timezone` package).
 
-## Milestone 0 skeleton
+## Milestone 1 (location and environment)
 
-- `lib/main.dart` is a placeholder shell, with no features yet.
+- `lib/core/`: `config/app_config.dart` (SG bounds, endpoints, timings, stale thresholds), `errors/app_failure.dart`
+  (sealed `AppFailure`), `geo/geo.dart` (`LatLng`, `isWithinSingapore`, haversine), `time/` (SGT formatting,
+  injectable `Clock`), `http/json_http_client.dart` (timeout, bounded retry, 429, dedup),
+  `location/` (`LocationService` seam + geolocator adapter).
+- `lib/features/origin/`: `OriginController` (Riverpod `Notifier`) is the permission → timeout → fallback →
+  late-fix state machine. `Origin` carries provenance (`gps` | `manual`). `OriginCard` is the UI.
+- `lib/features/environment/`: `data/` (data.gov.sg parsers + repository), `domain/` (models,
+  `EnvironmentLocator`, band tables), `environment_providers.dart` (one session-cached `FutureProvider` per
+  dataset, refresh cooldown), `presentation/` (dashboard tiles, display strings).
+- Seams overridden in tests: `locationServiceProvider`, `locationTimeoutProvider`, `environmentRepositoryProvider`,
+  `clockProvider`. Fakes are in `test/fakes/` and shared with `integration_test/`.
+- `ProviderScope(retry: noAutomaticRetry)`: Riverpod 3's automatic retry is off (rate limits; explicit Retry).
+- Dependencies added: `flutter_riverpod` 3.4.3, `geolocator` 14.1.1, `fake_async` (dev).
+
+## Dev tools (M0)
+
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),
   `api_probe_app.dart` (an alternative Flutter entry point for Chrome/Android), and
   `place_search_eval.dart` (Dart VM).
-- Dependencies: `http`. Others (Riverpod, geolocator, fake_async) are added in the milestone that first
-  needs them.

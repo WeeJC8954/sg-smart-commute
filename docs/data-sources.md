@@ -16,6 +16,8 @@ All Phase 1 sources are keyless and called directly from the client. Verificatio
 | Licence / attribution | Singapore Open Data Licence. Attribute "Source: NEA / data.gov.sg" |
 | Limitations | Readings are national, regional or area-based, never point-based. UV is not measured at night |
 | Fallback | Show the stale reading with its timestamp, or an unavailable state with Retry. Values are never fabricated |
+| Fields used (M1, confirmed against live payloads 2026-10-01, `test/fixtures/`) | Forecast `items[].forecasts[]` + `update_timestamp` + `valid_period`; UV latest `records[].index[]` entry by `hour`; PM2.5 `items[].readings.pm25_one_hourly`; PSI `items[].readings.psi_twenty_four_hourly` only. The PSI payload also carries `pm25_twenty_four_hourly` and sub-indices: these are never used |
+| Band sources | 24-hr PSI descriptors and 1-hr PM2.5 bands: NEA haze portal, https://www.haze.gov.sg/. UV categories: NEA, https://www.nea.gov.sg/weather/ultraviolet-index. Checked 2026-10-01; values in `assumptions.md` |
 
 ## busrouter static data
 
