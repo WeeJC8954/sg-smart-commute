@@ -45,7 +45,9 @@ payloads captured once with curl on 2026-10-01 (`test/fixtures/*.json`).
 
 - **Web (Chrome) integration test: not run.** chromedriver was not available in Milestone 0, and was still not
   installed in Milestone 1 (`command -v chromedriver` → not found), so no `flutter drive … -d chrome` run has
-  happened. The M1 targets are `app_boot_test.dart`, `happy_path_test.dart` and `fallback_path_test.dart`. Run it once chromedriver is available:
+  happened. Still not installed in Milestone 2 (`command -v chromedriver` → not found, `where chromedriver` → not found; nothing was installed). The
+  targets are `app_boot_test.dart`, `happy_path_test.dart` and `fallback_path_test.dart` (extended in M2 with
+  place search). Run them once chromedriver is available:
 
   ```bash
   chromedriver --port=4444 &
@@ -56,10 +58,14 @@ payloads captured once with curl on 2026-10-01 (`test/fixtures/*.json`).
   Repeat with `--target=` set to each integration test file as they are added (guide v2.1 §18), and record
   the result in the run log.
 - This does **not** block Milestone 1. It is carried forward from M1 and must be closed by Milestone 5 at the latest.
-- **Manual smoke tests (§18 1–5), partly done.** Item 2 (Android emulator with an SG location, real geolocator,
-  live data.gov.sg) passed in M1 (see the run log). Still not run: 1 (Chrome localhost), 3 (emulator default
-  location, outside SG), 4 (GPS denied) and 5 (GPS timeout) on a real device or browser. These are covered only by
-  automated tests with fakes.
+- **Manual smoke tests (§18), partly done.**
+  - Done: item 2 (Android emulator with an SG location, real geolocator, live data.gov.sg) in M1.
+  - Done in M2, on the Android emulator, recorded in the run log:
+    - item 4 (GPS denied, via the real permission dialog → manual prompt);
+    - item 6 (postal-code origin, `098585`, live OneMap);
+    - item 7 (mall destination, ION Orchard, live OneMap).
+  - Still not run: 1 (Chrome localhost), 3 (emulator default location, outside SG) and 5 (GPS timeout) on a real
+    device or browser. These are covered only by automated tests with fakes. Items 8–10 need M3–M4 features.
 - **Android timeout runs while the system "Location Accuracy" prompt is open (observed in M1, not fixed).** On a
   device where Location Accuracy is off, the geolocator request shows this Google Play services prompt. The 10 s
   timeout keeps running while it is on screen, so a first-time user can land on "Finding your location took too
@@ -138,3 +144,18 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-01 | M1 data.gov.sg rate limiter | `flutter build web` | Pass (`✓ Built build\web`) |
 | 2026-10-01 | M1 data.gov.sg rate limiter | `flutter build apk --release` | Pass (48.3 MB) |
 | 2026-10-01 | M1 data.gov.sg rate limiter, live sanity check | Release APK, fresh install, location pre-granted (`pm grant`), SG fix, live data.gov.sg. Launched 22:28:05 SGT, tapped Refresh all at 22:28:09 | All four tiles rendered by 22:28:29 (Cloudy, City area, 22:06; UV night, national; PM2.5 35 µg/m³ Normal, South; PSI 73 Moderate, South). No "data service is busy" error. Not observable here: the queued sends themselves, and whether the tap registered (no screen confirmation). The exact behaviour is proven by the deterministic tests above, not by this run |
+| 2026-10-01 | M2 places | `curl` probes of OneMap (tokenless, `Origin: http://localhost:5000`) | Search `238801`: HTTP 200, `Access-Control-Allow-Origin: *`, body has `error: "Authentication token missing…"` + 1 result. Reverse geocode `/api/public/revgeocode?location=1.2840,103.8510`: **HTTP 401** `{"message":"Unauthorized"}` → not used |
+| 2026-10-01 | M2 places | `curl` once per query, ~1 s apart, to capture `test/fixtures/onemap/` | 8 × HTTP 200: `238801` (1), `098585` (1), `123 Ang Mo Kio Avenue 6` (2), raw `Blk 123 Ang Mo Kio Ave 6` (**0**), `VivoCity` (2), `Orchard Road` (9), `Bishan MRT` (8, first has `POSTAL: "NIL"`), `000000` (0). Every body carries the `error` field, including the empty ones |
+| 2026-10-01 | M2 places | Mutation check: `place_search_session.dart` sequence-token guard disabled, then `flutter test test/features/places/place_search_session_test.dart`; guard restored | With the guard disabled, 3 tests failed as expected: both race tests and `clear() drops an in-flight response`. Guard restored: 9/9 pass. The other M2 tests were written alongside the code, not as a separate red run |
+| 2026-10-01 | M2 places | First run of the migrated M1 widget tests | 3 failed: test harness only. After scrolling to a result and selecting it, the lazy home list left the origin card unbuilt. Fixed with a tall test screen (`pumpApp`); a debug run confirmed the same tap sets the origin. Then 13/13 pass |
+| 2026-10-01 | M2 places | Removed `data_gov_sg_rate_limit_widget_test.dart` → "the area picker Retry…" | The M1 area picker no longer exists (replaced by place search), so that path is gone. The launch + Refresh all and tile Retry tests remain |
+| 2026-10-01 | M2 places | Release APK, Android emulator API 37, GPS origin (Raffles Place), live OneMap via the destination field. One query per fresh app start | `238801` → ION ORCHARD (1 match). `Blk 123 Ang Mo Kio Ave 6` → 2 matches (`123 ANG MO KIO AVENUE 6 SINGAPORE 560123`, Asian Women's Welfare Assoc. home), so the `Blk` normalisation works live. `VivoCity` → VIVOCITY + VIVOCITY STATION (S1), told apart by address/postcode. `Orchard Road` → 9 matches. `Singapore Botanic Gardens` → 10 matches. Nothing was auto-selected; the attribution showed under each list. The first two attempts were invalid because of how the device was driven (field not cleared / tapped before the card existed) and were redone |
+| 2026-10-01 | M2 places | Release APK (fresh install), real permission dialog → **Don't allow** (§18 item 4), live OneMap + data.gov.sg | Immediately "We couldn't determine your location…" + search field. Origin `098585` → tap → "From: VIVOCITY (chosen manually)" + address; the tiles switched to Bukit Merah area / South region (§18 item 6). Destination `Singapore Botanic Gardens` → tap → "To: SINGAPORE BOTANIC GARDENS". Change → `ION Orchard` → tap → "To: ION ORCHARD" (§18 item 7, mall destination). The origin stayed VIVOCITY throughout |
+| 2026-10-01 | M2 places | `dart format --set-exit-if-changed .` | Pass, exit 0 (59 files, 0 changed) |
+| 2026-10-01 | M2 places | `flutter analyze` | Pass, no issues (earlier runs flagged a factory/field name clash, `prefer_initializing_formals` and an unused import, all fixed) |
+| 2026-10-01 | M2 places | `flutter test` | Pass, 168/168 (6 query, 25 OneMap parser/repository, 9 session, 12 M2 widget, plus the existing suites; 1 obsolete picker test removed) |
+| 2026-10-01 | M2 places | `flutter test integration_test -d emulator-5554` (API 37) | Pass, 5/5 (fake providers only). Happy path now: fake SG GPS → dashboard → search/select destination. Fallback path now: denied → search/select origin → search/select destination → PSI failure → Retry |
+| 2026-10-01 | M2 places | `flutter build web` | Pass |
+| 2026-10-01 | M2 places | `flutter build apk --release` | Pass (48.4 MB) |
+| 2026-10-01 | M2 places | `flutter build apk --debug` | Pass |
+| 2026-10-01 | M2 places | Web integration test (`flutter drive … -d chrome`) | **Not run**: chromedriver not installed (`command -v chromedriver` → not found) |

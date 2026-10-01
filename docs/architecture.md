@@ -38,7 +38,7 @@ proxied**:
   Nominatim) on the M0 51-query test set, not because it is best in general. It may be withdrawn. The
   tested fallbacks are OSM-based (Photon and Nominatim, see `api-feasibility.md` §4). They would be added only when needed, as client-side adapters.
 - data.gov.sg anonymous limit: 6 real-time calls per 10 s. Requests are session-cached and deduplicated, and
-  every send to the v2 real-time API (launch, Refresh all, tile Retry, area-picker Retry, HTTP retries) passes
+  every send to the v2 real-time API (launch, Refresh all, tile Retry, HTTP retries) passes
   one shared rolling-window limiter: at most 6 in any 10 s window plus a 1 s latency margin. Calls beyond it
   wait for capacity instead of being sent. A real 429 is still mapped to `ApiRateLimited`.
 
@@ -52,7 +52,8 @@ lib/
   core/           config (non-secret constants), errors (AppFailure), http, location, geo, time
   features/
     environment/  data.gov.sg adapters → EnvironmentLocator → dashboard
-    places/       PlaceSearchRepository (OneMap adapter + normaliser)
+    places/       PlaceSearchRepository (OneMap adapter + normaliser), PlaceSearchField
+    destination/  DestinationController + DestinationCard
     journey/      busrouter loader, DirectBusPlanner, MRT asset
     bus_arrival/  BusArrivalRepository (ArriveLah)
 ```
@@ -77,7 +78,26 @@ lib/
   dataset, refresh cooldown), `presentation/` (dashboard tiles, display strings).
 - Seams overridden in tests: `locationServiceProvider`, `locationTimeoutProvider`, `environmentRepositoryProvider`,
   `httpClientProvider` (the rate-limit widget tests swap only the transport for a fake data.gov.sg),
-  `clockProvider`. Fakes are in `test/fakes/` and shared with `integration_test/`.
+  `clockProvider`, `placeSearchRepositoryProvider`. Fakes are in `test/fakes/` and shared with `integration_test/`.
+
+## Milestone 2 (places)
+
+- `lib/features/places/`:
+  - `domain/place.dart`: `Place`, `PlaceType`, `PlaceSource`, `SearchMode` and `PlaceSearchRepository` (guide §8.1).
+  - `domain/place_query.dart`: the normaliser, the postal-code rule and the minimum length.
+  - `domain/place_search_session.dart`: debounce, submit and a sequence token, so an older response never
+    replaces a newer query.
+  - `data/onemap_parser.dart` + `data/onemap_place_search_repository.dart`: the exact-postcode rule, the SG-bounds
+    filter, a 5-min cache, and `reverseGeocode` → null.
+  - `presentation/place_search_field.dart`: one search component for origin and destination. States: loading,
+    too short, no results, no exact postcode, unauthorized, and network/unavailable/malformed with Retry. Shows the
+    attribution.
+- The origin card uses `PlaceSearchField` for the manual origin. It calls the unchanged
+  `OriginController.beginManualEntry` / `selectManualOrigin`, so the M1 late-fix and attempt-id rules apply as before.
+- `lib/features/destination/`: `DestinationController` (a separate `Notifier`, so a destination can never change
+  the origin) and `DestinationCard` ("Where are you heading to today?", shown once an origin exists).
+- OneMap calls go through the generic `JsonHttpClient` (timeout, retry, 401/403, 429) with no rate limiter, because
+  type-ahead is debounced and cached. Photon / Nominatim / bundled fallbacks are not built (guide §0.1 item 6).
 - `ProviderScope(retry: noAutomaticRetry)`: Riverpod 3's automatic retry is off (rate limits; explicit Retry).
 - Dependencies added: `flutter_riverpod` 3.4.3, `geolocator` 14.1.1, `fake_async` (dev).
 
