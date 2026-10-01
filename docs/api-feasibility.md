@@ -44,8 +44,9 @@ Re-run any of them with the commands above. None needs credentials.
    it fits. Refresh must be **debounced and session-cached**: never refetch per widget, and never all four
    datasets in a tight loop. Handle `ApiRateLimited`. An optional (non-secret, public) API key raises the
    limit to 12/10 s, but it is **not required and not planned**.
-3. **OneMap tokenless search is the best single provider today.** See §4. But the response explicitly says
-   a token is missing, so this access can be withdrawn at any time. Keep it behind `PlaceSearchRepository`.
+3. **OneMap tokenless search scored best among the tested providers (OneMap, Photon, Nominatim) on this
+   51-query test set.** See §4. This is not a general guarantee. The response explicitly says a token is
+   missing, so this access can be withdrawn at any time. Keep it behind `PlaceSearchRepository`.
 4. **OSM providers (Photon / Nominatim) are viable fallbacks** for postal codes, malls, universities,
    landmarks and streets. They are **weak on HDB block addresses** (§4.3).
 5. **busrouter / ArriveLah** returned the expected schemas: stops `[lng, lat, name, road]` (note the **lng
@@ -62,9 +63,15 @@ used.
 
 Tooling note: on the warm emulator, `flutter run`'s launch step hung (adb timeout, black screen). A cold boot
 (`emulator -avd Pixel_8_Pro -no-snapshot-load`) plus `adb install` / `am start` worked. `flutter run` itself
-is not required for any acceptance criterion. Re-check it in Milestone 1. Note: the
-release `AndroidManifest.xml` must declare `android.permission.INTERNET` (Flutter adds it only to
-debug/profile manifests). This is a Milestone 1 task.
+is not required for any acceptance criterion. Re-check it in Milestone 1.
+
+INTERNET permission (resolved in the M0 review cleanup): Flutter's templates declared
+`<uses-permission android:name="android.permission.INTERNET"/>` only in
+`android/app/src/debug/AndroidManifest.xml` and `android/app/src/profile/AndroidManifest.xml`. The main
+(release) `android/app/src/main/AndroidManifest.xml` did not declare it, so the M0 debug APK run above does not
+prove release networking. The same line is now declared in `android/app/src/main/AndroidManifest.xml`.
+`flutter build apk --release` passes and the merged release manifest contains the permission. A release APK
+has not been run on a device or emulator yet (Milestone 1).
 
 ## 4. Place-search feasibility (largest remaining risk)
 
@@ -114,8 +121,12 @@ debug/profile manifests). This is a Milestone 1 task.
 
 ### 4.4 Conclusion and recommendation
 
-- **Feasible front-end-only.** For Milestone 2, **OneMap tokenless alone covers the test set best**. It is
-  the only provider that resolved HDB blocks and MRT station codes reliably.
+- **Feasible front-end-only.** For Milestone 2, **OneMap tokenless scored best among the tested providers
+  (OneMap, Photon, Nominatim) on this 51-query test set**. It was the only one of the three that resolved
+  HDB blocks and MRT station codes reliably in these queries. This is not a general guarantee for other
+  queries or providers.
+- **Operational risk:** tokenless access is undocumented. The response carries `"error": "Authentication
+  token missing…"`, so OneMap can withdraw it at any time without notice.
 - Its weaknesses (park ranking, noisy sub-entity labels) are tolerable because §8.3 of the guide already
   requires the user to **choose** from a list. Results show address + postcode for disambiguation.
 - **Fallback:** if OneMap starts enforcing tokens, Photon (type-ahead) + Nominatim (submit/reverse) together

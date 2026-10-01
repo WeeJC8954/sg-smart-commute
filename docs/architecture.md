@@ -34,8 +34,9 @@ proxied**:
 - The app needs **no credentials**. Evaluators configure nothing.
 - Phase 1 depends on two community services (busrouter, ArriveLah) that have no SLA. They are isolated behind
   repository interfaces, and the app shows a clear degraded state.
-- OneMap tokenless search may be withdrawn. The tested fallbacks are OSM-based (Photon and Nominatim, see
-  `api-feasibility.md` §4). They would be added only when needed, as client-side adapters.
+- OneMap tokenless search was chosen because it scored best among the tested providers (OneMap, Photon,
+  Nominatim) on the M0 51-query test set, not because it is best in general. It may be withdrawn. The
+  tested fallbacks are OSM-based (Photon and Nominatim, see `api-feasibility.md` §4). They would be added only when needed, as client-side adapters.
 - data.gov.sg anonymous limit: 6 real-time calls per 10 s. Requests are session-cached and deduplicated.
 
 ## Layering (target for Milestone 1+)

@@ -37,6 +37,28 @@ flutter drive --driver=test_driver/integration_test.dart \
 **chromedriver is not installed** on the Milestone 0 machine. One way to get a version matching Chrome:
 `npx @puppeteer/browsers install chromedriver@stable`. Until it's installed, Web integration runs are pending.
 
+## Open acceptance items
+
+- **Web (Chrome) integration test: not run.** chromedriver was not available in Milestone 0, so no
+  `flutter drive … -d chrome` run has happened. Run it once chromedriver is available:
+
+  ```bash
+  chromedriver --port=4444 &
+  flutter drive --driver=test_driver/integration_test.dart \
+    --target=integration_test/app_boot_test.dart -d chrome
+  ```
+
+  Repeat with `--target=` set to each integration test file as they are added (guide v2.1 §18), and record
+  the result in the run log.
+- This does **not** block Milestone 1. It is carried into M1 and must be closed by Milestone 5 at the latest.
+- **Cross-platform integration coverage is not complete** until the Web run has been executed and its
+  result recorded below. Until then, integration coverage is Android only.
+
+## Evidence rule
+
+Record the actual command and its actual result in the run log. Never claim a test or gate passes unless it
+was executed. A test that was not run is logged as **Not run**, with the reason.
+
 ## Feasibility probes (Milestone 0, no credentials)
 
 ```bash
@@ -70,3 +92,5 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-01 | M0 | Web integration test (`flutter drive … -d chrome`) | **Not run**: chromedriver not installed |
 | 2026-10-01 | M0 | API probes: curl, Chrome, Android | All selected providers 200. LTA DataMall CORS-blocked in Chrome |
 | 2026-10-01 | M0 | Place-search eval (51 queries) | See `api-feasibility.md` §4 |
+| 2026-10-01 | M0 cleanup | `flutter analyze` (after adding INTERNET to the main manifest) | Pass, no issues |
+| 2026-10-01 | M0 cleanup | `flutter build apk --release` | Pass. Merged release manifest contains `android.permission.INTERNET`. APK not run on a device |
