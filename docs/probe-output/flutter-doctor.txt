@@ -1,0 +1,41 @@
+# flutter doctor -v, 2026-10-01 (Milestone 0 environment check)
+
+[✓] Flutter (Channel stable, 3.47.2, on Microsoft Windows [Version 10.0.26300.9550], locale en-SG) [816ms]
+    • Flutter version 3.47.2 on channel stable at C:\Users\weejc\develop\flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision d3b14c8769 (5 weeks ago), 2026-08-26 16:07:51 -0700
+    • Engine revision a804b26164
+    • Dart version 3.13.2
+    • DevTools version 2.60.0
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, enable-record-use, enable-swift-package-manager, omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration
+
+[✓] Windows Version (Windows 11 or higher, 26H2, 2009) [15.5s]
+
+[!] Android toolchain - develop for Android devices (Android SDK version 36.0.0) [2.1s]
+    • Android SDK at C:\Users\weejc\AppData\Local\Android\sdk
+    • Emulator version 37.1.11.0 (build_id 15917651) (CL:N/A)
+    ✗ cmdline-tools component is missing.
+      Try installing or updating Android Studio.
+      Alternatively, download the tools from https://developer.android.com/studio#command-line-tools-only and make sure to set the ANDROID_HOME environment variable.
+      See https://developer.android.com/studio/command-line for more details.
+    ✗ Android license status unknown.
+      Run `flutter doctor --android-licenses` to accept the SDK licenses.
+      See https://flutter.dev/to/windows-android-setup for more details.
+
+[✓] Chrome - develop for the web [33ms]
+    • Chrome at C:\Program Files\Google\Chrome\Application\chrome.exe
+
+[✗] Visual Studio - develop Windows apps [31ms]
+    ✗ Visual Studio not installed; this is necessary to develop Windows apps.
+      Download at https://visualstudio.microsoft.com/downloads/.
+      Please install the "Desktop development with C++" workload, including all of its default components
+
+[✓] Connected device (3 available) [4.0s]
+    • Windows (desktop) • windows • windows-x64    • Microsoft Windows [Version 10.0.26300.9550]
+    • Chrome (web)      • chrome  • web-javascript • Google Chrome 154.0.8037.93
+    • Edge (web)        • edge    • web-javascript • Microsoft Edge 154.0.4258.48
+
+[✓] Network resources [1,717ms]
+    • All expected network resources are available.
+
+! Doctor found issues in 2 categories.

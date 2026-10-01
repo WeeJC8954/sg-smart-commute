@@ -7,6 +7,7 @@ Raw evidence (committed):
 
 | File | What |
 |---|---|
+| `docs/probe-output/flutter-doctor.txt` | `flutter doctor -v` environment check (step 1) |
 | `docs/probe-output/curl-probes.txt` | `bash tool/probe_apis.sh` — status, CORS headers, payload heads |
 | `docs/probe-output/flutter-web-chrome.txt` | `flutter run -d chrome -t tool/api_probe_app.dart` — real browser (CORS enforced) |
 | `docs/probe-output/flutter-android-emulator.txt` | same probe app on the Android emulator |
