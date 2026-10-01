@@ -2,10 +2,12 @@
 // environment are fakes; no test calls a live API. Time is the test binding's
 // fake clock, so the 10 s timeout never waits in real time.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 
 import 'fakes/fake_environment_repository.dart';
@@ -180,6 +182,35 @@ void main() {
     expect(find.byKey(const Key('use-current-location')), findsOneWidget);
 
     // Only an explicit tap switches to GPS.
+    await tester.tap(find.byKey(const Key('use-current-location')));
+    await tester.pump();
+    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
+  });
+
+  testWidgets('retry with a manual origin: only the chip switches to GPS', (
+    tester,
+  ) async {
+    location = FakeLocationService(access: LocationAccess.granted);
+    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 10));
+    await chooseArea(tester, 'Tampines');
+
+    // Attempt B runs while the manual origin is set; A answers late too.
+    location.reset();
+    ProviderScope.containerOf(tester.element(find.byType(OriginCard)))
+        .read(originControllerProvider.notifier)
+        .retryLocation();
+    location.grant();
+    await tester.pump();
+    location.fixAttempt(0, mountainView);
+    location.fix(bishan);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 10));
+
+    expect(find.text('From: Tampines area (chosen manually)'), findsOneWidget);
+    expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
     expect(find.text('From: Current location (from GPS)'), findsOneWidget);

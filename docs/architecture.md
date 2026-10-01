@@ -65,7 +65,9 @@ lib/
   injectable `Clock`), `http/json_http_client.dart` (timeout, bounded retry, 429, dedup),
   `location/` (`LocationService` seam + geolocator adapter).
 - `lib/features/origin/`: `OriginController` (Riverpod `Notifier`) is the permission → timeout → fallback →
-  late-fix state machine. `Origin` carries provenance (`gps` | `manual`). `OriginCard` is the UI.
+  late-fix state machine. `Origin` carries provenance (`gps` | `manual`). `OriginCard` is the UI. Each
+  acquisition attempt has an id, so a superseded attempt's results are dropped. No attempt replaces a manual
+  origin: only `useCurrentLocation()` (the "Use my current location" chip) does that.
 - `lib/features/environment/`: `data/` (data.gov.sg parsers + repository), `domain/` (models,
   `EnvironmentLocator`, band tables), `environment_providers.dart` (one session-cached `FutureProvider` per
   dataset, refresh cooldown), `presentation/` (dashboard tiles, display strings).

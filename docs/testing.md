@@ -113,3 +113,7 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-01 | M1 | Web integration test (`flutter drive … -d chrome`) | **Not run**: chromedriver not installed |
 | 2026-10-01 | M1 | `flutter build web` | Pass (Wasm dry run succeeded; informational notice only) |
 | 2026-10-01 | M1 | `flutter build apk --release` | Pass (48.3 MB; Gradle/javac warnings only, no errors). Release APK not run on a device in M1 |
+| 2026-10-01 | M1 race fix (PR #3 review) | New overlapping-attempt tests against the old controller (red run) | Fail as expected: 5 failures (4 controller + 1 widget, all "retry with manual origin"). The stale-attempt tests (c)/(d) already passed |
+| 2026-10-01 | M1 race fix (PR #3 review) | `dart format lib test integration_test`, `flutter analyze` | Formatted 2 files; analyze passes, no issues |
+| 2026-10-01 | M1 race fix (PR #3 review) | `flutter test` | Pass, 103/103 |
+| 2026-10-01 | M1 race fix (PR #3 review) | `flutter test integration_test -d emulator-5554` | **Not run**: no emulator was running (`flutter devices` listed no Android device) |

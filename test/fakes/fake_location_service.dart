@@ -9,6 +9,7 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 /// it decides exactly when (and whether) they arrive.
 class FakeLocationService implements LocationService {
   FakeLocationService({LocationAccess? access, LatLng? position}) {
+    _positions.add(_position);
     if (access != null) _access.complete(access);
     if (position != null) _position.complete(position);
   }
@@ -25,11 +26,24 @@ class FakeLocationService implements LocationService {
   void fix(LatLng position) => _position.complete(position);
   void fail(Object error) => _position.completeError(error);
 
+  /// Position completers of every attempt, oldest first; index 0 is the
+  /// launch attempt. Lets a test complete a superseded attempt late.
+  final List<Completer<LatLng>> _positions = [];
+
   /// Prepares fresh completers for a second attempt (e.g. "Try again").
   void reset() {
     _access = Completer<LocationAccess>();
     _position = Completer<LatLng>();
+    _positions.add(_position);
   }
+
+  /// Completes attempt [attempt]'s position request (0 = launch attempt).
+  void fixAttempt(int attempt, LatLng position) =>
+      _positions[attempt].complete(position);
+
+  /// Fails attempt [attempt]'s position request (0 = launch attempt).
+  void failAttempt(int attempt, Object error) =>
+      _positions[attempt].completeError(error);
 
   @override
   Future<LocationAccess> requestAccess() {
