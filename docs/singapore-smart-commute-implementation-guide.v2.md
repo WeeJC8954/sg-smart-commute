@@ -328,7 +328,9 @@ abstract interface class PlaceSearchRepository {
 
 No provider here needs a credential. None needs a server.
 
-1. **OneMap tokenless search (primary while it works).** It currently returns results along with an
+1. **OneMap tokenless search (primary while it works).** It scored best among the tested providers
+   (OneMap, Photon, Nominatim) on the M0 51-query test set (`docs/api-feasibility.md` §4). That is not a
+   general guarantee. It currently returns results along with an
    "Authentication token missing" message. That strongly suggests enforcement may arrive later. Treat
    these responses as failure, which triggers the fallback: a 401/403, or an `error` with empty `results`.
 2. **Photon (OSM) — type-ahead fallback.** Use `bbox=103.6,1.15,104.1,1.48` and require
@@ -750,7 +752,8 @@ Static data loader, planner and edge cases, scoring, walking estimate, MRT alter
 ArriveLah adapter, ETA formatting, refresh, unavailable state.
 
 ### Milestone 5 — Hardening
-Tests, Web/Android QA, error states, caching, accessibility, docs.
+Tests, Web/Android QA, error states, caching, accessibility, docs. Close the open Web (Chrome) integration
+run carried from M0 (`docs/testing.md` → Open acceptance items) if it has not run earlier.
 
 ### Milestone 6 — Map (Phase 2)
 
@@ -777,7 +780,7 @@ Each milestone is one reviewable PR.
 - [ ] Attribution shown for every data source.
 - [ ] Error, offline, empty and stale states are usable.
 - [ ] Integration tests (happy path + fallback/error path, fake providers, no live APIs) pass on Android
-      and Web.
+      and Web. The Web run must actually be executed via `flutter drive` and recorded in `docs/testing.md`.
 - [ ] Quality gates pass (actually executed).
 - [ ] A zero-context developer can reproduce the project from the README.
 

@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required in release builds: the app calls public HTTPS APIs. Flutter's templates add
+         this permission only to the debug and profile manifests. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="sg_smart_commute"
         android:name="${applicationName}"
