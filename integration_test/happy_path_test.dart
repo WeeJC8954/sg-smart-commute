@@ -1,16 +1,19 @@
-// Phase 1 happy-path integration test (guide v2.1 §18, item 1), M1–M2:
+// Phase 1 happy-path integration test (guide v2.1 §18, item 1), M1–M3:
 // fake GPS inside Singapore → dashboard shows the fake forecast / UV /
 // PM2.5 / PSI with scope labels and timestamps → the user searches for and
-// selects a destination (fake place search).
+// selects a destination (fake place search) → a direct-bus suggestion with
+// stop, service, stops and estimated walks, plus the MRT alternative (fake
+// bus network and MRT asset, test/fakes/fake_bus_network.dart).
 //
-// The direct bus → ETA → manual refresh steps are added by Milestones 3–4
-// when those features exist. Every provider is a fake; no live API is called.
+// The live ETA → manual refresh steps are added by Milestone 4. Every
+// provider is a fake; no live API is called.
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
+import 'package:sg_smart_commute/features/journey/presentation/journey_card.dart';
 
 import '../test/fakes/fake_environment_repository.dart';
 import '../test/fakes/fake_location_service.dart';
@@ -79,5 +82,41 @@ void main() {
     // Choosing a destination does not change the GPS origin.
     expect(find.text('From: Current location (from GPS)'), findsOneWidget);
     expect(places.queries, ['vivocity']);
+
+    // M3: direct-bus recommendation (fake network) and MRT alternative.
+    await pumpUntilFound(tester, find.byKey(const Key('journey-suggested')));
+    final suggested = find.byKey(const Key('journey-suggested'));
+    await tester.ensureVisible(suggested);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.text('Take Bus F20 toward VivoCity (fake)'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.textContaining('to Bus Stop BSH2 — Opp Bishan Stn'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: suggested, matching: find.text('2 stops')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('journey-alternative-1')), findsOneWidget);
+    expect(find.text(JourneyCard.noArrivals), findsOneWidget);
+    final mrt = find.byKey(const Key('journey-mrt'));
+    await tester.ensureVisible(mrt);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: mrt,
+        matching: find.textContaining('Nearest MRT: BISHAN MRT STATION'),
+      ),
+      findsOneWidget,
+    );
   });
 }

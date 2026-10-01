@@ -1,9 +1,10 @@
 // Phase 1 fallback/error-path integration test (guide v2.1 §18, item 2),
-// M1–M2: permission denied (or a fix outside Singapore, or a timeout) → the
+// M1–M3: permission denied (or a fix outside Singapore, or a timeout) → the
 // manual origin prompt appears → the user searches for and selects an origin
-// → searches for and selects a destination → a provider fails (24-hr PSI
-// throws NetworkUnavailable) → a clear error with Retry and no fabricated
-// value → Retry with the recovered fake succeeds.
+// → searches for and selects a destination → "No direct bus found" plus the
+// MRT alternative (fake bus network and MRT asset) → a provider fails (24-hr
+// PSI throws NetworkUnavailable) → a clear error with Retry and no
+// fabricated value → Retry with the recovered fake succeeds.
 //
 // M4 extends the failure step to bus arrival. Every provider is a fake; no
 // live API is called. The 10 s timeout is injected (short), so the test never
@@ -60,6 +61,31 @@ void main() {
       find.text('From: OUR TAMPINES HUB (chosen manually)'),
       findsOneWidget,
     );
+
+    // M3: no single fake service connects Tampines Hub and ION Orchard.
+    await pumpUntilFound(tester, find.byKey(const Key('journey-no-direct')));
+    expect(find.text('No direct bus found'), findsOneWidget);
+    expect(find.textContaining('Take Bus'), findsNothing);
+    final mrt = find.byKey(const Key('journey-mrt'));
+    await tester.ensureVisible(mrt);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: mrt,
+        matching: find.textContaining('Nearest MRT: TAMPINES MRT STATION'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: mrt,
+        matching: find.textContaining(
+          'Near your destination: ORCHARD MRT STATION',
+        ),
+      ),
+      findsOneWidget,
+    );
+
     await pumpUntilFound(tester, inTile('tile-forecast', 'Tampines area'));
 
     // PSI failed: clear message + Retry, and no PSI value is shown.
