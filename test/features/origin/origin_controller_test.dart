@@ -412,7 +412,7 @@ void main() {
   });
 
   group('cancelChange ("Keep this origin")', () {
-    test('returns to the same origin, GPS or manual', () {
+    test('returns to the same GPS origin after Change', () {
       fakeAsync((async) {
         final c = makeContainer();
         location.grant();
