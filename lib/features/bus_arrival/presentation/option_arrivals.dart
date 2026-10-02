@@ -37,13 +37,16 @@ class OptionArrivals extends ConsumerWidget {
 
     if (current == null) {
       if (async case AsyncValue(:final error?, isLoading: false)) {
-        return _ArrivalFailed(error: error);
+        return _ArrivalFailed(error: error, service: option.service.number);
       }
       return const _Checking();
     }
     return switch (current.byStop[option.board.code]) {
       null => const _Checking(),
-      StopArrivalsFailed(:final failure) => _ArrivalFailed(error: failure),
+      StopArrivalsFailed(:final failure) => _ArrivalFailed(
+        error: failure,
+        service: option.service.number,
+      ),
       StopArrivalsLoaded(:final arrivals) => _loaded(
         theme,
         arrivals,
@@ -194,12 +197,16 @@ class _Checking extends StatelessWidget {
 }
 
 class _ArrivalFailed extends ConsumerWidget {
-  const _ArrivalFailed({required this.error});
+  const _ArrivalFailed({required this.error, required this.service});
   final Object error;
+
+  /// The bus this row is under: each option can show its own Retry.
+  final String service;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => ErrorRetryRow(
     message: 'Live arrivals: ${failureMessage(error)}',
     onRetry: () => ref.invalidate(journeyArrivalsProvider),
+    retryLabel: 'Retry live arrivals for Bus $service',
   );
 }

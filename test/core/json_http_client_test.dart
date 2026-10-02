@@ -166,6 +166,95 @@ void main() {
     expect(calls, 1);
   });
 
+  group('Retry-After holds the host (#30)', () {
+    late DateTime now;
+    late Map<String, int> calls;
+
+    JsonHttpClient held(Map<String, String> headers) => JsonHttpClient(
+      MockClient((request) async {
+        calls[request.url.host] = (calls[request.url.host] ?? 0) + 1;
+        return calls[request.url.host] == 1
+            ? http.Response('slow down', 429, headers: headers)
+            : http.Response('{"ok":1}', 200);
+      }),
+      delay: (d) async => delays.add(d),
+      clock: () => now,
+    );
+
+    setUp(() {
+      now = DateTime.utc(2026, 10, 3, 4);
+      calls = {};
+    });
+
+    test(
+      'until it has passed, nothing is sent: the time left is reported',
+      () async {
+        final c = held({'retry-after': '7'});
+        await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+
+        now = now.add(const Duration(seconds: 3));
+        await expectLater(
+          c.getJson(uri),
+          throwsA(
+            isA<ApiRateLimited>()
+                .having(
+                  (e) => e.retryAfter,
+                  'retryAfter',
+                  const Duration(seconds: 4),
+                )
+                .having(
+                  (e) => e.message,
+                  'message',
+                  contains('retry in 4 seconds'),
+                ),
+          ),
+        );
+        expect(calls[uri.host], 1, reason: 'the held request never went out');
+
+        now = now.add(const Duration(seconds: 4));
+        expect(await c.getJson(uri), {'ok': 1});
+        expect(calls[uri.host], 2);
+      },
+    );
+
+    test('only that host is held', () async {
+      final c = held({'retry-after': '7'});
+      await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+      final other = Uri.parse('https://other.example.test/x');
+      await expectLater(c.getJson(other), throwsA(isA<ApiRateLimited>()));
+      expect(calls, {uri.host: 1, other.host: 1});
+    });
+
+    test('without Retry-After nothing is held', () async {
+      final c = held({});
+      await expectLater(
+        c.getJson(uri),
+        throwsA(
+          isA<ApiRateLimited>()
+              .having((e) => e.retryAfter, 'retryAfter', isNull)
+              .having((e) => e.message, 'message', contains('in a moment')),
+        ),
+      );
+      expect(await c.getJson(uri), {'ok': 1});
+    });
+
+    test('a long Retry-After is capped', () async {
+      final c = held({'retry-after': '86400'});
+      await expectLater(
+        c.getJson(uri),
+        throwsA(
+          isA<ApiRateLimited>().having(
+            (e) => e.retryAfter,
+            'retryAfter',
+            AppTimings.maxRetryAfter,
+          ),
+        ),
+      );
+      now = now.add(AppTimings.maxRetryAfter);
+      expect(await c.getJson(uri), {'ok': 1});
+    });
+  });
+
   test('401 / 403 → ApiUnauthorized, never retried', () async {
     for (final code in [401, 403]) {
       var calls = 0;

@@ -43,7 +43,7 @@ class BusrouterRepository implements BusNetworkRepository {
         _http.getJson(BusrouterEndpoints.services),
       ]);
     } on AppFailure catch (e) {
-      throw StaticDataUnavailable('busrouter', e.runtimeType.toString());
+      throw StaticDataUnavailable(StaticDataset.busRoutes, '$e');
     }
     final [stopsJson, servicesJson] = both;
     final stops = parseBusrouterStops(stopsJson);

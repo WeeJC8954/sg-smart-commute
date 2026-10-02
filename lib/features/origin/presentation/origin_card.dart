@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/section_heading.dart';
 import '../../../core/ui/status_rows.dart';
 import '../../places/presentation/place_search_field.dart';
 import '../domain/origin.dart';
@@ -10,14 +11,38 @@ import '../domain/origin_controller.dart';
 
 /// The origin section of the route card (lib/app/route_card.dart): status,
 /// the manual-origin prompt and the late-fix offer (§5.1–§5.4).
-class OriginCard extends ConsumerWidget {
+///
+/// Focus follows the flow: "Change" opens a focused search field, and
+/// picking a place (or "Keep this origin") puts focus on the new "Change", so
+/// keyboard and screen-reader users are not sent back to the top.
+class OriginCard extends ConsumerStatefulWidget {
   const OriginCard({super.key});
 
   static const String fallbackPrompt =
       "We couldn't determine your location. Where are you now?";
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OriginCard> createState() => _OriginCardState();
+}
+
+class _OriginCardState extends ConsumerState<OriginCard> {
+  final _changeButton = FocusNode(debugLabel: 'change-origin');
+
+  @override
+  void dispose() {
+    _changeButton.dispose();
+    super.dispose();
+  }
+
+  /// Focuses "Change" once the rebuild that shows it has run.
+  void _focusChangeAfterRebuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _changeButton.requestFocus();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(originControllerProvider);
     final controller = ref.read(originControllerProvider.notifier);
     final theme = Theme.of(context);
@@ -38,8 +63,10 @@ class OriginCard extends ConsumerWidget {
             children: [
               TextButton(
                 key: const Key('change-origin'),
+                focusNode: _changeButton,
                 onPressed: controller.changeOrigin,
-                child: const Text('Change'),
+                // The destination has a "Change" too.
+                child: const Text('Change', semanticsLabel: 'Change origin'),
               ),
               // GPS can be retried at any time behind a manual origin; the
               // fix is only offered, never applied (docs/assumptions.md).
@@ -72,38 +99,56 @@ class OriginCard extends ConsumerWidget {
         final reason = state.fallbackReason;
         if (reason != null) {
           children
-            ..add(Text(fallbackPrompt, style: theme.textTheme.titleMedium))
+            ..add(
+              SectionHeading(
+                OriginCard.fallbackPrompt,
+                style: theme.textTheme.titleMedium,
+              ),
+            )
             ..add(Text(locationFailureText(reason, isWeb: kIsWeb)))
             ..add(_FallbackActions(reason: reason));
         } else {
           children.add(
-            Text('Where are you now?', style: theme.textTheme.titleMedium),
+            SectionHeading(
+              'Where are you now?',
+              style: theme.textTheme.titleMedium,
+            ),
           );
           if (state.origin != null) {
             children.add(_OriginLine(origin: state.origin!));
           }
         }
+        // Opened with "Change": the current origin can be kept.
+        final changing = reason == null && state.origin != null;
         children.add(const SizedBox(height: 8));
         children.add(
           PlaceSearchField(
             fieldKey: const Key('manual-origin-field'),
             label: 'Your location',
+            // Focused only when the user asked for it; the launch fallback
+            // prompt doesn't pop the keyboard unasked.
+            autofocus: changing,
             onEditingStarted: controller.beginManualEntry,
-            onSelected: (place) => controller.selectManualOrigin(
-              place.displayName,
-              place.position,
-              detail: place.distinctAddress,
-            ),
+            onSelected: (place) {
+              controller.selectManualOrigin(
+                place.displayName,
+                place.position,
+                detail: place.distinctAddress,
+              );
+              _focusChangeAfterRebuild();
+            },
           ),
         );
-        // Opened with "Change": the current origin can be kept.
-        if (reason == null && state.origin != null) {
+        if (changing) {
           children.add(
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
                 key: const Key('keep-origin'),
-                onPressed: controller.cancelChange,
+                onPressed: () {
+                  controller.cancelChange();
+                  _focusChangeAfterRebuild();
+                },
                 child: const Text('Keep this origin'),
               ),
             ),

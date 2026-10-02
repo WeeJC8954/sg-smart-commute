@@ -109,6 +109,10 @@ abstract final class AppTimings {
   /// Backoff before retry n (0-based) is this × 2^n: 500 ms, then 1 s.
   static const Duration httpBaseBackoff = Duration(milliseconds: 500);
 
+  /// Longest `Retry-After` honoured after a 429; a longer one is cut to
+  /// this, so a bad header cannot lock a provider out for the session.
+  static const Duration maxRetryAfter = Duration(seconds: 60);
+
   /// Largest response body accepted from any provider. The biggest real one
   /// is busrouter `stops.min.json` (~317 KB decoded, 2026-10-02), so this
   /// leaves > 12× headroom while bounding a runaway response.
@@ -166,7 +170,7 @@ abstract final class StaleAfter {
   static const Duration uvDaytime = Duration(hours: 2);
 }
 
-/// UV is measured roughly 07:00–19:00 SGT. Outside [uvDayStartHour,
+/// UV is measured roughly 07:00–20:00 SGT. Outside [uvDayStartHour,
 /// uvDayEndHour) the last reading is shown as "not measured at night".
 abstract final class UvHours {
   static const int uvDayStartHour = 7;

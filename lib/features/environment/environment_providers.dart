@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
-import '../../core/errors/app_failure.dart';
+import '../../core/errors/failure_guard.dart';
 import '../../core/http/json_http_client.dart';
 import '../../core/time/clock.dart';
 import 'data/nea_environment_repository.dart';
@@ -20,31 +20,32 @@ final environmentRepositoryProvider = Provider<EnvironmentRepository>(
 // selected from them once an origin is known.
 
 final forecastSnapshotProvider = FutureProvider<ForecastSnapshot>(
-  (ref) => _typed(ref.watch(environmentRepositoryProvider).twoHourForecast),
+  (ref) => guardAppFailure(
+    ref.watch(environmentRepositoryProvider).twoHourForecast,
+    context: 'forecast',
+  ),
 );
 
 final uvSnapshotProvider = FutureProvider<UvSnapshot>(
-  (ref) => _typed(ref.watch(environmentRepositoryProvider).uv),
+  (ref) => guardAppFailure(
+    ref.watch(environmentRepositoryProvider).uv,
+    context: 'uv',
+  ),
 );
 
 final pm25SnapshotProvider = FutureProvider<RegionalSnapshot>(
-  (ref) => _typed(ref.watch(environmentRepositoryProvider).pm25OneHour),
+  (ref) => guardAppFailure(
+    ref.watch(environmentRepositoryProvider).pm25OneHour,
+    context: 'pm25',
+  ),
 );
 
 final psiSnapshotProvider = FutureProvider<RegionalSnapshot>(
-  (ref) => _typed(ref.watch(environmentRepositoryProvider).psiTwentyFourHour),
+  (ref) => guardAppFailure(
+    ref.watch(environmentRepositoryProvider).psiTwentyFourHour,
+    context: 'psi',
+  ),
 );
-
-/// Guarantees `AsyncValue.error` is always an [AppFailure] (§12).
-Future<T> _typed<T>(Future<T> Function() load) async {
-  try {
-    return await load();
-  } on AppFailure {
-    rethrow;
-  } catch (e) {
-    throw InvalidApiResponse('$e');
-  }
-}
 
 /// Minimum refresh interval, injectable for tests.
 final environmentRefreshIntervalProvider = Provider<Duration>(
@@ -58,11 +59,12 @@ final environmentRefresherProvider =
 /// data.gov.sg limit (6 calls in any 10 s) is enforced separately, for every
 /// caller, by `dataGovSgRateLimiterProvider` in the HTTP client: calls beyond
 /// it wait for capacity instead of being sent.
-/// State: when the last accepted refresh happened.
 ///
 /// The cooldown only holds after a refresh that fully succeeded: if any
 /// dataset is still loading, nothing new starts; if any failed, the refresh
 /// may be repeated at once (as each tile's Retry can).
+///
+/// State: when the last accepted refresh happened.
 class EnvironmentRefresher extends Notifier<DateTime?> {
   @override
   DateTime? build() => null;

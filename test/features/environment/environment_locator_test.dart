@@ -66,8 +66,6 @@ void main() {
         final f = ForecastSnapshot(
           areas: areas,
           updatedAt: fetchedAt,
-          validFrom: fetchedAt,
-          validTo: fetchedAt,
           validText: '',
           fetchedAt: fetchedAt,
         );

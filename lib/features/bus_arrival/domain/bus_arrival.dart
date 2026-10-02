@@ -8,7 +8,7 @@ enum BusLoad {
 
   const BusLoad(this.label);
 
-  /// Shown as text, never as colour alone (§17 accessibility).
+  /// Shown as text, never as colour alone (§16 accessibility).
   final String label;
 }
 
@@ -24,7 +24,9 @@ enum BusType {
 
 /// One estimated arrival of [serviceNo] at [busStopCode] (guide v2.1 §10).
 /// Everything except the service and stop is optional: a field the provider
-/// leaves out or sends in an unknown form is null, never guessed.
+/// leaves out or sends in an unknown form is null, never guessed. The fields
+/// follow the guide's model, including [busStopCode] and [source], which the
+/// UI does not read yet.
 class BusArrival {
   const BusArrival({
     required this.serviceNo,
@@ -66,10 +68,10 @@ class ServiceArrivals {
   final List<BusArrival> arrivals;
 }
 
-/// Every service listed at one stop in one provider response.
+/// Every service listed at one stop in one provider response (the stop is
+/// the key it is looked up by, and each [BusArrival.busStopCode]).
 class StopArrivals {
-  const StopArrivals({required this.busStopCode, required this.services});
-  final String busStopCode;
+  const StopArrivals({required this.services});
   final List<ServiceArrivals> services;
 }
 

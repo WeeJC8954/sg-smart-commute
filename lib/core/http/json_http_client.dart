@@ -8,12 +8,16 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../errors/app_failure.dart';
+import '../time/clock.dart';
 import 'rate_limiter.dart';
 
 /// GET-JSON client with the policy from guide §15:
 /// - per-request timeout (≈ 10 s);
 /// - bounded retry (max 2, exponential backoff) for network errors and 5xx only;
-/// - 4xx is never retried; 429 → [ApiRateLimited] carrying `Retry-After`;
+/// - 4xx is never retried; 429 → [ApiRateLimited] carrying `Retry-After`.
+///   Until that has passed (at most [AppTimings.maxRetryAfter]) nothing more is
+///   sent to that host: its requests fail at once with [ApiRateLimited] and
+///   the time left, so a Retry tap cannot re-hit the limit;
 /// - concurrent identical requests are deduplicated;
 /// - optional client-side rate limits: [rateLimiterFor] picks the limiter (if
 ///   any) for a URI. Each outgoing send, retries included, waits for a grant.
@@ -31,7 +35,9 @@ class JsonHttpClient {
     this.maxResponseBytes = AppTimings.httpMaxResponseBytes,
     Future<void> Function(Duration)? delay,
     this.rateLimiterFor,
-  }) : _delay = delay ?? Future<void>.delayed;
+    Clock? clock,
+  }) : _delay = delay ?? Future<void>.delayed,
+       _clock = clock ?? systemClock;
 
   final http.Client _client;
   final Duration timeout;
@@ -40,8 +46,12 @@ class JsonHttpClient {
   final int maxResponseBytes;
   final Future<void> Function(Duration) _delay;
   final RequestRateLimiter? Function(Uri uri)? rateLimiterFor;
+  final Clock _clock;
 
   final Map<Uri, Future<Object?>> _inFlight = {};
+
+  /// Host → when its `Retry-After` ends.
+  final Map<String, DateTime> _heldUntil = {};
 
   Future<Object?> getJson(Uri uri) {
     final existing = _inFlight[uri];
@@ -67,6 +77,15 @@ class JsonHttpClient {
   }
 
   Future<Object?> _getOnce(Uri uri) async {
+    final heldUntil = _heldUntil[uri.host];
+    if (heldUntil != null) {
+      final left = heldUntil.difference(_clock());
+      if (left > Duration.zero) {
+        _debugLog('held for Retry-After', uri);
+        throw ApiRateLimited(retryAfter: left);
+      }
+      _heldUntil.remove(uri.host);
+    }
     // Waiting for a grant is not part of the request timeout.
     await rateLimiterFor?.call(uri)?.acquire();
     final _Received response;
@@ -91,9 +110,9 @@ class JsonHttpClient {
     }
     _debugLog('HTTP $status', uri);
     if (status == 429) {
-      throw ApiRateLimited(
-        retryAfter: _parseRetryAfter(response.headers['retry-after']),
-      );
+      final retryAfter = _parseRetryAfter(response.headers['retry-after']);
+      if (retryAfter != null) _heldUntil[uri.host] = _clock().add(retryAfter);
+      throw ApiRateLimited(retryAfter: retryAfter);
     }
     if (status == 401 || status == 403) throw const ApiUnauthorized();
     if (status >= 500) throw _Retryable(ApiUnavailable('HTTP $status'));
@@ -131,9 +150,13 @@ class JsonHttpClient {
     return _Received(status, response.headers, body.takeBytes());
   }
 
+  /// Delay-seconds form only (an HTTP-date is treated as absent), capped at
+  /// [AppTimings.maxRetryAfter] so a bad header cannot lock a provider out.
   static Duration? _parseRetryAfter(String? value) {
     final seconds = int.tryParse(value?.trim() ?? '');
-    return seconds == null ? null : Duration(seconds: seconds);
+    if (seconds == null || seconds <= 0) return null;
+    final wait = Duration(seconds: seconds);
+    return wait > AppTimings.maxRetryAfter ? AppTimings.maxRetryAfter : wait;
   }
 
   static void _debugLog(String what, Uri uri) {
@@ -183,6 +206,7 @@ final jsonHttpClientProvider = Provider<JsonHttpClient>((ref) {
   final oneMap = ref.watch(oneMapRateLimiterProvider);
   return JsonHttpClient(
     ref.watch(httpClientProvider),
+    clock: ref.watch(clockProvider),
     rateLimiterFor: (uri) => DataGovSgRateLimit.appliesTo(uri)
         ? dataGovSg
         : OneMapRateLimit.appliesTo(uri)

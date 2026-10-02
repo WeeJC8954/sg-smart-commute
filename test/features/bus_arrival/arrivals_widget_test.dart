@@ -145,7 +145,7 @@ void main() {
       'the route stays', (tester) async {
     arrivals.stops = {
       ...fakeStopArrivals(),
-      'BSH2': const StopArrivals(busStopCode: 'BSH2', services: []),
+      'BSH2': const StopArrivals(services: []),
     };
     await pumpApp(tester, app());
     await pick(tester, 'VivoCity', 'VIVOCITY');
@@ -166,7 +166,6 @@ void main() {
     arrivals.stops = {
       ...fakeStopArrivals(),
       'BSH2': const StopArrivals(
-        busStopCode: 'BSH2',
         services: [
           ServiceArrivals(
             serviceNo: 'F20',
@@ -210,6 +209,17 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Next buses'), findsNothing);
+    // Each option's Retry names its bus for screen readers.
+    final semantics = tester.ensureSemantics();
+    expect(
+      find.bySemanticsLabel('Retry live arrivals for Bus F20'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('Retry live arrivals for Bus F10'),
+      findsOneWidget,
+    );
+    semantics.dispose();
 
     arrivals.failure = null;
     await tester.tap(
@@ -366,7 +376,6 @@ void main() {
       ..hold('BSH1')
       ..stops = {
         'BSH1': StopArrivals(
-          busStopCode: 'BSH1',
           services: [
             ServiceArrivals(
               serviceNo: 'F30',

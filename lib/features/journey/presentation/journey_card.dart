@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/section_heading.dart';
 import '../../../core/ui/status_rows.dart';
 import '../../bus_arrival/presentation/option_arrivals.dart';
 import '../../destination/domain/destination_controller.dart';
@@ -42,7 +43,10 @@ class JourneyCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Suggested journey', style: theme.textTheme.titleMedium),
+            SectionHeading(
+              'Suggested journey',
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             switch (plan) {
               AsyncValue(isLoading: true) => const BusyRow(
@@ -53,6 +57,7 @@ class JourneyCard extends ConsumerWidget {
                 onRetry: () => ref
                   ..invalidate(busNetworkProvider)
                   ..invalidate(journeyPlanProvider),
+                retryLabel: 'Retry finding a bus',
               ),
               AsyncValue(:final value) => _Plan(plan: value),
             },
@@ -112,7 +117,7 @@ class _Plan extends StatelessWidget {
           ),
           if (direct.options.length > 1) ...[
             const SizedBox(height: 12),
-            Text('Alternatives', style: theme.textTheme.titleSmall),
+            SectionHeading('Alternatives', style: theme.textTheme.titleSmall),
             for (var i = 1; i < direct.options.length; i++)
               // Keyed by the option itself, so an open "Show steps" never
               // carries over to a different bus at the same position.
@@ -333,7 +338,7 @@ class _Mrt extends StatelessWidget {
       key: const Key('journey-mrt'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('MRT alternative', style: theme.textTheme.titleSmall),
+        SectionHeading('MRT alternative', style: theme.textTheme.titleSmall),
         switch (mrt) {
           AsyncValue(isLoading: true) => const BusyRow(
             'Finding the nearest MRT…',
@@ -341,6 +346,7 @@ class _Mrt extends StatelessWidget {
           AsyncValue(:final error?, isLoading: false) => ErrorRetryRow(
             message: failureMessage(error),
             onRetry: onRetry,
+            retryLabel: 'Retry finding the nearest MRT',
           ),
           AsyncValue(:final value) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,

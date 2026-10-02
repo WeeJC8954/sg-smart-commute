@@ -19,6 +19,7 @@ class PlaceSearchField extends ConsumerStatefulWidget {
     required this.label,
     required this.onSelected,
     this.onEditingStarted,
+    this.autofocus = false,
   });
 
   static const String hint = 'e.g. 238801, Orchard Road, VivoCity, NUS';
@@ -32,6 +33,10 @@ class PlaceSearchField extends ConsumerStatefulWidget {
 
   /// Called when the user focuses or types in the field.
   final VoidCallback? onEditingStarted;
+
+  /// Focus the field when it appears. Only for a field the user opened
+  /// ("Change"), never for one shown unasked: that would pop the keyboard.
+  final bool autofocus;
 
   @override
   ConsumerState<PlaceSearchField> createState() => _PlaceSearchFieldState();
@@ -92,6 +97,7 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
             key: widget.fieldKey,
             controller: _controller,
             focusNode: _focus,
+            autofocus: widget.autofocus,
             textInputAction: TextInputAction.search,
             maxLength: PlaceSearchConfig.maxQueryLength,
             decoration: InputDecoration(
@@ -149,6 +155,8 @@ class _SearchBody extends StatelessWidget {
       ),
       PlaceSearchLoading() => Semantics(
         label: 'Searching places',
+        container: true,
+        liveRegion: true,
         child: const Padding(
           padding: EdgeInsets.only(top: 8),
           child: LinearProgressIndicator(),
@@ -164,11 +172,15 @@ class _SearchBody extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              places.length == 1
-                  ? '1 match. Tap it to confirm.'
-                  : '${places.length} matches. Choose the right one.',
-              style: small,
+            child: Semantics(
+              container: true,
+              liveRegion: true,
+              child: Text(
+                places.length == 1
+                    ? '1 match. Tap it to confirm.'
+                    : '${places.length} matches. Choose the right one.',
+                style: small,
+              ),
             ),
           ),
           for (final place in places)
@@ -187,6 +199,8 @@ class _SearchBody extends StatelessWidget {
         child: ErrorRetryRow(
           message: placeSearchFailureMessage(failure),
           onRetry: onRetry,
+          retryLabel: 'Retry place search',
+          liveRegion: true,
         ),
       ),
     };
@@ -220,11 +234,15 @@ IconData _iconFor(PlaceType type) => switch (type) {
   _ => Icons.place_outlined,
 };
 
+/// A search status line. A live region, so screen readers announce it when
+/// it appears: the results area changes without moving focus.
 class _Note extends StatelessWidget {
   const _Note(this.text);
   final String text;
 
   @override
-  Widget build(BuildContext context) =>
-      Padding(padding: const EdgeInsets.only(top: 8), child: Text(text));
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 8),
+    child: Semantics(container: true, liveRegion: true, child: Text(text)),
+  );
 }

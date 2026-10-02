@@ -283,7 +283,7 @@ void main() {
 
   testWidgets('static data unavailable → clear error, Retry, MRT still shown; '
       'nothing fabricated', (tester) async {
-    bus.failure = const StaticDataUnavailable('busrouter');
+    bus.failure = const StaticDataUnavailable(StaticDataset.busRoutes);
     await pumpApp(tester, gpsApp());
     await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
     expect(inCard('Bus data is unavailable right now.'), findsOneWidget);
@@ -423,7 +423,7 @@ void main() {
 
   testWidgets('a failed bus data load is held: changing the destination does '
       'not reload it; only Retry does', (tester) async {
-    bus.failure = const StaticDataUnavailable('busrouter');
+    bus.failure = const StaticDataUnavailable(StaticDataset.busRoutes);
     await pumpApp(tester, gpsApp());
     await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
     expect(inCard('Bus data is unavailable right now.'), findsOneWidget);
@@ -501,6 +501,36 @@ void main() {
     await tester.tap(inKey('journey-alternative-1', 'Show steps'));
     await tester.pump();
     expect(find.bySemanticsLabel('Hide steps for Bus F10'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('journey section titles are headings', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    for (final title in [
+      'Suggested journey',
+      'Alternatives',
+      'MRT alternative',
+    ]) {
+      expect(
+        tester.getSemantics(find.text(title)),
+        isSemantics(isHeader: true, label: title),
+        reason: title,
+      );
+    }
+    semantics.dispose();
+  });
+
+  testWidgets('the MRT Retry says what it retries', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, gpsApp(mrtFails: true));
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    expect(
+      find.bySemanticsLabel('Retry finding the nearest MRT'),
+      findsOneWidget,
+    );
     semantics.dispose();
   });
 

@@ -6,6 +6,7 @@
 library;
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/failure_guard.dart';
 import '../../../core/geo/geo.dart';
 import '../../../core/time/sgt_format.dart';
 import '../domain/environment_models.dart';
@@ -13,7 +14,7 @@ import '../domain/environment_models.dart';
 ForecastSnapshot parseTwoHourForecast(
   Object? json, {
   required DateTime fetchedAt,
-}) => _guard('two-hr-forecast', () {
+}) => guardAppFailureSync(context: 'two-hr-forecast', () {
   final data = _data(json);
   final areas = _list(data['area_metadata']);
   final item = _latest(_list(data['items']), (i) => _time(i['timestamp']));
@@ -21,7 +22,10 @@ ForecastSnapshot parseTwoHourForecast(
     for (final f in _list(item['forecasts']).cast<Map<String, dynamic>>())
       f['area'] as String: f['forecast'] as String,
   };
-  final valid = item['valid_period'] as Map<String, dynamic>;
+  // Only the source wording is shown; a missing or odd valid_period loses
+  // that line, never the whole tile.
+  final valid = item['valid_period'];
+  final validText = valid is Map<String, dynamic> ? valid['text'] : null;
   return ForecastSnapshot(
     areas: [
       for (final a in areas.cast<Map<String, dynamic>>())
@@ -32,15 +36,13 @@ ForecastSnapshot parseTwoHourForecast(
         ),
     ],
     updatedAt: _time(item['update_timestamp']),
-    validFrom: _time(valid['start']),
-    validTo: _time(valid['end']),
-    validText: (valid['text'] as String?) ?? '',
+    validText: validText is String ? validText : '',
     fetchedAt: fetchedAt,
   );
 });
 
 UvSnapshot parseUv(Object? json, {required DateTime fetchedAt}) =>
-    _guard('uv', () {
+    guardAppFailureSync(context: 'uv', () {
       final data = _data(json);
       final record = _latest(
         _list(data['records']),
@@ -50,7 +52,6 @@ UvSnapshot parseUv(Object? json, {required DateTime fetchedAt}) =>
       return UvSnapshot(
         value: (latest['value'] as num).toInt(),
         observedAt: _time(latest['hour']),
-        updatedAt: _time(record['updatedTimestamp']),
         fetchedAt: fetchedAt,
       );
     });
@@ -73,7 +74,7 @@ RegionalSnapshot _regional(
   String field,
   AirMetric metric,
   DateTime fetchedAt,
-) => _guard(field, () {
+) => guardAppFailureSync(context: field, () {
   final data = _data(json);
   final regions = <String, LatLng>{
     for (final r in _list(data['regionMetadata']).cast<Map<String, dynamic>>())
@@ -97,23 +98,11 @@ RegionalSnapshot _regional(
     regions: regions,
     values: values,
     observedAt: _time(item['timestamp']),
-    updatedAt: _time(item['updatedTimestamp']),
     fetchedAt: fetchedAt,
   );
 });
 
 // --- helpers --------------------------------------------------------------
-
-T _guard<T>(String what, T Function() parse) {
-  try {
-    return parse();
-  } on AppFailure {
-    rethrow;
-  } catch (e) {
-    // TypeError, FormatException, StateError, ... → one typed failure.
-    throw InvalidApiResponse('$what: $e');
-  }
-}
 
 Map<String, dynamic> _data(Object? json) {
   if (json is! Map<String, dynamic>) {

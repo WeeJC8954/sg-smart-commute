@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../core/ui/motion.dart';
+import '../core/ui/section_heading.dart';
 import '../features/environment/environment_providers.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
 import '../features/journey/presentation/journey_card.dart';
@@ -42,7 +43,7 @@ class HomeScreen extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
+                        child: SectionHeading(
                           'Conditions',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),

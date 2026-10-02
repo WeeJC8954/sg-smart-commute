@@ -3,16 +3,26 @@ import 'package:flutter/material.dart';
 /// A small spinner next to [label]. Screen readers hear the label once.
 ///
 /// [compact] is for secondary, inline states (e.g. live arrivals under an
-/// option): a smaller spinner and small text.
+/// option): a smaller spinner and small text. [liveRegion] announces the
+/// label when it appears, for states the user just triggered.
 class BusyRow extends StatelessWidget {
-  const BusyRow(this.label, {super.key, this.compact = false});
+  const BusyRow(
+    this.label, {
+    super.key,
+    this.compact = false,
+    this.liveRegion = false,
+  });
 
   final String label;
   final bool compact;
+  final bool liveRegion;
 
   @override
   Widget build(BuildContext context) => Semantics(
     label: label,
+    // A live region is its own node, so only this label is announced.
+    container: liveRegion,
+    liveRegion: liveRegion,
     child: Row(
       children: [
         SizedBox.square(
@@ -35,19 +45,43 @@ class BusyRow extends StatelessWidget {
 
 /// A failure message with an optional Retry button after it.
 class ErrorRetryRow extends StatelessWidget {
-  const ErrorRetryRow({super.key, required this.message, this.onRetry});
+  const ErrorRetryRow({
+    super.key,
+    required this.message,
+    this.onRetry,
+    this.retryLabel,
+    this.liveRegion = false,
+  });
 
   final String message;
 
   /// Null when retrying cannot help: no button is shown.
   final VoidCallback? onRetry;
 
+  /// What screen readers say for the button, e.g. "Retry 1-hr PM2.5": with
+  /// several failures on screen, a bare "Retry" doesn't say which one it
+  /// retries. The visible text stays "Retry".
+  final String? retryLabel;
+
+  /// Announce [message] when it appears, for a failure of something the
+  /// user just did (a search).
+  final bool liveRegion;
+
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      Expanded(child: Text(message)),
+      Expanded(
+        child: Semantics(
+          container: liveRegion,
+          liveRegion: liveRegion,
+          child: Text(message),
+        ),
+      ),
       if (onRetry != null)
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
+        TextButton(
+          onPressed: onRetry,
+          child: Text('Retry', semanticsLabel: retryLabel),
+        ),
     ],
   );
 }

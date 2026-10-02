@@ -46,7 +46,6 @@ void main() {
         stop.services.singleWhere((s) => s.serviceNo == no);
 
     test('every listed service, in the provider order', () {
-      expect(stop.busStopCode, '03019');
       expect(stop.services.map((s) => s.serviceNo), [
         '10',
         '100',
