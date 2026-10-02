@@ -22,11 +22,28 @@ called**. Live API behaviour is covered by the smoke tests and probes below.
 # Android (emulator or device)
 flutter test integration_test -d <device-id>
 
-# Web: needs a chromedriver matching your Chrome version, running on port 4444
+# Web: needs a chromedriver matching your Chrome version, running on port 4444.
+# Run each file separately (flutter drive takes one --target).
 chromedriver --port=4444 &
-flutter drive --driver=test_driver/integration_test.dart \
-  --target=integration_test/app_boot_test.dart -d chrome
+for t in app_boot_test happy_path_test fallback_path_test; do
+  flutter drive --driver=test_driver/integration_test.dart \
+    --target=integration_test/$t.dart -d web-server --browser-name=chrome --profile
+done
 ```
+
+Why `-d web-server --browser-name=chrome --profile` and not `-d chrome` (M5, Flutter 3.47.2 on Windows):
+- In **debug** mode the run never starts. With `-d chrome`, flutter compiles and then waits forever without
+  launching Chrome. With `-d web-server`, it waits for a browser to attach before it starts the driver, and
+  the driver is what opens the browser. Profile mode needs no debug connection: flutter serves the build, and
+  chromedriver opens and drives Chrome.
+- Profile mode strips `assert`s, and `IntegrationTestWidgetsFlutterBinding` leaves the `TestTextInput` stub
+  unregistered. `enterText` then sends its text for client id -1, which the framework accepts only inside an
+  `assert`, so typed queries were silently dropped. `initIntegrationTest()` in `integration_test/support.dart`
+  registers the stub for each test.
+- The fakes live in `integration_test/fakes/` because a Web build serves the target's folder as the app root:
+  `../test/...` imports fail to compile there.
+- Failure messages are not passed back to `flutter drive` in profile mode (the reported details are empty).
+  To read them, start chromedriver with `--enable-chrome-logs` and look for the `CONSOLE` lines in its output.
 
 | Test | Status |
 |---|---|
@@ -38,8 +55,10 @@ Since M1, `app_boot_test.dart` also uses fake providers (the app now requests lo
 launch). Fakes live in `integration_test/fakes/` and are shared by widget and integration tests. NEA parser tests use real
 payloads captured once with curl on 2026-10-01 (`test/fixtures/*.json`).
 
-**chromedriver is not installed** on the Milestone 0 machine. One way to get a version matching Chrome:
-`npx @puppeteer/browsers install chromedriver@stable`. Until it's installed, Web integration runs are pending.
+**chromedriver** is not part of the repo (no binaries are committed). Get the build that matches your Chrome
+from Chrome for Testing (same major.minor.build, e.g. Chrome 154.0.8037.93 → chromedriver 154.0.8037.92), for
+example with `npx @puppeteer/browsers install chromedriver@<version>`, and put it outside the repo (M5 used
+`%LOCALAPPDATA%\chromedriver\154.0.8037.92\`).
 
 ## Open acceptance items
 
@@ -232,3 +251,4 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-02 | Responsive Conditions grid, live look in Chrome 154 | `flutter run -d web-server --web-port 8766`, live data.gov.sg + OneMap, origin Raffles Place MRT. Full window (~1500 px): four tiles across, equal height, Conditions wider than the 640 px cards. Phone width: the app in a 400 × 860 iframe: 2 × 2 grid (forecast + UV, PM2.5 + PSI), each tile with value/category, scope and "As of … · N min ago", no overflow | Pass. **Not checked live:** the one-column fallback (narrow / large text) and the Stale / error / Retry states in the grid — covered only by the widget tests with fakes; not looked at on a physical phone |
 | 2026-10-02 | Responsive Conditions grid: final Android integration run at PR head `cc84345` | Clean tree at `cc84345` (no uncommitted changes). Pixel 8 Pro AVD cold-booted (`-no-snapshot-load`), then one uninterrupted `flutter test integration_test -d emulator-5554` (10:05-10:13 UTC); emulator boot id `5f3595fc-70ed-4528-8d02-36f4ae6f9f70` read before and after the run, unchanged | Pass: exit 0, 5/5 in a single run (`app_boot_test`, `fallback_path_test`, `happy_path_test`), no failures. The earlier 5/5 above was on the same functional tree before the docs-only edit; this row is the run at the final head |
 | 2026-10-02 | PR #21 + #22 merge verification (merge commit `18a0766` on `feat/compact-dashboard-grid`; its tree is identical to `main` at `b3ede14`, checked with `git diff --quiet 18a0766 b3ede14`) | After resolving the `docs/testing.md` run-log conflict (both sides kept): `dart format --set-exit-if-changed .`; `flutter analyze`; `flutter test` | Pass: 99 files, 0 changed; no issues; 408/408. `pubspec.lock` unchanged by `flutter pub get`. The merged tree equals `main` plus exactly PR #22's diff. **Not run on the merge:** Android/Web integration and builds (the Android 5/5 is the run at `cc84345` above; the two PRs were tested independently) |
+| 2026-10-02 | M5 Web integration (branch `chore/m5-hardening`) | chromedriver 154.0.8037.92 (Chrome for Testing, same build as Chrome 154.0.8037.93; outside the repo) on port 4444. First `flutter drive … -d chrome` (debug) for each file: compile errors `'org-dartlang-app:///test/fakes/…': File not found` (fakes imported from outside `integration_test/`). After moving the fakes, debug `-d chrome` and `-d web-server` both never started (killed after ~10 min). `-d web-server --browser-name=chrome --profile`: `app_boot_test` passed; `happy_path_test` and `fallback_path_test` failed (console via `--enable-chrome-logs`: `Timed out waiting for … "VIVOCITY"` / `"OUR TAMPINES HUB"` / `"ION ORCHARD"`; a diagnostic test showed `TestTextInput` unregistered and the field text still empty after `enterText`). After `initIntegrationTest()` registers the stub, each file once, 11:22–11:28 UTC | Pass: `app_boot_test` exit 0 (1 test), `happy_path_test` exit 0 (1 test), `fallback_path_test` exit 0 (3 tests) → Web integration 5/5. `flutter test` 408/408 and `flutter analyze` clean after the change. Android integration re-run with this change: see the M5 final gates row |

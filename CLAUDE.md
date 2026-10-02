@@ -47,8 +47,9 @@ flutter test integration_test -d <android-device-id>
 flutter test test/features/origin/origin_controller_test.dart
 flutter test test/features/origin/origin_controller_test.dart --plain-name "<test name substring>"
 
-# Web integration test (needs chromedriver matching Chrome on port 4444)
-flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d chrome
+# Web integration test, one file per run (needs chromedriver matching Chrome on port 4444). Profile mode on
+# web-server: debug-mode drive never starts here (why: docs/testing.md)
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d web-server --browser-name=chrome --profile
 ```
 
 Dev-only feasibility probes (not part of the app) are in `tool/`; see `docs/testing.md`. Building the probe
