@@ -46,6 +46,10 @@ app.*.map.json
 *.jks
 *.keystore
 
+# Local Claude Code state (worktrees with their own build/ trees, skills)
+/.claude/
+skills-lock.json
+
 # Secrets / local environment. This project ships no credentials; never
 # commit any local key file (e.g. a developer's LTA_ACCOUNT_KEY).
 .env
