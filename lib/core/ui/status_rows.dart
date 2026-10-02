@@ -20,10 +20,12 @@ class BusyRow extends StatelessWidget {
           child: const CircularProgressIndicator(strokeWidth: 2),
         ),
         const SizedBox(width: 8),
-        ExcludeSemantics(
-          child: Text(
-            label,
-            style: compact ? Theme.of(context).textTheme.bodySmall : null,
+        Flexible(
+          child: ExcludeSemantics(
+            child: Text(
+              label,
+              style: compact ? Theme.of(context).textTheme.bodySmall : null,
+            ),
           ),
         ),
       ],

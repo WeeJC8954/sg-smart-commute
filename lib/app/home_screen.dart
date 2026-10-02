@@ -41,33 +41,59 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: ListView(
-              padding: const EdgeInsets.all(12),
-              children: [
-                const OriginCard(),
-                const DestinationCard(),
-                const JourneyCard(),
-                const SizedBox(height: 8),
-                Text(
-                  'Conditions',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const EnvironmentDashboard(),
-                const SizedBox(height: 12),
-                Text(
-                  'Data: $neaSourceLabel (Singapore Open Data Licence) · '
-                  '$oneMapAttribution · $busrouterAttribution · '
-                  '$arriveLahAttribution · $mrtAttribution',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+        // The list spans the window (so it scrolls from anywhere); each
+        // section is centred at its own maximum width.
+        child: ListView(
+          padding: const EdgeInsets.all(12),
+          children: [
+            const _Centred(
+              maxWidth: HomeLayout.contentMaxWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [OriginCard(), DestinationCard(), JourneyCard()],
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            _Centred(
+              maxWidth: HomeLayout.conditionsMaxWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Conditions',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  const EnvironmentDashboard(),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Data: $neaSourceLabel (Singapore Open Data Licence) · '
+                    '$oneMapAttribution · $busrouterAttribution · '
+                    '$arriveLahAttribution · $mrtAttribution',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+/// [child] at most [maxWidth] wide, centred in the list.
+class _Centred extends StatelessWidget {
+  const _Centred({required this.maxWidth, required this.child});
+
+  final double maxWidth;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: child,
+    ),
+  );
 }
