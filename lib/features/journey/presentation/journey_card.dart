@@ -114,10 +114,19 @@ class _Plan extends StatelessWidget {
             const SizedBox(height: 12),
             Text('Alternatives', style: theme.textTheme.titleSmall),
             for (var i = 1; i < direct.options.length; i++)
-              _Option(
-                key: Key('journey-alternative-$i'),
-                plan: direct,
-                option: direct.options[i],
+              // Keyed by the option itself, so an open "Show steps" never
+              // carries over to a different bus at the same position.
+              KeyedSubtree(
+                key: ValueKey(
+                  '${direct.options[i].board.code}-'
+                  '${direct.options[i].service.number}',
+                ),
+                child: _Option(
+                  key: Key('journey-alternative-$i'),
+                  plan: direct,
+                  option: direct.options[i],
+                  collapsible: true,
+                ),
               ),
           ],
           const SizedBox(height: 8),
@@ -128,49 +137,165 @@ class _Plan extends StatelessWidget {
   }
 }
 
-/// One direct-bus option, in the order the rider does it.
-class _Option extends StatelessWidget {
+/// One direct-bus option: which bus and when (the summary) first, then the
+/// steps in the order the rider does them. A [collapsible] option (an
+/// alternative) starts with its steps hidden behind "Show steps".
+class _Option extends StatefulWidget {
   const _Option({
     super.key,
     required this.plan,
     required this.option,
     this.heading,
+    this.collapsible = false,
   });
   final DirectBusOptions plan;
   final BusOption option;
   final String? heading;
+  final bool collapsible;
+
+  @override
+  State<_Option> createState() => _OptionState();
+}
+
+class _OptionState extends State<_Option> {
+  late bool _expanded = !widget.collapsible;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final o = option;
+    final o = widget.option;
     final loop = o.isLoop ? ' (loop service)' : '';
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (heading != null)
-            Text(heading!, style: theme.textTheme.labelLarge),
-          Text(
-            '${o.walkToStop.label} to Bus Stop ${o.board.code} — ${o.board.name}',
+          if (widget.heading != null)
+            Text(widget.heading!, style: theme.textTheme.labelLarge),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ServiceBadge(o.service.number),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Take Bus ${o.service.number} toward '
+                      '${o.towardName}$loop',
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    OptionArrivals(
+                      key: Key('arrivals-${o.board.code}-${o.service.number}'),
+                      plan: widget.plan,
+                      option: o,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Text(
-            'Take Bus ${o.service.number} toward ${o.towardName}$loop',
-            style: theme.textTheme.titleSmall,
-          ),
-          OptionArrivals(
-            key: Key('arrivals-${o.board.code}-${o.service.number}'),
-            plan: plan,
-            option: o,
-          ),
-          Text('${o.stops} ${o.stops == 1 ? 'stop' : 'stops'}'),
-          Text('Alight at ${o.alight.code} — ${o.alight.name}'),
-          Text('${o.walkFromStop.label} to destination'),
+          if (_expanded) _Steps(option: o),
+          if (widget.collapsible)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => setState(() => _expanded = !_expanded),
+                child: Text(_expanded ? 'Hide steps' : 'Show steps'),
+              ),
+            ),
         ],
       ),
     );
   }
+}
+
+/// The service number as a solid badge, the first thing the eye finds.
+/// Decorative for screen readers: the line beside it says "Take Bus N".
+class _ServiceBadge extends StatelessWidget {
+  const _ServiceBadge(this.number);
+  final String number;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ExcludeSemantics(
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: scheme.primary,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          number,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: scheme.onPrimary,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Walk, ride, alight, walk: the rider's order (§5.6).
+class _Steps extends StatelessWidget {
+  const _Steps({required this.option});
+  final BusOption option;
+
+  @override
+  Widget build(BuildContext context) {
+    final o = option;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Step(
+            Icons.directions_walk,
+            '${o.walkToStop.label} to Bus Stop ${o.board.code} — '
+            '${o.board.name}',
+          ),
+          _Step(
+            Icons.directions_bus_outlined,
+            '${o.stops} ${o.stops == 1 ? 'stop' : 'stops'}',
+          ),
+          _Step(
+            Icons.place_outlined,
+            'Alight at ${o.alight.code} — ${o.alight.name}',
+          ),
+          _Step(
+            Icons.directions_walk,
+            '${o.walkFromStop.label} to destination',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Step extends StatelessWidget {
+  const _Step(this.icon, this.text);
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text)),
+      ],
+    ),
+  );
 }
 
 class _Mrt extends StatelessWidget {

@@ -81,8 +81,11 @@ class OptionArrivals extends ConsumerWidget {
           semanticsLabel:
               'Next buses: '
               '${next.map((a) => _spokenEta(a, now)).join(', ')}',
-          style: theme.textTheme.bodyMedium?.copyWith(
+          // The emphasis of the option, with digits that don't shift as the
+          // times count down.
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
         if (details.isNotEmpty)
