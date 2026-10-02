@@ -75,6 +75,13 @@ abstract final class AppTimings {
   /// Per-request HTTP timeout (§15).
   static const Duration httpTimeout = Duration(seconds: 10);
 
+  /// Bounded HTTP retry (§15), for network errors and 5xx only: at most this
+  /// many retries after the first attempt.
+  static const int httpMaxRetries = 2;
+
+  /// Backoff before retry n (0-based) is this × 2^n: 500 ms, then 1 s.
+  static const Duration httpBaseBackoff = Duration(milliseconds: 500);
+
   /// Minimum gap between accepted "Refresh all" taps (a UX debounce). The
   /// data.gov.sg limit itself is enforced for every caller by the shared
   /// limiter ([DataGovSgRateLimit]), not by this cooldown.

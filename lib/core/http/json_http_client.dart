@@ -23,8 +23,8 @@ class JsonHttpClient {
   JsonHttpClient(
     this._client, {
     this.timeout = AppTimings.httpTimeout,
-    this.maxRetries = 2,
-    this.baseBackoff = const Duration(milliseconds: 500),
+    this.maxRetries = AppTimings.httpMaxRetries,
+    this.baseBackoff = AppTimings.httpBaseBackoff,
     Future<void> Function(Duration)? delay,
     this.rateLimiterFor,
   }) : _delay = delay ?? Future<void>.delayed;

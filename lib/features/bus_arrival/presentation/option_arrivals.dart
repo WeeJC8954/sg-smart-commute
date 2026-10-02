@@ -98,7 +98,8 @@ class OptionArrivals extends ConsumerWidget {
 }
 
 /// Source, check time and the manual refresh (guide v2.1 §10: a refresh
-/// button is required; ≤ 20 s cache; no automatic polling).
+/// button is required; arrivals are reused for [BusArrivalConfig.cacheTtl];
+/// no automatic polling).
 class ArrivalsFooter extends ConsumerWidget {
   const ArrivalsFooter({super.key, required this.plan});
   final DirectBusOptions plan;

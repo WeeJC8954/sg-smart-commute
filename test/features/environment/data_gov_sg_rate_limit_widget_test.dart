@@ -1,10 +1,8 @@
 // The data.gov.sg anonymous limit (6 real-time calls per 10 s) through the
-// real UI paths: launch, "Refresh all" and a tile's Retry. (The M1 area
-// picker's Retry was a third path; Milestone 2 replaced that picker with
-// OneMap place search, so its test was removed.) Only the HTTP transport is
-// fake: a server that enforces the limit and answers 429 above it. The real
-// repository, JsonHttpClient and limiter run unchanged. Time is the test
-// binding's fake clock.
+// real UI paths: launch, "Refresh all" and a tile's Retry. Only the HTTP
+// transport is fake: a server that enforces the limit and answers 429 above
+// it. The real repository, JsonHttpClient and limiter run unchanged. Time is
+// the test binding's fake clock.
 import 'dart:io';
 
 import 'package:clock/clock.dart';
