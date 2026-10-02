@@ -37,6 +37,15 @@ final class LocationPermissionPermanentlyDenied extends LocationFailure {
       'Location permission is blocked. You can allow it in settings.';
 }
 
+/// The permission prompt was not answered within the permission timeout
+/// (e.g. a browser prompt left open). The attempt carries on: if the prompt is
+/// answered later, its fix follows the late-fix rule.
+final class LocationPermissionUnanswered extends LocationFailure {
+  const LocationPermissionUnanswered();
+  @override
+  String get message => 'The location request has not been answered yet.';
+}
+
 final class LocationServiceDisabled extends LocationFailure {
   const LocationServiceDisabled();
   @override

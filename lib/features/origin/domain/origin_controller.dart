@@ -13,12 +13,21 @@ final locationTimeoutProvider = Provider<Duration>(
   (ref) => AppTimings.locationTimeout,
 );
 
+/// Permission-step timeout. Injected so tests drive it with fake time.
+final locationPermissionTimeoutProvider = Provider<Duration>(
+  (ref) => AppTimings.locationPermissionTimeout,
+);
+
 final originControllerProvider =
     NotifierProvider<OriginController, OriginState>(OriginController.new);
 
 /// Permission → timeout → fallback → late-fix state machine (guide §5.1–§5.4).
 ///
 /// - denied / permanently denied / service disabled → manual prompt at once;
+/// - no answer to the permission prompt within its own timeout → manual
+///   prompt, but the attempt keeps waiting: if the prompt is granted later
+///   and the user has not started manual entry, acquisition starts then;
+///   otherwise its fix is only offered;
 /// - granted → the timeout starts, then a position is requested;
 /// - no valid fix before the timeout, an error, or a fix outside Singapore →
 ///   manual prompt;
@@ -26,8 +35,9 @@ final originControllerProvider =
 ///   any attempt and whether in time or late: it is offered instead. If
 ///   nothing was chosen, it populates the origin;
 /// - with a manual origin set, failures (denied, timeout, error, outside
-///   Singapore) leave the state untouched, and "Try location again" runs in
-///   the background: only [useCurrentLocation] switches back to GPS;
+///   Singapore) never change the origin, and "Try location again" runs in
+///   the background: its progress and failure are reported beside the
+///   origin, and only [useCurrentLocation] switches back to GPS;
 /// - each attempt has an id; a superseded attempt's results and timer are
 ///   ignored, so they are never applied as the current attempt's.
 class OriginController extends Notifier<OriginState> {
@@ -51,6 +61,12 @@ class OriginController extends Notifier<OriginState> {
     final attempt = ++_attempt;
     _timeout?.cancel();
 
+    // The permission step is bounded too: a browser's location prompt that is
+    // left open never resolves. Falling back does not abandon the attempt.
+    _timeout = Timer(ref.read(locationPermissionTimeoutProvider), () {
+      if (_isCurrent(attempt)) _fallBack(const LocationPermissionUnanswered());
+    });
+
     final LocationAccess access;
     try {
       access = await _service.requestAccess();
@@ -59,6 +75,7 @@ class OriginController extends Notifier<OriginState> {
       return;
     }
     if (!_isCurrent(attempt)) return;
+    _timeout?.cancel(); // the permission timer
 
     switch (access) {
       case LocationAccess.denied:
@@ -71,14 +88,16 @@ class OriginController extends Notifier<OriginState> {
         break;
     }
 
-    if (!_hasManualOrigin) {
+    // Granted, possibly after the permission timeout already fell back. With
+    // a manual origin, or manual entry under way, the fix will only be offered.
+    if (!_hasManualOrigin && !state.manualEntryInProgress) {
       state = state.copyWith(
         phase: OriginPhase.acquiring,
         clearFallbackReason: true,
       );
     }
     _timeout = Timer(ref.read(locationTimeoutProvider), () {
-      if (_isCurrent(attempt) && state.phase == OriginPhase.acquiring) {
+      if (_isCurrent(attempt) && _awaitingFix) {
         _fallBack(const LocationTimeout());
       }
     });
@@ -87,23 +106,34 @@ class OriginController extends Notifier<OriginState> {
       final fix = await _service.currentPosition();
       if (_isCurrent(attempt)) _onFix(fix);
     } catch (e) {
-      if (!_isCurrent(attempt) || state.phase != OriginPhase.acquiring) {
-        return; // late error
-      }
-      _timeout?.cancel();
+      if (!_isCurrent(attempt) || !_awaitingFix) return; // late error
       _fallBack(e is LocationFailure ? e : const LocationUnavailable());
     }
   }
 
   bool _isCurrent(int attempt) => ref.mounted && attempt == _attempt;
 
+  /// The current attempt still owes the user an outcome: acquisition in the
+  /// foreground, or "Try location again" behind a manual origin.
+  bool get _awaitingFix =>
+      state.phase == OriginPhase.acquiring || state.locatingInBackground;
+
   bool get _hasManualOrigin =>
       state.origin?.provenance == OriginProvenance.manual;
 
   void _fallBack(LocationFailure reason) {
     _timeout?.cancel();
-    // A manual origin is never disturbed by a failed attempt.
-    if (_hasManualOrigin) return;
+    // A manual origin is never disturbed by a failed attempt. A background
+    // "Try location again" only reports why it found nothing.
+    if (_hasManualOrigin) {
+      if (state.locatingInBackground) {
+        state = state.copyWith(
+          locatingInBackground: false,
+          backgroundFailure: reason,
+        );
+      }
+      return;
+    }
     state = OriginState(
       phase: OriginPhase.needsManual,
       origin: state.origin,
@@ -116,7 +146,7 @@ class OriginController extends Notifier<OriginState> {
     final inTime = state.phase == OriginPhase.acquiring;
     if (!isWithinSingapore(fix)) {
       // Out of bounds counts as "unavailable"; a late one is simply dropped.
-      if (inTime) _fallBack(const LocationOutsideSingapore());
+      if (_awaitingFix) _fallBack(const LocationOutsideSingapore());
       return;
     }
     if (inTime) {
@@ -125,7 +155,12 @@ class OriginController extends Notifier<OriginState> {
     }
 
     if (_hasManualOrigin || state.manualEntryInProgress) {
-      state = state.copyWith(offeredGpsFix: fix);
+      if (state.locatingInBackground) _timeout?.cancel();
+      state = state.copyWith(
+        offeredGpsFix: fix,
+        locatingInBackground: false,
+        clearBackgroundFailure: true,
+      );
     } else {
       _setGpsOrigin(fix);
     }
@@ -187,17 +222,34 @@ class OriginController extends Notifier<OriginState> {
     );
   }
 
+  /// "Keep this origin": close the prompt opened by [changeOrigin] and keep
+  /// the current origin. Does nothing when there is no origin to keep.
+  void cancelChange() {
+    if (state.phase != OriginPhase.needsManual ||
+        state.fallbackReason != null ||
+        state.origin == null) {
+      return;
+    }
+    state = state.copyWith(
+      phase: OriginPhase.ready,
+      manualEntryInProgress: false,
+    );
+  }
+
   /// Run the permission/acquisition flow again (e.g. after enabling location).
   ///
   /// With a manual origin set, the attempt runs in the background: the manual
   /// origin stays in effect, a valid fix is only offered, and a failure is
-  /// dropped. Without one, the flow runs as at launch.
+  /// only reported ([OriginState.backgroundFailure]). Without one, the flow
+  /// runs as at launch.
   void retryLocation() {
     if (_hasManualOrigin) {
       state = state.copyWith(
         phase: OriginPhase.ready,
         clearFallbackReason: true,
         manualEntryInProgress: false,
+        locatingInBackground: true,
+        clearBackgroundFailure: true,
       );
       _start();
       return;

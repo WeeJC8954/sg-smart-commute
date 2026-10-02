@@ -72,6 +72,11 @@ abstract final class AppTimings {
   /// Location acquisition timeout, started once permission is granted (§5.1).
   static const Duration locationTimeout = Duration(seconds: 10);
 
+  /// The permission step's own bound: an unanswered prompt (a browser's
+  /// location prompt never resolves on its own) falls back to manual entry
+  /// after this, while the attempt keeps waiting for an answer.
+  static const Duration locationPermissionTimeout = Duration(seconds: 10);
+
   /// Per-request HTTP timeout (§15).
   static const Duration httpTimeout = Duration(seconds: 10);
 
