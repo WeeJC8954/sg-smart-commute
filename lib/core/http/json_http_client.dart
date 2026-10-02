@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +17,9 @@ import 'rate_limiter.dart';
 /// - concurrent identical requests are deduplicated;
 /// - optional client-side rate limits: [rateLimiterFor] picks the limiter (if
 ///   any) for a URI. Each outgoing send, retries included, waits for a grant.
-///   The server's own 429 is still mapped as above.
+///   The server's own 429 is still mapped as above;
+/// - a 2xx body larger than [maxResponseBytes] (declared or actual) is an
+///   [InvalidApiResponse]; reading stops there and it is never retried.
 ///
 /// Every error leaves as a typed [AppFailure].
 class JsonHttpClient {
@@ -25,6 +28,7 @@ class JsonHttpClient {
     this.timeout = AppTimings.httpTimeout,
     this.maxRetries = AppTimings.httpMaxRetries,
     this.baseBackoff = AppTimings.httpBaseBackoff,
+    this.maxResponseBytes = AppTimings.httpMaxResponseBytes,
     Future<void> Function(Duration)? delay,
     this.rateLimiterFor,
   }) : _delay = delay ?? Future<void>.delayed;
@@ -33,6 +37,7 @@ class JsonHttpClient {
   final Duration timeout;
   final int maxRetries;
   final Duration baseBackoff;
+  final int maxResponseBytes;
   final Future<void> Function(Duration) _delay;
   final RequestRateLimiter? Function(Uri uri)? rateLimiterFor;
 
@@ -64,11 +69,10 @@ class JsonHttpClient {
   Future<Object?> _getOnce(Uri uri) async {
     // Waiting for a grant is not part of the request timeout.
     await rateLimiterFor?.call(uri)?.acquire();
-    final http.Response response;
+    final _Received response;
     try {
-      response = await _client
-          .get(uri, headers: const {'accept': 'application/json'})
-          .timeout(timeout);
+      // The timeout covers the headers and the whole body.
+      response = await _receive(uri).timeout(timeout);
     } on TimeoutException {
       _debugLog('timeout', uri);
       throw const _Retryable(NetworkUnavailable());
@@ -77,10 +81,10 @@ class JsonHttpClient {
       throw const _Retryable(NetworkUnavailable());
     }
 
-    final status = response.statusCode;
+    final status = response.status;
     if (status >= 200 && status < 300) {
       try {
-        return jsonDecode(utf8.decode(response.bodyBytes));
+        return jsonDecode(utf8.decode(response.body));
       } on FormatException {
         throw const InvalidApiResponse('body is not JSON');
       }
@@ -96,6 +100,37 @@ class JsonHttpClient {
     throw ApiUnavailable('HTTP $status');
   }
 
+  /// Sends the GET and reads a 2xx body of at most [maxResponseBytes]; a
+  /// larger one (declared or actual) is an [InvalidApiResponse] and is not
+  /// read further. Other statuses are mapped from the headers alone, so their
+  /// body is not read.
+  Future<_Received> _receive(Uri uri) async {
+    final request = http.Request('GET', uri)
+      ..headers['accept'] = 'application/json';
+    final response = await _client.send(request);
+    final status = response.statusCode;
+    final declared = response.contentLength;
+    final ok = status >= 200 && status < 300;
+    if (!ok || (declared != null && declared > maxResponseBytes)) {
+      // Not read; completion of the cancel is not needed.
+      unawaited(response.stream.listen(null).cancel());
+      if (ok) {
+        _debugLog('response too large ($declared bytes declared)', uri);
+        throw const InvalidApiResponse('response too large');
+      }
+      return _Received(status, response.headers, const []);
+    }
+    final body = BytesBuilder(copy: false);
+    await for (final chunk in response.stream) {
+      body.add(chunk);
+      if (body.length > maxResponseBytes) {
+        _debugLog('response too large (over $maxResponseBytes bytes)', uri);
+        throw const InvalidApiResponse('response too large');
+      }
+    }
+    return _Received(status, response.headers, body.takeBytes());
+  }
+
   static Duration? _parseRetryAfter(String? value) {
     final seconds = int.tryParse(value?.trim() ?? '');
     return seconds == null ? null : Duration(seconds: seconds);
@@ -106,6 +141,13 @@ class JsonHttpClient {
       debugPrint('JsonHttpClient: $what (${uri.host}${uri.path})');
     }
   }
+}
+
+class _Received {
+  const _Received(this.status, this.headers, this.body);
+  final int status;
+  final Map<String, String> headers;
+  final List<int> body;
 }
 
 class _Retryable implements Exception {

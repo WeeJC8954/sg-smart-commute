@@ -9,9 +9,9 @@ import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/environment/presentation/environment_dashboard.dart';
 
-import '../../fakes/fake_environment_repository.dart';
-import '../../fakes/fake_location_service.dart';
-import '../../fakes/test_app.dart';
+import '../../../integration_test/fakes/fake_environment_repository.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/test_app.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 const tileKeys = ['tile-forecast', 'tile-uv', 'tile-pm25', 'tile-psi'];

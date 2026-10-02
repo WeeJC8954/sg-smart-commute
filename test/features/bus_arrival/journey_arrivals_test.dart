@@ -13,10 +13,10 @@ import 'package:sg_smart_commute/features/journey/domain/direct_bus_planner.dart
 import 'package:sg_smart_commute/features/journey/journey_providers.dart';
 import 'package:sg_smart_commute/main.dart' show noAutomaticRetry;
 
-import '../../fakes/fake_bus_arrival_repository.dart';
-import '../../fakes/fake_bus_network.dart';
-import '../../fakes/fake_environment_repository.dart';
-import '../../fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/fake_bus_arrival_repository.dart';
+import '../../../integration_test/fakes/fake_bus_network.dart';
+import '../../../integration_test/fakes/fake_environment_repository.dart';
+import '../../../integration_test/fakes/fake_place_search_repository.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 

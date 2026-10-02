@@ -1,6 +1,6 @@
 // Milestone 3 widget tests: the journey result (guide v2.1 §5.6, §9, §18).
 // Location, environment, place search, bus data and the MRT asset are fakes
-// (test/fakes/). No arrival times are shown anywhere in M3.
+// (integration_test/fakes/). No arrival times are shown anywhere in M3.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
@@ -11,12 +11,12 @@ import 'package:sg_smart_commute/features/journey/domain/walking.dart';
 import 'package:sg_smart_commute/features/journey/presentation/journey_card.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
 
-import '../../fakes/fake_bus_arrival_repository.dart';
-import '../../fakes/fake_bus_network.dart';
-import '../../fakes/fake_environment_repository.dart';
-import '../../fakes/fake_location_service.dart';
-import '../../fakes/fake_place_search_repository.dart';
-import '../../fakes/test_app.dart';
+import '../../../integration_test/fakes/fake_bus_arrival_repository.dart';
+import '../../../integration_test/fakes/fake_bus_network.dart';
+import '../../../integration_test/fakes/fake_environment_repository.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/test_app.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 const originField = Key('manual-origin-field');

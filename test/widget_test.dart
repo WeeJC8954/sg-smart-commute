@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Widget tests for the Milestone 1 home screen (guide v2.1 §18). Location and
 // environment are fakes; no test calls a live API. Time is the test binding's
 // fake clock, so the 10 s timeout never waits in real time.
@@ -11,9 +13,9 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 
-import 'fakes/fake_environment_repository.dart';
-import 'fakes/fake_location_service.dart';
-import 'fakes/test_app.dart';
+import '../integration_test/fakes/fake_environment_repository.dart';
+import '../integration_test/fakes/fake_location_service.dart';
+import '../integration_test/fakes/test_app.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 const mountainView = LatLng(37.4220, -122.0841);
@@ -436,5 +438,76 @@ void main() {
     await tester.tap(find.byKey(const Key('refresh-conditions')));
     await tester.pump();
     expect(env.calls['psi'], 3);
+  });
+
+  // M5 review finding: after a refresh that failed, a second tap inside the
+  // cooldown said "Conditions were just updated", which was not true.
+  testWidgets('a refresh that failed can be repeated at once, without "just '
+      'updated"', (tester) async {
+    var now = fakeNow;
+    location = FakeLocationService(
+      access: LocationAccess.granted,
+      position: bishan,
+    );
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, clock: () => now),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    env.failPsi = const NetworkUnavailable();
+    await tester.tap(find.byKey(const Key('refresh-conditions')));
+    await tester.pump();
+    await tester.pump();
+    expect(env.calls['psi'], 2);
+    expect(
+      find.descendant(
+        of: tile('tile-psi'),
+        matching: find.byKey(const Key('refresh-failed')),
+      ),
+      findsOneWidget,
+    );
+
+    env.failPsi = null;
+    now = now.add(const Duration(seconds: 5)); // inside the cooldown
+    await tester.tap(find.byKey(const Key('refresh-conditions')));
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('just updated'), findsNothing);
+    expect(env.calls, {'forecast': 3, 'uv': 3, 'pm25': 3, 'psi': 3});
+    expect(find.byKey(const Key('refresh-failed')), findsNothing);
+  });
+
+  testWidgets('tapping while a refresh is still running says so, and does not '
+      'start another', (tester) async {
+    var now = fakeNow;
+    location = FakeLocationService(
+      access: LocationAccess.granted,
+      position: bishan,
+    );
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, clock: () => now),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    final slow = env.gate = Completer<void>();
+    await tester.tap(find.byKey(const Key('refresh-conditions')));
+    await tester.pump();
+    expect(env.calls['psi'], 2);
+
+    now = now.add(const Duration(seconds: 20)); // even past the cooldown
+    await tester.tap(find.byKey(const Key('refresh-conditions')));
+    await tester.pump();
+    expect(find.text('Conditions are still refreshing.'), findsOneWidget);
+    expect(find.textContaining('just updated'), findsNothing);
+    expect(env.calls['psi'], 2);
+
+    slow.complete();
+    env.gate = null;
+    await tester.pump();
+    await tester.pump();
   });
 }

@@ -19,10 +19,10 @@ import 'package:sg_smart_commute/features/places/domain/place_query.dart';
 import 'package:sg_smart_commute/features/places/domain/place_search_session.dart';
 import 'package:sg_smart_commute/features/places/place_providers.dart';
 
-import '../../fakes/fake_environment_repository.dart';
-import '../../fakes/fake_location_service.dart';
-import '../../fakes/fake_place_search_repository.dart';
-import '../../fakes/test_app.dart';
+import '../../../integration_test/fakes/fake_environment_repository.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/test_app.dart';
 
 final vivoBody = File('test/fixtures/onemap/mall-vivocity.json')
     .readAsStringSync();

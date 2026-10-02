@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_models.dart';
@@ -9,40 +11,46 @@ final fakeNow = DateTime.utc(2026, 10, 1, 4, 12);
 /// Deterministic [EnvironmentRepository]: fixed domain objects, no HTTP.
 ///
 /// Set a `fail*` field to make that dataset throw; clear it to "recover".
+/// Set [gate] to hold every request until it completes (a slow network).
 class FakeEnvironmentRepository implements EnvironmentRepository {
   AppFailure? failForecast;
   AppFailure? failUv;
   AppFailure? failPm25;
   AppFailure? failPsi;
 
+  Completer<void>? gate;
+
   final Map<String, int> calls = {};
 
-  void _count(String k) => calls[k] = (calls[k] ?? 0) + 1;
+  Future<void> _count(String k) async {
+    calls[k] = (calls[k] ?? 0) + 1;
+    await gate?.future;
+  }
 
   @override
   Future<ForecastSnapshot> twoHourForecast() async {
-    _count('forecast');
+    await _count('forecast');
     if (failForecast != null) throw failForecast!;
     return fakeForecast;
   }
 
   @override
   Future<UvSnapshot> uv() async {
-    _count('uv');
+    await _count('uv');
     if (failUv != null) throw failUv!;
     return fakeUv;
   }
 
   @override
   Future<RegionalSnapshot> pm25OneHour() async {
-    _count('pm25');
+    await _count('pm25');
     if (failPm25 != null) throw failPm25!;
     return fakePm25;
   }
 
   @override
   Future<RegionalSnapshot> psiTwentyFourHour() async {
-    _count('psi');
+    await _count('psi');
     if (failPsi != null) throw failPsi!;
     return fakePsi;
   }

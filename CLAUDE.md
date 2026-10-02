@@ -47,8 +47,9 @@ flutter test integration_test -d <android-device-id>
 flutter test test/features/origin/origin_controller_test.dart
 flutter test test/features/origin/origin_controller_test.dart --plain-name "<test name substring>"
 
-# Web integration test (needs chromedriver matching Chrome on port 4444)
-flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d chrome
+# Web integration test, one file per run (needs chromedriver matching Chrome on port 4444). Profile mode on
+# web-server: debug-mode drive never starts here (why: docs/testing.md)
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d web-server --browser-name=chrome --profile
 ```
 
 Dev-only feasibility probes (not part of the app) are in `tool/`; see `docs/testing.md`. Building the probe
@@ -60,7 +61,7 @@ Feature-first with a pragmatic clean architecture (guide §11):
 
 - `lib/core/` — shared infrastructure: `config/` (constants), `errors/app_failure.dart` (sealed `AppFailure`
   hierarchy, guide §13), `http/json_http_client.dart` (10 s timeout, bounded retry on 5xx/network, no retry on
-  4xx, 429 → `ApiRateLimited` with `Retry-After`, in-flight dedup), `location/` (`LocationService` seam +
+  4xx, 429 → `ApiRateLimited` with `Retry-After`, in-flight dedup, 4 MiB body cap), `location/` (`LocationService` seam +
   geolocator adapter), `geo/` (`LatLng`, `isWithinSingapore`, haversine), `time/` (injectable `Clock`, SGT
   formatting).
 - `lib/features/<feature>/` split into `data/` (DTO parsing + repository implementations), `domain/` (models,
@@ -106,7 +107,7 @@ Key flows that span several files:
   `placeSearchRepositoryProvider` (plus
   `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
   `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`, `busArrivalRepositoryProvider`,
-  `busArrivalCacheTtlProvider`. `test/fakes/test_app.dart`
+  `busArrivalCacheTtlProvider`. `integration_test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
   `integration_test/`. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
   with fake time (`tester.pump(AppTimings.uiTick)`).
@@ -115,6 +116,11 @@ Key flows that span several files:
 - NEA parser tests use real payloads captured once in `test/fixtures/*.json`.
 - `integration_test/support.dart` has `pumpUntilFound` — use it instead of `pumpAndSettle`, which never
   settles while a progress indicator animates. Use `fake_async` / injected `Clock` for time-dependent logic.
+  Every integration test's `main` starts with `initIntegrationTest()` (registers `TestTextInput`, so
+  `enterText` works in the profile builds the Web runs use); shared fakes stay under `integration_test/` (Web
+  builds cannot import outside it).
+- A new provider host must be added to the CSP `connect-src` in `web/index.html`
+  (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
 - **Evidence rule:** never claim a test or gate passed unless it actually ran. Record the command and its
   real result in the run log in `docs/testing.md`; anything not run is logged as **Not run** with the reason.
 

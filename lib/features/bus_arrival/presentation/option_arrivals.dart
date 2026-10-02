@@ -128,33 +128,56 @@ class ArrivalsFooter extends ConsumerWidget {
     final checked = current == null
         ? ''
         : ' · checked ${formatSgtTime(current.checkedAt)} SGT';
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            '$arriveLahAttribution$checked',
-            key: const Key('arrivals-footer'),
-            style: theme.textTheme.bodySmall,
-          ),
+    final attribution = Text(
+      '$arriveLahAttribution$checked',
+      key: const Key('arrivals-footer'),
+      style: theme.textTheme.bodySmall,
+    );
+    final refreshing = async.isLoading && current != null;
+    const spinner = Padding(
+      padding: EdgeInsets.only(right: 8),
+      child: SizedBox.square(
+        dimension: 14,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          semanticsLabel: 'Refreshing arrivals',
         ),
-        if (async.isLoading && current != null)
-          const Padding(
-            padding: EdgeInsets.only(right: 8),
-            child: SizedBox.square(
-              dimension: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                semanticsLabel: 'Refreshing arrivals',
-              ),
+      ),
+    );
+    final refresh = TextButton.icon(
+      key: const Key('arrivals-refresh'),
+      onPressed: () => ref.invalidate(journeyArrivalsProvider),
+      icon: const Icon(Icons.refresh, size: 18),
+      label: const Text('Refresh arrivals'),
+    );
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >=
+            HomeLayout.arrivalsFooterMinRowWidth * textScale) {
+          return Row(
+            children: [
+              Expanded(child: attribution),
+              if (refreshing) spinner,
+              refresh,
+            ],
+          );
+        }
+        // Large text or a narrow card: the button goes below, and its label
+        // may wrap rather than overflow.
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            attribution,
+            Row(
+              children: [
+                if (refreshing) spinner,
+                Flexible(child: refresh),
+              ],
             ),
-          ),
-        TextButton.icon(
-          key: const Key('arrivals-refresh'),
-          onPressed: () => ref.invalidate(journeyArrivalsProvider),
-          icon: const Icon(Icons.refresh, size: 18),
-          label: const Text('Refresh arrivals'),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

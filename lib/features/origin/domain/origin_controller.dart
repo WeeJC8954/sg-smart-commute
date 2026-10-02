@@ -27,7 +27,8 @@ final originControllerProvider =
 /// - no answer to the permission prompt within its own timeout → manual
 ///   prompt, but the attempt keeps waiting: if the prompt is granted later
 ///   and the user has not started manual entry, acquisition starts then;
-///   otherwise its fix is only offered;
+///   otherwise its fix is only offered and the "not answered" note is
+///   cleared;
 /// - granted → the timeout starts, then a position is requested;
 /// - no valid fix before the timeout, an error, or a fix outside Singapore →
 ///   manual prompt;
@@ -113,6 +114,10 @@ class OriginController extends Notifier<OriginState> {
         phase: OriginPhase.acquiring,
         clearFallbackReason: true,
       );
+    } else if (state.fallbackReason is LocationPermissionUnanswered) {
+      // The prompt was answered after all, so "not answered" is no longer
+      // true. Manual entry stays open; a fix will only be offered.
+      state = state.copyWith(clearFallbackReason: true);
     }
     _timeout = Timer(ref.read(locationTimeoutProvider), () {
       if (_isCurrent(attempt) && _awaitingFix) {

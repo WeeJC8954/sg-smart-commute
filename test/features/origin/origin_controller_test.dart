@@ -10,7 +10,7 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 
-import '../../fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 const mountainView = LatLng(37.4220, -122.0841);
@@ -166,6 +166,27 @@ void main() {
         final s = c.read(originControllerProvider);
         expect(s.origin, isNull);
         expect(s.offeredGpsFix, bishan);
+        c.dispose();
+      });
+    });
+
+    // M5, seen live in Chrome: after a late "Allow" the prompt still said the
+    // request had not been answered.
+    test('granted later while typing → the "not answered" note is cleared', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        async.elapse(const Duration(seconds: 30));
+        c.read(originControllerProvider.notifier).beginManualEntry();
+        expect(
+          c.read(originControllerProvider).fallbackReason,
+          isA<LocationPermissionUnanswered>(),
+        );
+        location.grant();
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expect(s.phase, OriginPhase.needsManual);
+        expect(s.manualEntryInProgress, isTrue);
+        expect(s.fallbackReason, isNull);
         c.dispose();
       });
     });

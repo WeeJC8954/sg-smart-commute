@@ -79,7 +79,7 @@ lib/
   dataset, refresh cooldown), `presentation/` (dashboard tiles, display strings).
 - Seams overridden in tests: `locationServiceProvider`, `locationTimeoutProvider`, `environmentRepositoryProvider`,
   `httpClientProvider` (the rate-limit widget tests swap only the transport for a fake data.gov.sg),
-  `clockProvider`, `placeSearchRepositoryProvider`. Fakes are in `test/fakes/` and shared with `integration_test/`.
+  `clockProvider`, `placeSearchRepositoryProvider`. Fakes are in `integration_test/fakes/` and shared with the widget tests in `test/` (they live under `integration_test/` because a Web `flutter drive` build cannot import files outside the target's folder).
 
 ## Milestone 2 (places)
 
@@ -146,6 +146,44 @@ lib/
 - Tunables in `ArriveLahEndpoints` / `BusArrivalConfig` (`app_config.dart`). Test seams:
   `busArrivalRepositoryProvider`, `busArrivalCacheTtlProvider` (plus `clockProvider`).
 - No polling, no maps, no vehicle tracking, no MRT arrivals.
+
+## Milestone 5 (hardening)
+
+- **Response size cap** (`JsonHttpClient`): a 2xx body over `AppTimings.httpMaxResponseBytes` (4 MiB) is an
+  `InvalidApiResponse` and is not retried. A declared `Content-Length` over the cap is refused unread; otherwise
+  reading stops as soon as the cap is passed. Non-2xx bodies are not read. The request timeout covers headers
+  and body. Numbers and the measured payload sizes: `docs/assumptions.md`.
+- **Content-Security-Policy** (`web/index.html`, a `<meta>`, since static hosting such as GitHub Pages cannot
+  set headers). Measured in Chrome on 2026-10-02 over a full journey, the app contacts only itself, the four
+  keyless APIs (`api-open.data.gov.sg`, `www.onemap.gov.sg`, `data.busrouter.sg`, `arrivelah2.busrouter.sg`), and
+  the Flutter engine's CDN (`www.gstatic.com` for CanvasKit script + WebAssembly, `fonts.gstatic.com` for
+  fallback fonts). The policy allows exactly those:
+  - `connect-src` = self + those six origins; `script-src` = self + `www.gstatic.com` + `'wasm-unsafe-eval'`
+    (CanvasKit is WebAssembly) + one `sha256-` hash; no `'unsafe-eval'`, no `'unsafe-inline'` scripts;
+  - the hash is the inline snippet that the **debug** web loader (Flutter 3.47.2) runs; without it `flutter run`
+    on Web shows a blank page. Release builds never run it. After a Flutter upgrade, a blank debug page plus a
+    console line "Executing inline script violates … a hash ('sha256-…')" means: replace the hash;
+  - `style-src 'unsafe-inline'` (Flutter sets inline styles), `img-src` self/data/blob, `object-src 'none'`,
+    `base-uri 'self'`, `form-action 'none'`, `default-src 'self'`;
+  - not settable from a `<meta>`: `frame-ancestors`. A host that can send headers should add it.
+  - `test/web/content_security_policy_test.dart` keeps `connect-src` equal to the endpoints in
+    `app_config.dart` (+ the engine CDN), so a new provider cannot be added without updating the policy.
+  - Using the engine CDN is Flutter's default (`flutter build web`); building with `--no-web-resources-cdn` would
+    serve CanvasKit locally, but fallback fonts still come from `fonts.gstatic.com`, so the CDN stays listed.
+- **Integration tests on Web**: the fakes moved to `integration_test/fakes/` (a Web build cannot import outside
+  the target's folder), and `initIntegrationTest()` registers the `TestTextInput` stub so `enterText` works in
+  the profile builds the Web runs use. How to run them: `docs/testing.md`.
+- **Origin**: a prompt answered late (granted) while manual entry is open clears the "not answered" note.
+- **Refresh all** (`EnvironmentRefresher.refreshAll` → `RefreshAllResult`): the 15 s cooldown holds only after a
+  refresh that fully succeeded. While a dataset is loading, nothing new starts ("still refreshing"); after a
+  failure, the refresh runs again at once.
+- **Large text**: the arrivals footer stacks its button below the attribution when it has less than
+  `HomeLayout.arrivalsFooterMinRowWidth` × the text scale, the same scaling rule as the Conditions grid.
+- **Android Location Accuracy** (accepted platform limitation): Play services' "Location Accuracy" dialog
+  appears inside `getCurrentPosition`, so the 10 s timeout keeps running behind it. Both answers recover
+  ("Turn on" → the late fix fills the origin, "No thanks" → manual entry). Pausing the timers while the app is
+  not in the foreground, or switching to `forceLocationManager`, was judged not worth the risk to the origin
+  state machine or to fix quality.
 
 ## Dev tools (M0)
 

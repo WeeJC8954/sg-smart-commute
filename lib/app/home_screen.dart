@@ -24,17 +24,19 @@ class HomeScreen extends ConsumerWidget {
             tooltip: 'Refresh conditions',
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              final accepted = ref
+              final note = switch (ref
                   .read(environmentRefresherProvider.notifier)
-                  .refreshAll();
-              if (!accepted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Conditions were just updated. Try again shortly.',
-                    ),
-                  ),
-                );
+                  .refreshAll()) {
+                RefreshAllResult.started => null,
+                RefreshAllResult.stillRefreshing =>
+                  'Conditions are still refreshing.',
+                RefreshAllResult.justUpdated =>
+                  'Conditions were just updated. Try again shortly.',
+              };
+              if (note != null) {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text(note)));
               }
             },
           ),

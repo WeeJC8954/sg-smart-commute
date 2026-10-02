@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/app/app.dart';
 import 'package:sg_smart_commute/app/app_logo.dart';
 
-import '../fakes/fake_environment_repository.dart';
-import '../fakes/fake_location_service.dart';
-import '../fakes/test_app.dart';
+import '../../integration_test/fakes/fake_environment_repository.dart';
+import '../../integration_test/fakes/fake_location_service.dart';
+import '../../integration_test/fakes/test_app.dart';
 
 Future<void> pumpAt(WidgetTester tester, Size size) async {
   tester.view.physicalSize = size;

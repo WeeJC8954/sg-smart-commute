@@ -15,10 +15,10 @@ import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
 import 'package:sg_smart_commute/features/places/presentation/place_search_field.dart';
 
-import '../../fakes/fake_environment_repository.dart';
-import '../../fakes/fake_location_service.dart';
-import '../../fakes/fake_place_search_repository.dart';
-import '../../fakes/test_app.dart';
+import '../../../integration_test/fakes/fake_environment_repository.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/test_app.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 const originField = Key('manual-origin-field');

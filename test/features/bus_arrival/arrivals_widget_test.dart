@@ -1,5 +1,5 @@
 // Milestone 4 widget tests: live arrivals in the journey card (guide v2.1
-// §10, §18). Everything external is a fake (test/fakes/); the clock is
+// §10, §18). Everything external is a fake (integration_test/fakes/); the clock is
 // injected, so every ETA below is exact.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,12 +10,12 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival.dart';
 import 'package:sg_smart_commute/features/bus_arrival/presentation/option_arrivals.dart';
 
-import '../../fakes/fake_bus_arrival_repository.dart';
-import '../../fakes/fake_bus_network.dart';
-import '../../fakes/fake_environment_repository.dart';
-import '../../fakes/fake_location_service.dart';
-import '../../fakes/fake_place_search_repository.dart';
-import '../../fakes/test_app.dart';
+import '../../../integration_test/fakes/fake_bus_arrival_repository.dart';
+import '../../../integration_test/fakes/fake_bus_network.dart';
+import '../../../integration_test/fakes/fake_environment_repository.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/test_app.dart';
 
 /// The fake GPS fix (as in the journey widget tests).
 const bishanGps = LatLng(1.3508, 103.8485);
@@ -397,5 +397,60 @@ void main() {
     expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
     expect(find.byKey(const Key('arrivals-refresh')), findsNothing);
     expect(arrivals.totalCalls, 0);
+  });
+
+  // M5 review finding: the footer's "Refresh arrivals" button did not fit
+  // beside the attribution at 2× text on a normal phone.
+  for (final width in [360.0, 320.0]) {
+    testWidgets('the arrivals footer fits at 2× text on a ${width.toInt()} dp '
+        'phone, and Refresh still works', (tester) async {
+      tester.view.physicalSize = Size(width, 6000);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(app());
+      await tester.pump();
+      await pick(tester, 'VivoCity', 'VIVOCITY');
+      await tester.pump();
+
+      final footer = find.byKey(const Key('arrivals-footer'));
+      final refresh = find.byKey(const Key('arrivals-refresh'));
+      await tester.ensureVisible(refresh);
+      await tester.pump();
+      expect(footer, findsOneWidget);
+      expect(tester.takeException(), isNull); // no RenderFlex overflow
+      // Both stay inside the screen.
+      for (final f in [footer, refresh]) {
+        final r = tester.getRect(f);
+        expect(r.left, greaterThanOrEqualTo(0));
+        expect(r.right, lessThanOrEqualTo(width));
+      }
+
+      now = now.add(const Duration(minutes: 1));
+      await tester.tap(refresh);
+      await tester.pump();
+      await tester.pump();
+      expect(arrivals.calls, {'BSH2': 2, 'BSH1': 2});
+    });
+  }
+
+  testWidgets('at normal text on a 360 dp phone the footer stays one row', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 6000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(app());
+    await tester.pump();
+    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    final footer = tester.getRect(find.byKey(const Key('arrivals-footer')));
+    final refresh = tester.getRect(find.byKey(const Key('arrivals-refresh')));
+    // Side by side (the test font is wider than real text, so the
+    // attribution is narrow here; only the layout choice is checked).
+    expect(refresh.left, greaterThanOrEqualTo(footer.right));
+    expect(refresh.top, lessThan(footer.bottom));
+    expect(tester.takeException(), isNull);
   });
 }

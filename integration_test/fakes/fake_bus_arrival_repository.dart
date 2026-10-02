@@ -30,7 +30,7 @@ BusArrival fakeArrival(
 );
 
 /// Default fake arrivals for the fake network's Bishan → VivoCity options
-/// (test/fakes/fake_bus_network.dart), counted from [from] (default
+/// (integration_test/fakes/fake_bus_network.dart), counted from [from] (default
 /// [fakeNow]):
 ///
 ///   BSH2: F20 at +30 s ("Arr"), +7 min, +19 min
