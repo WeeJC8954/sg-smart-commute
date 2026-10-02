@@ -1,5 +1,6 @@
-// The app mark in the app bar, beside the title.
+// The app icon in the app bar, beside the title.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/app/app.dart';
 import 'package:sg_smart_commute/app/app_logo.dart';
@@ -35,30 +36,42 @@ void main() {
     expect(title, findsOneWidget);
     final logoBox = tester.getRect(logo);
     final titleBox = tester.getRect(title);
-    expect(logoBox.size, const Size.square(28));
+    expect(logoBox.size, const Size.square(32));
     expect(logoBox.right, lessThan(titleBox.left));
     expect(logoBox.center.dy, closeTo(titleBox.center.dy, 2));
   });
 
-  testWidgets('uses the theme colours and is hidden from screen readers', (
+  testWidgets('shows the bundled icon PNG, hidden from screen readers', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
     await pumpAt(tester, const Size(1080, 2000));
-    final scheme = Theme.of(tester.element(find.byKey(const Key('app-logo'))))
-        .colorScheme;
-    final paint = tester.widget<CustomPaint>(
+    final image = tester.widget<Image>(
       find.descendant(
         of: find.byKey(const Key('app-logo')),
-        matching: find.byType(CustomPaint),
+        matching: find.byType(Image),
       ),
     );
-    final painter = paint.painter! as AppLogoPainter;
-    expect(painter.tile, scheme.primary);
-    expect(painter.mark, scheme.onPrimary);
-    // The title is read once; the decorative mark adds nothing.
+    expect(image.image, isA<AssetImage>());
+    expect((image.image as AssetImage).assetName, AppLogo.asset);
+    // The title is read once; the decorative icon adds nothing.
     expect(find.bySemanticsLabel(SmartCommuteApp.title), findsOneWidget);
     semantics.dispose();
+  });
+
+  test('the asset is bundled, square and 192 px', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final data = await rootBundle.load(AppLogo.asset);
+    final bytes = data.buffer.asUint8List();
+    // PNG signature, then the IHDR width and height (big-endian).
+    expect(bytes.sublist(1, 4), 'PNG'.codeUnits);
+    int u32(int at) =>
+        bytes[at] << 24 |
+        bytes[at + 1] << 16 |
+        bytes[at + 2] << 8 |
+        bytes[at + 3];
+    expect(u32(16), 192);
+    expect(u32(20), 192);
   });
 
   testWidgets('a narrow phone: the title shortens instead of overflowing', (
@@ -82,7 +95,7 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(
       tester.getSize(find.byKey(const Key('app-logo'))),
-      const Size.square(28),
+      const Size.square(32),
     );
     final title = tester.widget<Text>(find.text(SmartCommuteApp.title));
     expect(title.overflow, TextOverflow.ellipsis);
