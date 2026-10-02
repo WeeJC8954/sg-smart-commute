@@ -552,6 +552,72 @@ void main() {
       });
     });
 
+    // Regression: a non-granted answer after the permission timeout used to
+    // be dropped, leaving the "not answered yet" note in place.
+    for (final (access, failureType) in [
+      (LocationAccess.denied, LocationPermissionDenied),
+      (LocationAccess.deniedForever, LocationPermissionPermanentlyDenied),
+      (LocationAccess.serviceDisabled, LocationServiceDisabled),
+    ]) {
+      test('permission timeout, then a late $access: the note changes from '
+          'unanswered to $failureType; the manual origin is kept', () {
+        fakeAsync((async) {
+          final c = manualAfterDenial(async);
+          final origin = c.read(originControllerProvider).origin;
+          async.elapse(const Duration(seconds: 10));
+          expect(
+            c.read(originControllerProvider).backgroundFailure,
+            isA<LocationPermissionUnanswered>(),
+          );
+
+          location.answer(access);
+          async.flushMicrotasks();
+          final s = c.read(originControllerProvider);
+          expectTampinesKept(s);
+          expect(s.origin, same(origin));
+          expect(s.backgroundFailure.runtimeType, failureType);
+          expect(s.locatingInBackground, isFalse);
+          expect(s.offeredGpsFix, isNull);
+          expect(location.positionRequests, 0);
+          c.dispose();
+        });
+      });
+    }
+
+    test('permission timeout, then the permission request throws: reported '
+        'as unavailable; the manual origin is kept', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        async.elapse(const Duration(seconds: 10));
+        location.failAccess(StateError('prompt dismissed'));
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.backgroundFailure, isA<LocationUnavailable>());
+        expect(s.locatingInBackground, isFalse);
+        c.dispose();
+      });
+    });
+
+    test('a superseded attempt answering late changes nothing', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async); // attempt B
+        async.elapse(const Duration(seconds: 10));
+        final staleAccess = location.pendingAccess;
+        location.reset();
+        c.read(originControllerProvider.notifier).retryLocation(); // C
+        async.flushMicrotasks();
+
+        staleAccess.complete(LocationAccess.denied); // B answers late
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.locatingInBackground, isTrue, reason: 'C is still running');
+        expect(s.backgroundFailure, isNull);
+        c.dispose();
+      });
+    });
+
     test('an out-of-Singapore fix is reported, never offered', () {
       fakeAsync((async) {
         final c = manualAfterDenial(async);
