@@ -75,13 +75,16 @@ class StopArrivals {
 
 /// The next arrivals of [serviceNo] at [stop], soonest first, at most
 /// [BusArrivalConfig.maxShown]. Only arrivals with a time are returned, so an
-/// empty list means "no live arrival available": the service is not listed
-/// (which says nothing about whether the route is valid), or none of its slots
-/// has a time.
+/// empty list means "no live arrival available" (shown as such): the service
+/// is not listed (which says nothing about whether the route is valid), none
+/// of its slots has a time, or the loop-terminal rule below removed every
+/// timed arrival.
 ///
 /// [boardsAtLoopTerminal]: the rider boards a loop service at the stop where
-/// the loop starts and ends. There, LTA's visit 2 is a bus finishing the loop
-/// (it terminates), so only visit-1 departures are kept.
+/// the loop starts and ends. There, an arrival with LTA visit number 2 is a
+/// bus finishing the loop (it terminates), so it is excluded. Visit-1 arrivals
+/// are kept, and so are arrivals whose visit number is missing or unknown:
+/// they are not discarded on missing metadata.
 List<BusArrival> nextArrivals(
   StopArrivals stop,
   String serviceNo, {
