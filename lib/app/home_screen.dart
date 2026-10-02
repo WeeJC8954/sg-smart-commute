@@ -7,7 +7,7 @@ import '../features/destination/presentation/destination_card.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
 import '../features/journey/presentation/journey_card.dart';
 import '../features/origin/presentation/origin_card.dart';
-import 'app.dart';
+import 'app_logo.dart';
 
 /// Home: rendered immediately, never blocked on location (§5.1 step 1).
 class HomeScreen extends ConsumerWidget {
@@ -17,7 +17,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(SmartCommuteApp.title),
+        title: const AppTitle(),
         actions: [
           IconButton(
             key: const Key('refresh-conditions'),
