@@ -4,9 +4,11 @@ A **front-end-only** Flutter app (Android + Web) for Singapore. It shows current
 UV, 1-hr PM2.5, 24-hr PSI) and suggests how to start a journey: a direct bus with live arrival times, and the
 nearest MRT station as an alternative. University course project.
 
-> **Status:** Milestone 4. The app has location with manual fallback, the environmental dashboard, OneMap
-> place search for origin and destination, a direct-bus suggestion with an MRT alternative, and live bus
-> arrival times (ArriveLah) for each suggested bus, refreshed manually.
+> **Status:** Milestone 5 (hardening). Phase 1's features are in: location with manual fallback, the
+> environmental dashboard, OneMap place search for origin and destination, a direct-bus suggestion with an
+> MRT alternative, and live bus arrival times (ArriveLah) for each suggested bus, refreshed manually. M5 closed
+> the Web integration run, checked the Chrome and Android location edge cases live, and added a response-size
+> cap, a Web Content-Security-Policy and large-text fixes.
 
 ## No credentials required
 
@@ -42,10 +44,17 @@ flutter devices              # find your Android emulator/device id
 flutter run -d <device-id>   # Android
 ```
 
+If `flutter run -d chrome` hangs at "Waiting for connection from debug service", serve the app instead and
+open it yourself: `flutter run -d web-server --web-port 8766`, then browse to `http://localhost:8766`.
+
 - **Web geolocation needs HTTPS** in deployed builds (`localhost` is exempt during development). Any
   hosted demo must be served over HTTPS (static hosting only).
 - **Android emulator:** the default emulator location is outside Singapore. Set a Singapore location in
   Extended controls → Location.
+- **Hosting the Web build:** `web/index.html` carries a Content-Security-Policy `<meta>` that allows only the
+  app's own files, the four data APIs and the Flutter engine CDN (`www.gstatic.com`, `fonts.gstatic.com`). A
+  new data source must be added to its `connect-src` (a test enforces this). A host that can send headers
+  should also send `frame-ancestors`. Details: [`docs/architecture.md`](docs/architecture.md) (Milestone 5).
 
 ## Test and quality gates
 
@@ -55,9 +64,15 @@ flutter analyze
 flutter test
 flutter build web
 flutter build apk --debug
+
+# Integration tests: real app, fake providers, no live APIs
+flutter test integration_test -d <android-device-id>
+# Web: needs chromedriver matching your Chrome on port 4444; one file per run
+flutter drive --driver=test_driver/integration_test.dart   --target=integration_test/app_boot_test.dart -d web-server --browser-name=chrome --profile
 ```
 
-The dev-only feasibility probes are described in [`docs/testing.md`](docs/testing.md).
+The Web run uses a profile build on `web-server`, because debug-mode `flutter drive` does not start. The full
+recipe, the dev-only feasibility probes and the run log are in [`docs/testing.md`](docs/testing.md).
 
 A distributable release APK or bundle needs a release key: see
 [`docs/release-signing.md`](docs/release-signing.md). Without one, `flutter build apk --release` falls back to
@@ -83,6 +98,14 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - Bus stop data comes from busrouter.sg and is loaded on the first journey request (about 570 KB).
 - Tokenless OneMap search can rate-limit (HTTP 429 after a few quick calls was seen in M3 testing).
 - busrouter, ArriveLah and tokenless OneMap search are third-party services with no SLA.
+- The Web build loads the Flutter engine (CanvasKit) and fallback fonts from Google's CDN (`www.gstatic.com`,
+  `fonts.gstatic.com`), Flutter's default.
+- On Android, if Google's "Location Accuracy" is off, Play services asks to turn it on. The app's 10 s
+  location timeout keeps running behind that dialog, so you may briefly see "Finding your location took too
+  long". Answering "Turn on" then fills in your location by itself; "No thanks" leaves manual entry. Accepted
+  as a platform limitation (see [`docs/testing.md`](docs/testing.md)).
+- On Web, the browser's location request returns only once it has a position, so after a late "Allow" the
+  app keeps offering manual entry until a fix arrives.
 - Live arrivals are shown only for the suggested buses' boarding stops and refresh only when you tap
   "Refresh arrivals" (reused for 15 s). An arrival can be missing (e.g. a peak-hour-only service off-peak):
   the app then says "No live arrival available" and still shows the route. "(scheduled)" marks estimates LTA

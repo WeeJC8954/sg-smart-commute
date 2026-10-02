@@ -174,6 +174,16 @@ lib/
   the target's folder), and `initIntegrationTest()` registers the `TestTextInput` stub so `enterText` works in
   the profile builds the Web runs use. How to run them: `docs/testing.md`.
 - **Origin**: a prompt answered late (granted) while manual entry is open clears the "not answered" note.
+- **Refresh all** (`EnvironmentRefresher.refreshAll` → `RefreshAllResult`): the 15 s cooldown holds only after a
+  refresh that fully succeeded. While a dataset is loading, nothing new starts ("still refreshing"); after a
+  failure, the refresh runs again at once.
+- **Large text**: the arrivals footer stacks its button below the attribution when it has less than
+  `HomeLayout.arrivalsFooterMinRowWidth` × the text scale, the same scaling rule as the Conditions grid.
+- **Android Location Accuracy** (accepted platform limitation): Play services' "Location Accuracy" dialog
+  appears inside `getCurrentPosition`, so the 10 s timeout keeps running behind it. Both answers recover
+  ("Turn on" → the late fix fills the origin, "No thanks" → manual entry). Pausing the timers while the app is
+  not in the foreground, or switching to `forceLocationManager`, was judged not worth the risk to the origin
+  state machine or to fix quality.
 
 ## Dev tools (M0)
 

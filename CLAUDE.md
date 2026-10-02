@@ -61,7 +61,7 @@ Feature-first with a pragmatic clean architecture (guide §11):
 
 - `lib/core/` — shared infrastructure: `config/` (constants), `errors/app_failure.dart` (sealed `AppFailure`
   hierarchy, guide §13), `http/json_http_client.dart` (10 s timeout, bounded retry on 5xx/network, no retry on
-  4xx, 429 → `ApiRateLimited` with `Retry-After`, in-flight dedup), `location/` (`LocationService` seam +
+  4xx, 429 → `ApiRateLimited` with `Retry-After`, in-flight dedup, 4 MiB body cap), `location/` (`LocationService` seam +
   geolocator adapter), `geo/` (`LatLng`, `isWithinSingapore`, haversine), `time/` (injectable `Clock`, SGT
   formatting).
 - `lib/features/<feature>/` split into `data/` (DTO parsing + repository implementations), `domain/` (models,
@@ -116,6 +116,11 @@ Key flows that span several files:
 - NEA parser tests use real payloads captured once in `test/fixtures/*.json`.
 - `integration_test/support.dart` has `pumpUntilFound` — use it instead of `pumpAndSettle`, which never
   settles while a progress indicator animates. Use `fake_async` / injected `Clock` for time-dependent logic.
+  Every integration test's `main` starts with `initIntegrationTest()` (registers `TestTextInput`, so
+  `enterText` works in the profile builds the Web runs use); shared fakes stay under `integration_test/` (Web
+  builds cannot import outside it).
+- A new provider host must be added to the CSP `connect-src` in `web/index.html`
+  (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
 - **Evidence rule:** never claim a test or gate passed unless it actually ran. Record the command and its
   real result in the run log in `docs/testing.md`; anything not run is logged as **Not run** with the reason.
 

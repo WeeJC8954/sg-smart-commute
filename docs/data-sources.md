@@ -3,6 +3,11 @@
 All Phase 1 sources are keyless and called directly from the client. Verification:
 [`api-feasibility.md`](api-feasibility.md) (2026-10-01).
 
+Every response passes through `JsonHttpClient`, which caps a body at 4 MiB (M5; the largest real one is
+busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate limits in
+`docs/assumptions.md`. On Web, the Content-Security-Policy in `web/index.html` lists exactly these hosts in
+`connect-src`, plus the Flutter engine CDN below.
+
 ## data.gov.sg / NEA real-time APIs
 
 | | |
@@ -83,6 +88,16 @@ All Phase 1 sources are keyless and called directly from the client. Verificatio
 | Current build | Retrieved 2026-10-01 (UTC); latest feature update 2026-07-17. 613 features, 0 skipped, 613 exits, 0 duplicates → **188 stations**; 7 code-only names mapped, 0 unverified |
 | Code-only records | CC9 → Paya Lebar, DT18 → Telok Ayer, DT4 → Hume, NE18 → Punggol Coast, CC30 → Keppel, CC31 → Cantonment, CC32 → Prince Edward Road. Each is verified by OneMap returning exactly that code label 41–85 m from the exits (searched 2026-10-02) |
 | Update procedure | Re-run the generator, review the printed counts (any "unverified code-only" warning needs a cited mapping or stays code-labelled), run `flutter test test/features/journey/mrt_test.dart` (update the expected counts if the dataset legitimately changed), and commit the asset |
+
+## Flutter engine CDN (Web only, not a data source)
+
+| | |
+|---|---|
+| Owner | Google (Flutter) |
+| What | `https://www.gstatic.com/flutter-canvaskit/<engine revision>/` (CanvasKit script + WebAssembly) and `https://fonts.gstatic.com` (fallback fonts), loaded by the Flutter Web engine itself |
+| Why | Flutter's default for `flutter build web` (`--web-resources-cdn`). Measured over a full journey in Chrome on 2026-10-02 (M5) |
+| Auth | None. No user data is sent; the requests are static engine files |
+| Limitations | A third-party dependency at load time: if it is blocked or down, the Web app does not start. `--no-web-resources-cdn` would bundle CanvasKit, but fallback fonts would still come from `fonts.gstatic.com` |
 
 ## Excluded
 
