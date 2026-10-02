@@ -1,6 +1,7 @@
 // Milestone 2 widget tests: origin and destination place search (guide v2.1
 // §5.3–§5.5, §8.3, §18). Location, environment and place search are fakes.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
@@ -439,5 +440,47 @@ void main() {
     await tester.pump();
     expect(find.text('VIVOCITY'), findsOneWidget);
     expect(find.text('ION ORCHARD'), findsNothing);
+  });
+  testWidgets('the clear button empties the field and its results and '
+      'selects nothing', (tester) async {
+    await pumpApp(tester, deniedApp());
+    final clear = find.descendant(
+      of: find.byKey(originField),
+      matching: find.byTooltip(PlaceSearchField.clearTooltip),
+    );
+    expect(clear, findsNothing); // empty field: no button
+
+    await type(tester, originField, '098585');
+    expect(find.text('1 match. Tap it to confirm.'), findsOneWidget);
+    expect(clear, findsOneWidget);
+
+    await tester.tap(clear);
+    await tester.pump();
+    final field = tester.widget<TextField>(find.byKey(originField));
+    expect(field.controller!.text, isEmpty);
+    expect(find.text('1 match. Tap it to confirm.'), findsNothing);
+    expect(clear, findsNothing);
+    expect(originOf(tester).origin, isNull);
+  });
+
+  testWidgets('choosing a place gives one selection click; typing gives none', (
+    tester,
+  ) async {
+    final haptics = <Object?>[];
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'HapticFeedback.vibrate') haptics.add(call.arguments);
+      return null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+
+    await pumpApp(tester, deniedApp());
+    await type(tester, originField, '098585');
+    expect(haptics, isEmpty);
+
+    await pick(tester, 'VIVOCITY');
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
   });
 }

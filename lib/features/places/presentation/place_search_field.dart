@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
@@ -21,6 +22,9 @@ class PlaceSearchField extends ConsumerStatefulWidget {
   });
 
   static const String hint = 'e.g. 238801, Orchard Road, VivoCity, NUS';
+
+  /// Tooltip (and screen-reader label) of the clear (×) button.
+  static const String clearTooltip = 'Clear search';
 
   final Key fieldKey;
   final String label;
@@ -59,7 +63,17 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
     super.dispose();
   }
 
+  /// Empties the field and its results; nothing is selected, and focus
+  /// stays so the user can type again at once.
+  void _clear() {
+    _controller.clear();
+    _session.clear();
+    _focus.requestFocus();
+  }
+
   void _select(Place place) {
+    // Confirms the commit moment only; a no-op on Web.
+    HapticFeedback.selectionClick();
     _controller.clear();
     _session.clear();
     _focus.unfocus();
@@ -71,24 +85,35 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          key: widget.fieldKey,
-          controller: _controller,
-          focusNode: _focus,
-          textInputAction: TextInputAction.search,
-          maxLength: PlaceSearchConfig.maxQueryLength,
-          decoration: InputDecoration(
-            labelText: widget.label,
-            hintText: PlaceSearchField.hint,
-            prefixIcon: const Icon(Icons.search),
-            border: const OutlineInputBorder(),
-            counterText: '', // the limit is generous; no visible counter
+        // Rebuilt as the text changes, so the clear button follows it.
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _controller,
+          builder: (context, value, _) => TextField(
+            key: widget.fieldKey,
+            controller: _controller,
+            focusNode: _focus,
+            textInputAction: TextInputAction.search,
+            maxLength: PlaceSearchConfig.maxQueryLength,
+            decoration: InputDecoration(
+              labelText: widget.label,
+              hintText: PlaceSearchField.hint,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: value.text.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: PlaceSearchField.clearTooltip,
+                      icon: const Icon(Icons.clear),
+                      onPressed: _clear,
+                    ),
+              border: const OutlineInputBorder(),
+              counterText: '', // the limit is generous; no visible counter
+            ),
+            onChanged: (text) {
+              widget.onEditingStarted?.call();
+              _session.onChanged(text);
+            },
+            onSubmitted: _session.submit,
           ),
-          onChanged: (text) {
-            widget.onEditingStarted?.call();
-            _session.onChanged(text);
-          },
-          onSubmitted: _session.submit,
         ),
         ValueListenableBuilder<PlaceSearchState>(
           valueListenable: _session.state,
