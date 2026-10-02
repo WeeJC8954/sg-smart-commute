@@ -13,7 +13,7 @@ import 'package:sg_smart_commute/features/bus_arrival/data/arrivelah_bus_arrival
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival_cache.dart';
 
-import '../../fakes/fake_bus_arrival_repository.dart';
+import '../../../integration_test/fakes/fake_bus_arrival_repository.dart';
 
 final stop03019 = File('test/fixtures/arrivelah/stop_03019.json')
     .readAsStringSync();

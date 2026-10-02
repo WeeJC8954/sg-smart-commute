@@ -14,21 +14,20 @@
 // waits 10 s in real time.
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
 import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 
-import '../test/fakes/fake_bus_arrival_repository.dart';
-import '../test/fakes/fake_environment_repository.dart';
-import '../test/fakes/fake_location_service.dart';
-import '../test/fakes/test_app.dart';
+import 'fakes/fake_bus_arrival_repository.dart';
+import 'fakes/fake_environment_repository.dart';
+import 'fakes/fake_location_service.dart';
+import 'fakes/test_app.dart';
 import 'support.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  initIntegrationTest();
 
   testWidgets('permission denied → search origin → search destination → '
       'provider failure → Retry recovers', (tester) async {

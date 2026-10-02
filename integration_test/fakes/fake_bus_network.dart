@@ -9,7 +9,7 @@ import 'package:sg_smart_commute/features/journey/domain/bus_network.dart';
 import 'package:sg_smart_commute/features/journey/domain/bus_network_repository.dart';
 import 'package:sg_smart_commute/features/journey/domain/mrt.dart';
 
-/// A small fake bus network around the fake places (test/fakes/
+/// A small fake bus network around the fake places (integration_test/fakes/
 /// fake_place_search_repository.dart) and the fake GPS fix at Bishan
 /// (1.3508, 103.8485). Service numbers start with F so they can never be
 /// mistaken for real data. Bishan → VivoCity:

@@ -35,7 +35,7 @@ flutter drive --driver=test_driver/integration_test.dart \
 | `integration_test/fallback_path_test.dart` (permission denied or outside SG → manual origin → provider failure → error + Retry → recovery) | Written in M1 (provider failure = 24-hr PSI `NetworkUnavailable`; also out-of-SG and timeout + late-fix cases). M4 adds: origin with a direct bus → bus-arrival `NetworkUnavailable` (route kept, unavailable + Retry) → recovery → ETA |
 
 Since M1, `app_boot_test.dart` also uses fake providers (the app now requests location and calls data.gov.sg at
-launch). Fakes live in `test/fakes/` and are shared by widget and integration tests. NEA parser tests use real
+launch). Fakes live in `integration_test/fakes/` and are shared by widget and integration tests. NEA parser tests use real
 payloads captured once with curl on 2026-10-01 (`test/fixtures/*.json`).
 
 **chromedriver is not installed** on the Milestone 0 machine. One way to get a version matching Chrome:

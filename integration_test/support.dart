@@ -1,5 +1,20 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+/// Initialises the integration binding and registers the [TestTextInput]
+/// stub for each test, so [WidgetTester.enterText] reaches the app in every
+/// build mode.
+///
+/// `IntegrationTestWidgetsFlutterBinding` leaves the stub unregistered. Then
+/// `enterText` sends its text for client id -1, which the framework accepts
+/// only in debug builds (inside an `assert`). The Web runs use a profile build
+/// (docs/testing.md), where the text was silently dropped.
+void initIntegrationTest() {
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUp(binding.testTextInput.register);
+  tearDown(binding.testTextInput.unregister);
+}
 
 /// Pumps frames until [finder] matches or [timeout] elapses. Used instead of
 /// pumpAndSettle, which never settles while a progress indicator animates.

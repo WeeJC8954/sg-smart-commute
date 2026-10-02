@@ -10,7 +10,7 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 
-import '../../fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 const mountainView = LatLng(37.4220, -122.0841);

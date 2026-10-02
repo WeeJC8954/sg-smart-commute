@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/features/places/domain/place_search_session.dart';
 
-import '../../fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/fake_place_search_repository.dart';
 
 const debounce = Duration(milliseconds: 350);
 

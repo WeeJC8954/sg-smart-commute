@@ -79,7 +79,7 @@ lib/
   dataset, refresh cooldown), `presentation/` (dashboard tiles, display strings).
 - Seams overridden in tests: `locationServiceProvider`, `locationTimeoutProvider`, `environmentRepositoryProvider`,
   `httpClientProvider` (the rate-limit widget tests swap only the transport for a fake data.gov.sg),
-  `clockProvider`, `placeSearchRepositoryProvider`. Fakes are in `test/fakes/` and shared with `integration_test/`.
+  `clockProvider`, `placeSearchRepositoryProvider`. Fakes are in `integration_test/fakes/` and shared with the widget tests in `test/` (they live under `integration_test/` because a Web `flutter drive` build cannot import files outside the target's folder).
 
 ## Milestone 2 (places)
 

@@ -17,7 +17,7 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
 import 'package:sg_smart_commute/main.dart';
 
-import '../../fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 

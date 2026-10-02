@@ -3,26 +3,25 @@
 // PM2.5 / PSI with scope labels and timestamps → the user searches for and
 // selects a destination (fake place search) → a direct-bus suggestion with
 // stop, service, stops and estimated walks, plus the MRT alternative (fake
-// bus network and MRT asset, test/fakes/fake_bus_network.dart) → live ETAs
+// bus network and MRT asset, integration_test/fakes/fake_bus_network.dart) → live ETAs
 // (fake arrivals) → manual refresh updates the ETAs.
 //
 // Every provider is a fake and the clock is injected; no live API is called.
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
 
-import '../test/fakes/fake_bus_arrival_repository.dart';
-import '../test/fakes/fake_environment_repository.dart';
-import '../test/fakes/fake_location_service.dart';
-import '../test/fakes/fake_place_search_repository.dart';
-import '../test/fakes/test_app.dart';
+import 'fakes/fake_bus_arrival_repository.dart';
+import 'fakes/fake_environment_repository.dart';
+import 'fakes/fake_location_service.dart';
+import 'fakes/fake_place_search_repository.dart';
+import 'fakes/test_app.dart';
 import 'support.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  initIntegrationTest();
 
   testWidgets('GPS in Singapore → scoped environmental dashboard → '
       'search and select a destination', (tester) async {

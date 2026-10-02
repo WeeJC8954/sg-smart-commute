@@ -1,5 +1,5 @@
 // Milestone 4 widget tests: live arrivals in the journey card (guide v2.1
-// §10, §18). Everything external is a fake (test/fakes/); the clock is
+// §10, §18). Everything external is a fake (integration_test/fakes/); the clock is
 // injected, so every ETA below is exact.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,12 +10,12 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival.dart';
 import 'package:sg_smart_commute/features/bus_arrival/presentation/option_arrivals.dart';
 
-import '../../fakes/fake_bus_arrival_repository.dart';
-import '../../fakes/fake_bus_network.dart';
-import '../../fakes/fake_environment_repository.dart';
-import '../../fakes/fake_location_service.dart';
-import '../../fakes/fake_place_search_repository.dart';
-import '../../fakes/test_app.dart';
+import '../../../integration_test/fakes/fake_bus_arrival_repository.dart';
+import '../../../integration_test/fakes/fake_bus_network.dart';
+import '../../../integration_test/fakes/fake_environment_repository.dart';
+import '../../../integration_test/fakes/fake_location_service.dart';
+import '../../../integration_test/fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/test_app.dart';
 
 /// The fake GPS fix (as in the journey widget tests).
 const bishanGps = LatLng(1.3508, 103.8485);
