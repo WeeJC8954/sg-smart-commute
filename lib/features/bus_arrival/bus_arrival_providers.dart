@@ -66,6 +66,17 @@ class JourneyArrivals {
   final Map<String, StopArrivalsResult> byStop;
 }
 
+/// The one place that applies the "no stale attach" rule: arrivals are shown
+/// only against the exact plan object they were fetched for.
+extension ArrivalsForPlan on AsyncValue<JourneyArrivals?> {
+  /// The current arrivals if they were fetched for [plan], else null (still
+  /// loading, failed, or they belong to an earlier journey).
+  JourneyArrivals? arrivalsFor(DirectBusOptions plan) {
+    final arrivals = value;
+    return arrivals != null && identical(arrivals.plan, plan) ? arrivals : null;
+  }
+}
+
 /// Live arrivals for the displayed direct-bus options (guide v2.1 §9.2 step 7,
 /// §10). Runs only after the static plan exists: no arrivals are requested
 /// during the candidate search, nor for walk-only or no-bus results. Each

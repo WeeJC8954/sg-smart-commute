@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/status_rows.dart';
 import '../../places/presentation/place_search_field.dart';
 import '../domain/origin.dart';
 import '../domain/origin_controller.dart';
@@ -23,9 +24,9 @@ class OriginCard extends ConsumerWidget {
     final children = <Widget>[];
     switch (state.phase) {
       case OriginPhase.checkingPermission:
-        children.add(const _Busy('Checking location permission…'));
+        children.add(const BusyRow('Checking location permission…'));
       case OriginPhase.acquiring:
-        children.add(const _Busy('Finding your location…'));
+        children.add(const BusyRow('Finding your location…'));
       case OriginPhase.ready:
         children.add(_OriginLine(origin: state.origin!));
         children.add(
@@ -160,24 +161,4 @@ class _FallbackActions extends ConsumerWidget {
       ],
     );
   }
-}
-
-class _Busy extends StatelessWidget {
-  const _Busy(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: label,
-    child: Row(
-      children: [
-        const SizedBox.square(
-          dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        const SizedBox(width: 8),
-        ExcludeSemantics(child: Text(label)),
-      ],
-    ),
-  );
 }

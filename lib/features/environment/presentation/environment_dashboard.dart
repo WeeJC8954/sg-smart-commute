@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../../../core/time/clock.dart';
+import '../../../core/ui/status_rows.dart';
 import '../../origin/domain/origin_controller.dart';
 import '../domain/environment_locator.dart';
 import '../domain/environment_models.dart';
@@ -137,10 +138,10 @@ class _SnapshotTile<T> extends ConsumerWidget {
     final value = ref.watch(provider);
     final Widget body;
     if (value.isLoading && !value.hasValue) {
-      body = _Loading(label: 'Loading $title…');
+      body = BusyRow('Loading $title…');
     } else if (value.hasError && !value.isLoading) {
-      body = _ErrorView(
-        failure: value.error,
+      body = ErrorRetryRow(
+        message: failureMessage(value.error),
         onRetry: () => ref.invalidate(provider),
       );
     } else if (needsPosition && position == null) {
@@ -182,7 +183,7 @@ class _SnapshotTile<T> extends ConsumerWidget {
     try {
       return builder(snapshot, position);
     } on AppFailure catch (f) {
-      return _ErrorView(failure: f, onRetry: null);
+      return ErrorRetryRow(message: f.message);
     }
   }
 }
@@ -234,46 +235,6 @@ class _ReadingView extends StatelessWidget {
               ),
           ],
         ),
-      ],
-    );
-  }
-}
-
-class _Loading extends StatelessWidget {
-  const _Loading({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: label,
-    child: Row(
-      children: [
-        const SizedBox.square(
-          dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        const SizedBox(width: 8),
-        ExcludeSemantics(child: Text(label)),
-      ],
-    ),
-  );
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.failure, required this.onRetry});
-  final Object? failure;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final message = failure is AppFailure
-        ? (failure as AppFailure).message
-        : 'Something went wrong.';
-    return Row(
-      children: [
-        Expanded(child: Text(message)),
-        if (onRetry != null)
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
       ],
     );
   }

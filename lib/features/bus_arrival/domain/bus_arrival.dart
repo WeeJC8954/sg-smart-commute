@@ -101,11 +101,25 @@ List<BusArrival> nextArrivals(
 
 String _normalise(String serviceNo) => serviceNo.trim().toUpperCase();
 
-/// "Arr" when [eta] is at most [BusArrivalConfig.arrivingWithin] after [now]
-/// (or already past); otherwise whole minutes, rounded down ("7 min"). Both
-/// are UTC instants.
-String etaLabel(DateTime eta, DateTime now) {
+/// Whole minutes until [eta], rounded down, or null when the bus is arriving:
+/// at most [BusArrivalConfig.arrivingWithin] after [now], or already past.
+/// Both are UTC instants.
+int? minutesUntil(DateTime eta, DateTime now) {
   final until = eta.difference(now);
-  if (until <= BusArrivalConfig.arrivingWithin) return 'Arr';
-  return '${until.inMinutes} min';
+  return until <= BusArrivalConfig.arrivingWithin ? null : until.inMinutes;
 }
+
+/// "Arr", or whole minutes rounded down ("7 min"); see [minutesUntil].
+String etaLabel(DateTime eta, DateTime now) => switch (minutesUntil(eta, now)) {
+  null => 'Arr',
+  final minutes => '$minutes min',
+};
+
+/// What a screen reader says for [etaLabel]: "arriving now", "1 minute" or
+/// "N minutes". Derived from the same duration, never from the label text.
+String etaSpoken(DateTime eta, DateTime now) =>
+    switch (minutesUntil(eta, now)) {
+      null => 'arriving now',
+      1 => '1 minute',
+      final minutes => '$minutes minutes',
+    };

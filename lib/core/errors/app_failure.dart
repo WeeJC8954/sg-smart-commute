@@ -12,6 +12,12 @@ sealed class AppFailure implements Exception {
   String toString() => '$runtimeType: $message';
 }
 
+/// The user-facing message for an error caught from a provider or a call.
+/// Errors are [AppFailure]s by contract (§13); anything else is reported as
+/// an unexpected response, never with technical detail.
+String failureMessage(Object? error) =>
+    error is AppFailure ? error.message : const InvalidApiResponse().message;
+
 // --- Location -------------------------------------------------------------
 
 sealed class LocationFailure extends AppFailure {

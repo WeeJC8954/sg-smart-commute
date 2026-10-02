@@ -134,4 +134,34 @@ void main() {
       expect(etaLabel(eta, DateTime.utc(2026, 10, 2, 3)), '7 min');
     });
   });
+
+  group('etaSpoken: from the duration, matching etaLabel', () {
+    String spoken(Duration d) => etaSpoken(t0.add(d), t0);
+
+    test('"arriving now" exactly where the label is "Arr"', () {
+      expect(spoken(const Duration(seconds: 60)), 'arriving now');
+      expect(spoken(const Duration(minutes: -3)), 'arriving now');
+    });
+
+    test('whole minutes, singular for one', () {
+      expect(spoken(const Duration(seconds: 61)), '1 minute');
+      expect(spoken(const Duration(seconds: 120)), '2 minutes');
+      expect(spoken(const Duration(minutes: 7, seconds: 59)), '7 minutes');
+    });
+
+    test('agrees with etaLabel on every second of the first ten minutes', () {
+      for (var s = -120; s <= 600; s++) {
+        final d = Duration(seconds: s);
+        final minutes = minutesUntil(t0.add(d), t0);
+        expect(
+          etaLabel(t0.add(d), t0),
+          minutes == null ? 'Arr' : '$minutes min',
+        );
+        expect(
+          spoken(d).startsWith(minutes == null ? 'arriving' : '$minutes '),
+          isTrue,
+        );
+      }
+    });
+  });
 }

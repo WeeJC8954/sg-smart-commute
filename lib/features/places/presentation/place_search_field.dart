@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/status_rows.dart';
 import '../domain/place.dart';
 import '../domain/place_search_session.dart';
 import '../place_providers.dart';
@@ -156,11 +157,9 @@ class _SearchBody extends StatelessWidget {
       ),
       PlaceSearchFailed(:final failure) => Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: Row(
-          children: [
-            Expanded(child: Text(placeSearchFailureMessage(failure))),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
+        child: ErrorRetryRow(
+          message: placeSearchFailureMessage(failure),
+          onRetry: onRetry,
         ),
       ),
     };

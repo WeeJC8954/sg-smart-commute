@@ -196,6 +196,18 @@ void main() {
     expect(arrivals.calls, {'BSH2': 1, 'BSH1': 1});
   });
 
+  test('arrivalsFor: only the arrivals fetched for that exact plan', () async {
+    c.read(_planHolder.notifier).set(toVivo);
+    await settle();
+    final async = c.read(journeyArrivalsProvider);
+    expect(identical(async.arrivalsFor(toVivo)?.plan, toVivo), isTrue);
+    expect(async.arrivalsFor(toIon), isNull);
+    expect(
+      const AsyncValue<JourneyArrivals?>.loading().arrivalsFor(toVivo),
+      isNull,
+    );
+  });
+
   test('boardsAtLoopTerminal: only a loop boarded at its first stop', () {
     final f20 = toVivo.options.first;
     expect(f20.isLoop, isFalse);

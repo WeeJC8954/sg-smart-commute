@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/time/sgt_format.dart';
+import '../../../core/ui/status_rows.dart';
 import '../../journey/domain/direct_bus_planner.dart';
 import '../bus_arrival_providers.dart';
 import '../domain/bus_arrival.dart';
@@ -25,8 +26,7 @@ class OptionArrivals extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(journeyArrivalsProvider);
-    final value = async.value;
-    final current = value != null && identical(value.plan, plan) ? value : null;
+    final current = async.arrivalsFor(plan);
     final theme = Theme.of(context);
 
     if (current == null) {
@@ -81,10 +81,7 @@ class OptionArrivals extends ConsumerWidget {
   }
 
   static String _spokenEta(BusArrival a, DateTime now) {
-    final label = etaLabel(a.estimatedArrival!, now);
-    final spoken = label == 'Arr'
-        ? 'arriving now'
-        : label.replaceFirst('min', 'minutes');
+    final spoken = etaSpoken(a.estimatedArrival!, now);
     return a.monitored == false ? '$spoken, scheduled' : spoken;
   }
 
@@ -107,8 +104,7 @@ class ArrivalsFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(journeyArrivalsProvider);
-    final value = async.value;
-    final current = value != null && identical(value.plan, plan) ? value : null;
+    final current = async.arrivalsFor(plan);
     final theme = Theme.of(context);
     final checked = current == null
         ? ''
@@ -148,24 +144,8 @@ class _Checking extends StatelessWidget {
   const _Checking();
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: OptionArrivals.checking,
-    child: Row(
-      children: [
-        const SizedBox.square(
-          dimension: 14,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        const SizedBox(width: 8),
-        ExcludeSemantics(
-          child: Text(
-            OptionArrivals.checking,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) =>
+      const BusyRow(OptionArrivals.checking, compact: true);
 }
 
 class _ArrivalFailed extends ConsumerWidget {
@@ -173,18 +153,8 @@ class _ArrivalFailed extends ConsumerWidget {
   final Object error;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final message = error is AppFailure
-        ? (error as AppFailure).message
-        : const InvalidApiResponse().message;
-    return Row(
-      children: [
-        Expanded(child: Text('Live arrivals: $message')),
-        TextButton(
-          onPressed: () => ref.invalidate(journeyArrivalsProvider),
-          child: const Text('Retry'),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => ErrorRetryRow(
+    message: 'Live arrivals: ${failureMessage(error)}',
+    onRetry: () => ref.invalidate(journeyArrivalsProvider),
+  );
 }
