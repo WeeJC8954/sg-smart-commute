@@ -57,6 +57,8 @@ All Phase 1 sources are keyless and called directly from the client. Verificatio
 | Reverse geocode | `/api/public/revgeocode` → **401 Unauthorized** without a token (2026-10-01). Not used |
 | Licence / attribution | OneMap terms of use. The app shows "Place search: OneMap © Singapore Land Authority" under every result list and in the footer |
 | Limitations | Access could be withdrawn. Weak ranking for some parks (see feasibility §4.3). Upper-case names. No result-type field |
+| Rate limit | **Not published as a number.** The search docs list only "429 - API limit exceeded"; the API terms of service give no figure (both checked 2026-10-02). Observed: 429 after 2–3 calls within ~1.5 s. The 429 response is `text/html` and has no `Retry-After`, no rate-limit headers and no `Access-Control-Allow-Origin`, so a browser cannot read it (the page sees `TypeError: Failed to fetch`). Successful responses also carry no rate-limit headers |
+| Token notice | The OneMap API docs (checked 2026-10-02) show a banner: "Search API now requires token-based authentication". The tokenless call still answered HTTP 200 the same day. This is the main risk for M2/M3 place search; on enforcement the app shows `ApiUnauthorized`, with no credential or proxy added |
 | Failure handling | HTTP 401/403, or an `error` with no `results` list → `ApiUnauthorized`: a clear "requires sign-in" state, no workaround. `error` + empty `results` → no results. The tested OSM adapters remain contingency providers (not built) |
 
 ## Candidate fallbacks (evaluated, not integrated)
