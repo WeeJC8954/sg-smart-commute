@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../../../core/time/clock.dart';
@@ -11,8 +12,21 @@ import '../domain/environment_models.dart';
 import '../environment_providers.dart';
 import 'reading_text.dart';
 
-/// The four dashboard tiles (§6.1). Each tile loads and fails independently,
-/// so one unavailable dataset never hides the others.
+/// How many columns the Conditions tiles use at [width] (logical px) and
+/// [textScale]: 4 in one row on wide screens, a 2 × 2 grid at normal phone
+/// widths, and 1 column when two tiles would be narrower than
+/// [HomeLayout.minTileWidth] × [textScale] (narrow screens or large text).
+int conditionsColumns(double width, double textScale) {
+  final scale = textScale < 1 ? 1.0 : textScale;
+  const gap = HomeLayout.gridGap;
+  if (width >= 4 * HomeLayout.minWideTileWidth * scale + 3 * gap) return 4;
+  if (width >= 2 * HomeLayout.minTileWidth * scale + gap) return 2;
+  return 1;
+}
+
+/// The four dashboard tiles (§6.1), as a responsive grid (see
+/// [conditionsColumns]). Each tile loads and fails independently, so one
+/// unavailable dataset never hides the others.
 class EnvironmentDashboard extends ConsumerWidget {
   const EnvironmentDashboard({super.key});
 
@@ -24,80 +38,129 @@ class EnvironmentDashboard extends ConsumerWidget {
     ref.watch(uiTickProvider); // recompute ages, Stale and UV night over time
     final now = ref.watch(clockProvider)();
 
+    final tiles = <Widget>[
+      _SnapshotTile<ForecastSnapshot>(
+        key: const Key('tile-forecast'),
+        title: ReadingText.forecastTitle,
+        icon: Icons.cloud_outlined,
+        provider: forecastSnapshotProvider,
+        needsPosition: true,
+        position: position,
+        builder: (s, p) {
+          final r = EnvironmentLocator.forecast(s, p!);
+          return _ReadingView(
+            icon: forecastIcon(r.value),
+            headline: ReadingText.forecast(r),
+            scope: ReadingText.scope(r),
+            detail: s.validText.isEmpty ? null : 'Valid ${s.validText}',
+            timestamp: ReadingText.timestamp(r.observedAt, now),
+            stale: r.isStale(now),
+          );
+        },
+      ),
+      _SnapshotTile<UvSnapshot>(
+        key: const Key('tile-uv'),
+        title: ReadingText.uvTitle,
+        icon: Icons.wb_sunny_outlined,
+        provider: uvSnapshotProvider,
+        needsPosition: false,
+        position: position,
+        builder: (s, _) {
+          final r = EnvironmentLocator.uv(s);
+          return _ReadingView(
+            headline: ReadingText.uv(r, now),
+            scope: ReadingText.scope(r),
+            detail: ReadingText.uvNightDetail(r, now),
+            timestamp: ReadingText.timestamp(r.observedAt, now),
+            stale: r.isStale(now),
+          );
+        },
+      ),
+      _SnapshotTile<RegionalSnapshot>(
+        key: const Key('tile-pm25'),
+        title: ReadingText.pm25Title,
+        icon: Icons.grain,
+        provider: pm25SnapshotProvider,
+        needsPosition: true,
+        position: position,
+        builder: (s, p) {
+          final r = EnvironmentLocator.regional(s, p!);
+          return _ReadingView(
+            headline: ReadingText.pm25(r),
+            scope: ReadingText.scope(r),
+            timestamp: ReadingText.timestamp(r.observedAt, now),
+            stale: r.isStale(now),
+          );
+        },
+      ),
+      _SnapshotTile<RegionalSnapshot>(
+        key: const Key('tile-psi'),
+        title: ReadingText.psiTitle,
+        icon: Icons.masks_outlined,
+        provider: psiSnapshotProvider,
+        needsPosition: true,
+        position: position,
+        builder: (s, p) {
+          final r = EnvironmentLocator.regional(s, p!);
+          return _ReadingView(
+            headline: ReadingText.psi(r),
+            scope: ReadingText.scope(r),
+            timestamp: ReadingText.timestamp(r.observedAt, now),
+            stale: r.isStale(now),
+          );
+        },
+      ),
+    ];
+
+    // Text scale as a factor (1.0 = default), for the column breakpoints.
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    return LayoutBuilder(
+      builder: (context, constraints) => _TileGrid(
+        columns: conditionsColumns(constraints.maxWidth, textScale),
+        tiles: tiles,
+      ),
+    );
+  }
+}
+
+/// [tiles] in rows of [columns], in reading order. Tiles in a row share its
+/// height, so the grid stays even whatever each tile's state.
+class _TileGrid extends StatelessWidget {
+  const _TileGrid({required this.columns, required this.tiles});
+
+  final int columns;
+  final List<Widget> tiles;
+
+  @override
+  Widget build(BuildContext context) {
+    const gap = HomeLayout.gridGap;
+    final rows = <Widget>[];
+    for (var i = 0; i < tiles.length; i += columns) {
+      final row = tiles.sublist(i, (i + columns).clamp(0, tiles.length));
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var c = 0; c < columns; c++) ...[
+                if (c > 0) const SizedBox(width: gap),
+                Expanded(
+                  child: c < row.length ? row[c] : const SizedBox.shrink(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
     return Column(
+      key: Key('conditions-grid-$columns'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SnapshotTile<ForecastSnapshot>(
-          key: const Key('tile-forecast'),
-          title: ReadingText.forecastTitle,
-          icon: Icons.cloud_outlined,
-          provider: forecastSnapshotProvider,
-          needsPosition: true,
-          position: position,
-          builder: (s, p) {
-            final r = EnvironmentLocator.forecast(s, p!);
-            return _ReadingView(
-              icon: forecastIcon(r.value),
-              headline: ReadingText.forecast(r),
-              scope: ReadingText.scope(r),
-              detail: s.validText.isEmpty ? null : 'Valid ${s.validText}',
-              timestamp: ReadingText.timestamp(r.observedAt, now),
-              stale: r.isStale(now),
-            );
-          },
-        ),
-        _SnapshotTile<UvSnapshot>(
-          key: const Key('tile-uv'),
-          title: ReadingText.uvTitle,
-          icon: Icons.wb_sunny_outlined,
-          provider: uvSnapshotProvider,
-          needsPosition: false,
-          position: position,
-          builder: (s, _) {
-            final r = EnvironmentLocator.uv(s);
-            return _ReadingView(
-              headline: ReadingText.uv(r, now),
-              scope: ReadingText.scope(r),
-              detail: ReadingText.uvNightDetail(r, now),
-              timestamp: ReadingText.timestamp(r.observedAt, now),
-              stale: r.isStale(now),
-            );
-          },
-        ),
-        _SnapshotTile<RegionalSnapshot>(
-          key: const Key('tile-pm25'),
-          title: ReadingText.pm25Title,
-          icon: Icons.grain,
-          provider: pm25SnapshotProvider,
-          needsPosition: true,
-          position: position,
-          builder: (s, p) {
-            final r = EnvironmentLocator.regional(s, p!);
-            return _ReadingView(
-              headline: ReadingText.pm25(r),
-              scope: ReadingText.scope(r),
-              timestamp: ReadingText.timestamp(r.observedAt, now),
-              stale: r.isStale(now),
-            );
-          },
-        ),
-        _SnapshotTile<RegionalSnapshot>(
-          key: const Key('tile-psi'),
-          title: ReadingText.psiTitle,
-          icon: Icons.masks_outlined,
-          provider: psiSnapshotProvider,
-          needsPosition: true,
-          position: position,
-          builder: (s, p) {
-            final r = EnvironmentLocator.regional(s, p!);
-            return _ReadingView(
-              headline: ReadingText.psi(r),
-              scope: ReadingText.scope(r),
-              timestamp: ReadingText.timestamp(r.observedAt, now),
-              stale: r.isStale(now),
-            );
-          },
-        ),
+        for (var r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: gap),
+          rows[r],
+        ],
       ],
     );
   }
@@ -169,7 +232,7 @@ class _SnapshotTile<T> extends ConsumerWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      margin: EdgeInsets.zero, // spacing comes from the grid
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -179,7 +242,13 @@ class _SnapshotTile<T> extends ConsumerWidget {
               children: [
                 Icon(icon, size: 20),
                 const SizedBox(width: 8),
-                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                // Wraps in a narrow tile: "24-hr" / "1-hr" must stay visible.
+                Flexible(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
                 if (value.isLoading && value.hasValue) ...[
                   const SizedBox(width: 8),
                   const SizedBox.square(

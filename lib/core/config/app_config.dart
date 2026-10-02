@@ -120,6 +120,26 @@ abstract final class AppTimings {
   static const Duration uiTick = Duration(seconds: 15);
 }
 
+/// Home-screen layout (presentation only; docs/assumptions.md, "Conditions
+/// grid"). Widths are logical pixels at text scale 1.0; the tile minimums grow
+/// with the text scale, so large text falls back to fewer columns.
+abstract final class HomeLayout {
+  /// Origin, destination and journey cards, and the page on narrow screens.
+  static const double contentMaxWidth = 640;
+
+  /// The Conditions section may grow to this on wide screens (4 across).
+  static const double conditionsMaxWidth = 1080;
+
+  /// Narrowest tile in the 2-column grid. Below 2 × this + [gridGap], the
+  /// tiles stack in one column.
+  static const double minTileWidth = 150;
+
+  /// Narrowest tile when all four sit in one row (wide Web).
+  static const double minWideTileWidth = 220;
+
+  static const double gridGap = 8;
+}
+
 /// Stale thresholds (§6.3, docs/assumptions.md).
 abstract final class StaleAfter {
   static const Duration twoHourForecast = Duration(hours: 3);
