@@ -59,6 +59,10 @@ flutter build apk --debug
 
 The dev-only feasibility probes are described in [`docs/testing.md`](docs/testing.md).
 
+A distributable release APK or bundle needs a release key: see
+[`docs/release-signing.md`](docs/release-signing.md). Without one, `flutter build apk --release` falls back to
+the debug key with a warning, for local smoke tests only.
+
 ## Data sources and attribution
 
 NEA / data.gov.sg (Singapore Open Data Licence) · busrouter.sg (community project; bus data © LTA) ·
