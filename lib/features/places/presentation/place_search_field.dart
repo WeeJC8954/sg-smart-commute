@@ -76,11 +76,13 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
           controller: _controller,
           focusNode: _focus,
           textInputAction: TextInputAction.search,
+          maxLength: PlaceSearchConfig.maxQueryLength,
           decoration: InputDecoration(
             labelText: widget.label,
             hintText: PlaceSearchField.hint,
             prefixIcon: const Icon(Icons.search),
             border: const OutlineInputBorder(),
+            counterText: '', // the limit is generous; no visible counter
           ),
           onChanged: (text) {
             widget.onEditingStarted?.call();

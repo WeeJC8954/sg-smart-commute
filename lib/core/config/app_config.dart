@@ -24,8 +24,10 @@ abstract final class NeaEndpoints {
 /// surfaced as `ApiUnauthorized`, never worked around. Reverse geocoding
 /// (`/api/public/revgeocode`) answers 401 without a token, so it is not used.
 abstract final class OneMapEndpoints {
+  static const String host = 'www.onemap.gov.sg';
+
   static Uri search(String query) =>
-      Uri.https('www.onemap.gov.sg', '/api/common/elastic/search', {
+      Uri.https(host, '/api/common/elastic/search', {
         'searchVal': query,
         'returnGeom': 'Y',
         'getAddrDetails': 'Y',
@@ -44,6 +46,26 @@ abstract final class PlaceSearchConfig {
 
   /// Shorter queries are not searched, unless they are a 6-digit postal code.
   static const int minQueryLength = 3;
+
+  /// The search field accepts at most this many characters, and a longer
+  /// query (e.g. pasted) is cut to it before it is sent. Real addresses and
+  /// place names are far shorter.
+  static const int maxQueryLength = 100;
+
+  /// At most this many queries' results are cached; the least recently used
+  /// is evicted first, and expired entries are dropped on every write.
+  static const int maxCachedQueries = 50;
+}
+
+/// Client-side pacing of OneMap requests (docs/assumptions.md, "OneMap rate
+/// limit"). OneMap publishes no number; this is a conservative pace below
+/// what was observed to draw a 429 (2–3 calls within about 1.5 s). Every send
+/// waits for a grant, retries included.
+abstract final class OneMapRateLimit {
+  static const int maxRequests = 1;
+  static const Duration window = Duration(seconds: 1);
+
+  static bool appliesTo(Uri uri) => uri.host == OneMapEndpoints.host;
 }
 
 /// Attribution shown wherever OneMap search results appear.

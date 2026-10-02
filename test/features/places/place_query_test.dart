@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/features/places/domain/place_query.dart';
 
 String norm(String raw) => PlaceQuery.normalise(raw).text;
@@ -17,6 +18,21 @@ void main() {
       expect(norm('Block 345 Yishun Avenue 11'), '345 Yishun Avenue 11');
       expect(norm('Blk 12A Toa Payoh Lor 1'), '12A Toa Payoh Lor 1');
       expect(norm('Blk123 Ang Mo Kio Ave 6'), '123 Ang Mo Kio Ave 6');
+    });
+
+    test('cuts a query longer than maxQueryLength (e.g. pasted)', () {
+      final long = 'Orchard Road ' * 40; // 520 characters
+      final q = norm(long);
+      expect(q.length, lessThanOrEqualTo(PlaceSearchConfig.maxQueryLength));
+      expect(q, startsWith('Orchard Road Orchard Road'));
+      expect(q, isNot(endsWith(' ')));
+      expect(norm('a' * 100), 'a' * 100); // at the limit: unchanged
+    });
+
+    test('cutting never splits a character', () {
+      final emoji = '😀' * 150;
+      final q = PlaceQuery.normalise(emoji, maxLength: 3).text;
+      expect(q, '😀😀😀');
     });
 
     test('keeps Blk / Block when it is not a block-number prefix', () {

@@ -156,6 +156,16 @@ void main() {
     expect(find.text(ionOrchard.address!), findsOneWidget);
   });
 
+  testWidgets('the search field accepts at most maxQueryLength characters', (
+    tester,
+  ) async {
+    await pumpApp(tester, deniedApp());
+    await tester.enterText(find.byKey(originField), 'x' * 500);
+    await tester.pump();
+    final field = tester.widget<TextField>(find.byKey(originField));
+    expect(field.controller!.text.length, PlaceSearchConfig.maxQueryLength);
+  });
+
   testWidgets('no results, too short, and the no-exact-postcode state', (
     tester,
   ) async {

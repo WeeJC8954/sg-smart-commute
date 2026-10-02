@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
@@ -177,8 +178,9 @@ void main() {
     late DateTime now;
 
     OneMapPlaceSearchRepository repo(
-      FutureOr<http.Response> Function(http.Request) handler,
-    ) => OneMapPlaceSearchRepository(
+      FutureOr<http.Response> Function(http.Request) handler, {
+      int maxCachedQueries = PlaceSearchConfig.maxCachedQueries,
+    }) => OneMapPlaceSearchRepository(
       JsonHttpClient(
         MockClient((r) async {
           requests.add(r.url);
@@ -188,6 +190,7 @@ void main() {
         delay: (_) async {},
       ),
       clock: () => now,
+      maxCachedQueries: maxCachedQueries,
     );
 
     setUp(() {
@@ -320,6 +323,43 @@ void main() {
         expect(requests, hasLength(2));
       },
     );
+
+    test('a pasted multi-KB query is cut before it is sent', () async {
+      final r = repo((_) => http.Response(fixtureBody('mall-vivocity'), 200));
+      await r.search('VivoCity ${'x' * 5000}', mode: SearchMode.submit);
+      final sent = requests.single.queryParameters['searchVal']!;
+      expect(sent.length, PlaceSearchConfig.maxQueryLength);
+      expect(sent, startsWith('VivoCity x'));
+    });
+
+    test('the cache holds at most maxCachedQueries, evicting the least '
+        'recently used', () async {
+      final r = repo(
+        (_) => http.Response(fixtureBody('mall-vivocity'), 200),
+        maxCachedQueries: 2,
+      );
+      await r.search('aaa', mode: SearchMode.submit);
+      await r.search('bbb', mode: SearchMode.submit);
+      await r.search('aaa', mode: SearchMode.submit); // hit: aaa is recent
+      expect(requests, hasLength(2));
+      await r.search('ccc', mode: SearchMode.submit); // evicts bbb
+      expect(r.cachedQueryCount, 2);
+      await r.search('aaa', mode: SearchMode.submit); // still cached
+      expect(requests, hasLength(3));
+      await r.search('bbb', mode: SearchMode.submit); // evicted: refetched
+      expect(requests, hasLength(4));
+    });
+
+    test('expired entries are dropped when a new one is written', () async {
+      final r = repo((_) => http.Response(fixtureBody('mall-vivocity'), 200));
+      for (final q in ['aaa', 'bbb', 'ccc']) {
+        await r.search(q, mode: SearchMode.typeahead);
+      }
+      expect(r.cachedQueryCount, 3);
+      now = now.add(PlaceSearchConfig.cacheTtl);
+      await r.search('ddd', mode: SearchMode.typeahead);
+      expect(r.cachedQueryCount, 1);
+    });
 
     test('failures are not cached', () async {
       var fail = true;

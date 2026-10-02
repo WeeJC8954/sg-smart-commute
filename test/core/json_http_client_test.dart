@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/http/json_http_client.dart';
 import 'package:sg_smart_commute/core/http/rate_limiter.dart';
@@ -296,6 +298,53 @@ void main() {
           Duration.zero,
           Duration.zero,
           Duration(seconds: 10),
+        ]);
+      });
+    });
+  });
+
+  group('app wiring (jsonHttpClientProvider)', () {
+    test('OneMap searches are paced; data.gov.sg and others are not '
+        'held up by it', () {
+      fakeAsync((async) {
+        final sends = <(Duration, String)>[];
+        final container = ProviderContainer(
+          overrides: [
+            httpClientProvider.overrideWithValue(
+              MockClient((request) async {
+                sends.add((async.elapsed, request.url.host));
+                return http.Response('{"found":0,"results":[]}', 200);
+              }),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        final client = container.read(jsonHttpClientProvider);
+
+        client.getJson(OneMapEndpoints.search('aaa'));
+        client.getJson(OneMapEndpoints.search('bbb'));
+        client.getJson(OneMapEndpoints.search('ccc'));
+        client.getJson(NeaEndpoints.psi);
+        client.getJson(uri);
+        async.flushMicrotasks();
+        expect(
+          sends.map((s) => s.$2),
+          unorderedEquals([
+            OneMapEndpoints.host,
+            NeaEndpoints.psi.host,
+            uri.host,
+          ]),
+        );
+
+        async.elapse(const Duration(seconds: 2));
+        final oneMapTimes = [
+          for (final (t, host) in sends)
+            if (host == OneMapEndpoints.host) t,
+        ];
+        expect(oneMapTimes, [
+          Duration.zero,
+          OneMapRateLimit.window,
+          OneMapRateLimit.window * 2,
         ]);
       });
     });

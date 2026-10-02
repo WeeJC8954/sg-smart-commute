@@ -128,11 +128,23 @@ final dataGovSgRateLimiterProvider = Provider<RequestRateLimiter>(
   ),
 );
 
+/// The one limiter shared by every OneMap search (origin and destination).
+final oneMapRateLimiterProvider = Provider<RequestRateLimiter>(
+  (ref) => RollingWindowRateLimiter(
+    maxRequests: OneMapRateLimit.maxRequests,
+    window: OneMapRateLimit.window,
+  ),
+);
+
 final jsonHttpClientProvider = Provider<JsonHttpClient>((ref) {
   final dataGovSg = ref.watch(dataGovSgRateLimiterProvider);
+  final oneMap = ref.watch(oneMapRateLimiterProvider);
   return JsonHttpClient(
     ref.watch(httpClientProvider),
-    rateLimiterFor: (uri) =>
-        DataGovSgRateLimit.appliesTo(uri) ? dataGovSg : null,
+    rateLimiterFor: (uri) => DataGovSgRateLimit.appliesTo(uri)
+        ? dataGovSg
+        : OneMapRateLimit.appliesTo(uri)
+        ? oneMap
+        : null,
   );
 });

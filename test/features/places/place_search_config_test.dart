@@ -33,6 +33,10 @@ void main() {
       expect(PlaceSearchConfig.debounce, const Duration(milliseconds: 350));
       expect(PlaceSearchConfig.cacheTtl, const Duration(minutes: 5));
       expect(PlaceSearchConfig.minQueryLength, 3);
+      expect(PlaceSearchConfig.maxQueryLength, 100);
+      expect(PlaceSearchConfig.maxCachedQueries, 50);
+      expect(OneMapRateLimit.maxRequests, 1);
+      expect(OneMapRateLimit.window, const Duration(seconds: 1));
     });
 
     test('query, session, repository and providers all default to it', () {
@@ -67,6 +71,7 @@ void main() {
       ) as OneMapPlaceSearchRepository;
       expect(wired.cacheTtl, PlaceSearchConfig.cacheTtl);
       expect(wired.minQueryLength, PlaceSearchConfig.minQueryLength);
+      expect(wired.maxCachedQueries, PlaceSearchConfig.maxCachedQueries);
     });
   });
 
