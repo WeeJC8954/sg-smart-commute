@@ -48,20 +48,25 @@ void main() {
     await pumpUntilFound(tester, inTile('tile-forecast', 'Bishan area'));
     expect(inTile('tile-forecast', 'Partly Cloudy (Day)'), findsOneWidget);
     // UV: national scope.
-    expect(inTile('tile-uv', 'UV 7 (High)'), findsOneWidget);
+    expect(inTile('tile-uv', '7'), findsOneWidget);
+    expect(inTile('tile-uv', 'High'), findsOneWidget);
     expect(inTile('tile-uv', 'Singapore (national)'), findsOneWidget);
 
     // PM2.5 and PSI: region scope, separate tiles, separate labels.
-    final pm25 = inTile('tile-pm25', '1-hr PM2.5 18 µg/m³ (Normal)');
+    final pm25 = inTile('tile-pm25', '18 µg/m³');
     await tester.ensureVisible(pm25);
     await tester.pump();
     expect(pm25, findsOneWidget);
+    expect(inTile('tile-pm25', '1-hr PM2.5'), findsOneWidget); // spec label
+    expect(inTile('tile-pm25', 'Normal'), findsOneWidget);
     expect(inTile('tile-pm25', 'Central region'), findsOneWidget);
 
-    final psi = inTile('tile-psi', '24-hr PSI 54 (Moderate)');
+    final psi = inTile('tile-psi', '54');
     await tester.ensureVisible(psi);
     await tester.pump();
     expect(psi, findsOneWidget);
+    expect(inTile('tile-psi', '24-hr PSI'), findsOneWidget); // spec label
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(inTile('tile-psi', 'Central region'), findsOneWidget);
     expect(inTile('tile-psi', 'As of 12:00 SGT · 12 min ago'), findsOneWidget);
 

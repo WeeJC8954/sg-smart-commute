@@ -8,6 +8,7 @@ import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/environment/presentation/environment_dashboard.dart';
+import 'package:sg_smart_commute/features/environment/presentation/reading_text.dart';
 
 import '../../../integration_test/fakes/fake_environment_repository.dart';
 import '../../../integration_test/fakes/fake_location_service.dart';
@@ -109,13 +110,16 @@ void main() {
     await showGrid(tester);
     expect(inTile('tile-forecast', 'Partly Cloudy (Day)'), findsOneWidget);
     expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
-    expect(inTile('tile-uv', 'UV 7 (High)'), findsOneWidget);
+    expect(inTile('tile-uv', '7'), findsOneWidget);
+    expect(inTile('tile-uv', 'High'), findsOneWidget);
     expect(inTile('tile-uv', 'Singapore (national)'), findsOneWidget);
-    expect(inTile('tile-pm25', '1-hr PM2.5 18 µg/m³ (Normal)'), findsOneWidget);
+    expect(inTile('tile-pm25', '18 µg/m³'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Normal'), findsOneWidget);
     expect(inTile('tile-pm25', 'Central region'), findsOneWidget);
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(inTile('tile-psi', 'As of 12:00 SGT · 12 min ago'), findsOneWidget);
-    expect(find.text('Stale'), findsNothing);
+    expect(find.text('Out of date'), findsNothing);
   });
 
   testWidgets('stale, failed-with-Retry and failed-refresh states in the '
@@ -128,7 +132,7 @@ void main() {
     );
     await showGrid(tester);
     expect(tester.takeException(), isNull);
-    expect(inTile('tile-pm25', 'Stale'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Out of date'), findsOneWidget);
     expect(
       inTile('tile-psi', const NetworkUnavailable().message),
       findsOneWidget,
@@ -144,7 +148,8 @@ void main() {
     await tester.tap(retry);
     await tester.pump();
     await tester.pump();
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(env.calls['psi'], 2);
     expect(env.calls['pm25'], 1);
   });
@@ -210,5 +215,45 @@ void main() {
     await pumpAt(tester, const Size(720, 900));
     await showGrid(tester);
     expect(find.byKey(const Key('conditions-grid-2')), findsOneWidget);
+  });
+  testWidgets('a tile shows its label once and its number large', (
+    tester,
+  ) async {
+    await pumpAt(tester, const Size(360, 800));
+    await showGrid(tester);
+    expect(inTile('tile-psi', ReadingText.psiTitle), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('tile-psi')),
+        matching: find.textContaining('24-hr PSI 54'),
+      ),
+      findsNothing,
+    );
+    final value = tester.widget<Text>(inTile('tile-psi', '54'));
+    final body = Theme.of(tester.element(inTile('tile-psi', '54')))
+        .textTheme
+        .bodyMedium!;
+    expect(value.style!.fontSize, greaterThan(body.fontSize!));
+  });
+
+  testWidgets('screen readers hear label, value, band, scope and time', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpAt(tester, const Size(360, 800));
+    await showGrid(tester);
+    final label = tester.getSemantics(find.byKey(const Key('tile-psi'))).label;
+    for (final part in [
+      '24-hr PSI',
+      '54',
+      'Moderate',
+      'Central region',
+      'As of 12:00 SGT',
+    ]) {
+      expect(label, contains(part));
+    }
+    // The label comes before the value.
+    expect(label.indexOf('24-hr PSI'), lessThan(label.indexOf('54')));
+    semantics.dispose();
   });
 }

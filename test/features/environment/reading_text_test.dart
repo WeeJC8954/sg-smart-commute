@@ -20,17 +20,21 @@ void main() {
   final noon = DateTime.utc(2026, 10, 1, 4, 12); // 12:12 SGT
   final night = DateTime.utc(2026, 10, 1, 14); // 22:00 SGT
 
-  test('PSI is always labelled "24-hr PSI" and PM2.5 "1-hr PM2.5"', () {
-    final psi = ReadingText.psi(
-      reading<num>(54, SpatialScope.region, 'central'),
+  test('tile titles keep the spec labels', () {
+    expect(ReadingText.psiTitle, '24-hr PSI');
+    expect(ReadingText.pm25Title, '1-hr PM2.5');
+  });
+
+  test('PSI, PM2.5 and UV split into a value and an official band', () {
+    expect(
+      ReadingText.psiParts(reading<num>(54, SpatialScope.region, 'central')),
+      (value: '54', band: 'Moderate'),
     );
-    final pm = ReadingText.pm25(
-      reading<num>(18, SpatialScope.region, 'central'),
+    expect(
+      ReadingText.pm25Parts(reading<num>(18, SpatialScope.region, 'central')),
+      (value: '18 µg/m³', band: 'Normal'),
     );
-    expect(psi, '24-hr PSI 54 (Moderate)');
-    expect(pm, '1-hr PM2.5 18 µg/m³ (Normal)');
-    expect(psi, isNot(contains('PM2.5')));
-    expect(pm, isNot(contains('PSI')));
+    expect(ReadingText.uvParts(7), (value: '7', band: 'High'));
   });
 
   test('scope labels', () {
@@ -87,8 +91,12 @@ void main() {
 
   test('fractional values keep one decimal', () {
     expect(
-      ReadingText.pm25(reading<num>(18.24, SpatialScope.region, 'east')),
-      '1-hr PM2.5 18.2 µg/m³ (Normal)',
+      ReadingText.pm25Parts(reading<num>(18.24, SpatialScope.region, 'east')),
+      (value: '18.2 µg/m³', band: 'Normal'),
     );
+  });
+
+  test('stale readings are marked in plain words', () {
+    expect(ReadingText.staleLabel, 'Out of date');
   });
 }

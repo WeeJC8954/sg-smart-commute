@@ -102,7 +102,8 @@ void main() {
       findsNothing,
     );
     // The other region tile is unaffected.
-    expect(inTile('tile-pm25', '1-hr PM2.5 13 µg/m³ (Normal)'), findsOneWidget);
+    expect(inTile('tile-pm25', '13 µg/m³'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Normal'), findsOneWidget);
 
     // Recover and retry.
     env.failPsi = null;
@@ -113,7 +114,7 @@ void main() {
         matching: find.text('Retry'),
       ),
     );
-    await pumpUntilFound(tester, inTile('tile-psi', '24-hr PSI 61 (Moderate)'));
+    await pumpUntilFound(tester, inTile('tile-psi', '61'));
     expect(inTile('tile-psi', 'East region'), findsOneWidget);
     expect(env.calls['psi'], 2);
 
