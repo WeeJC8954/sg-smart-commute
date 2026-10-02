@@ -107,7 +107,8 @@ Key flows that span several files:
   `placeSearchRepositoryProvider` (plus
   `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
   `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`, `busArrivalRepositoryProvider`,
-  `busArrivalCacheTtlProvider`. `integration_test/fakes/test_app.dart`
+  `busArrivalCacheTtlProvider`, `uiMotionDurationProvider` (`buildTestApp` defaults it to zero, so layout changes
+  land in one frame; `test/core/motion_test.dart` covers the animated path). `integration_test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
   `integration_test/`. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
   with fake time (`tester.pump(AppTimings.uiTick)`).
