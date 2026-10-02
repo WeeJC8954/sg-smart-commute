@@ -125,8 +125,9 @@ lib/
   `StopArrivals`; `nextArrivals` picks one service's next three; `etaLabel` gives `Arr` / `N min`),
   `bus_arrival_repository.dart` (interface, so ArriveLah can be replaced), `bus_arrival_cache.dart`
   (`BusArrivalCache`: the only caller of the repository; 15 s per-stop TTL, in-flight dedup, failures not cached).
-- `lib/features/bus_arrival/data/`: `arrivelah_parser.dart` (the only code that knows ArriveLah's JSON; strict
-  offset-aware time parsing; lenient optional fields; `{"error"}` → `BusArrivalUnavailable`) and
+- `lib/features/bus_arrival/data/`: `arrivelah_parser.dart` (the only code that knows ArriveLah's JSON; times via
+  the shared strict `parseSourceTimestamp`, also used by the NEA parsers; lenient optional fields;
+  `{"error"}` → `BusArrivalUnavailable`) and
   `arrivelah_bus_arrival_repository.dart` (one GET per stop through `JsonHttpClient`).
 - `bus_arrival_providers.dart`: `journeyArrivalsProvider` awaits `journeyPlanProvider`, and only for
   `DirectBusOptions` requests each distinct boarding stop once. Its `JourneyArrivals` holds the exact plan it was

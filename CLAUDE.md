@@ -94,7 +94,8 @@ Key flows that span several files:
   not cached). Its result carries the exact plan it was fetched for, and widgets show it only against that
   plan (no stale attach). ArriveLah JSON is parsed only in `arrivelah_parser.dart`; ETAs come from `time` and
   the clock (`Arr` ≤ 1 min, else minutes rounded down), never `duration_ms`. Refresh never recomputes the plan.
-- **Time**: parse ISO `+08:00` timestamps, store UTC, display at a fixed +08:00 offset (no `timezone`
+- **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no
+  rolled-over fields; never plain `DateTime.parse`), store UTC, display at a fixed +08:00 offset (no `timezone`
   package).
 
 ## Testing

@@ -8,13 +8,6 @@ const String arriveLahSource = 'ArriveLah';
 /// a legacy copy of `next2`.
 const List<String> _slots = ['next', 'next2', 'next3'];
 
-/// `YYYY-MM-DDTHH:MM:SS[.fff]` plus an explicit offset (`+08:00` or `Z`).
-/// Without an offset, `DateTime.parse` would read it as device-local time.
-final RegExp _isoWithOffset = RegExp(
-  r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?'
-  r'(Z|([+-])(\d{2}):(\d{2}))$',
-);
-
 /// Parses an ArriveLah stop response (observed 2026-10-02, docs/
 /// data-sources.md): `{"services": [{"no", "operator", "next", "subsequent",
 /// "next2", "next3"}]}`, where each slot is null or
@@ -79,40 +72,17 @@ ServiceArrivals? _service(Object? entry, String busStopCode) {
   );
 }
 
-/// The instant in UTC, or null if [value] is not a valid ISO time with an
-/// offset. `DateTime.parse` alone is not enough: it rolls out-of-range fields
-/// over (month 13, hour 25 …) into a different, made-up instant, so the
-/// parsed result must give back exactly the fields that were sent.
+/// The instant in UTC, or null if [value] is missing or not a valid ISO time
+/// with an offset. [parseSourceTimestamp] is strict: an out-of-range value
+/// that `DateTime.parse` would roll over into a different instant is
+/// rejected, never turned into a made-up ETA.
 DateTime? _time(Object? value) {
   if (value is! String) return null;
-  final text = value.trim();
-  final m = _isoWithOffset.firstMatch(text);
-  if (m == null) return null;
-  final DateTime instant;
   try {
-    instant = parseSourceTimestamp(text);
+    return parseSourceTimestamp(value.trim());
   } on FormatException {
     return null;
   }
-  final offset = m[7] == 'Z'
-      ? Duration.zero
-      : Duration(hours: int.parse(m[9]!), minutes: int.parse(m[10]!)) *
-            (m[8] == '-' ? -1 : 1);
-  if (offset.abs() >= const Duration(hours: 24)) return null;
-  final wall = instant.add(offset); // the wall-clock time that was sent
-  final sent = [for (var i = 1; i <= 6; i++) int.parse(m[i]!)];
-  final got = [
-    wall.year,
-    wall.month,
-    wall.day,
-    wall.hour,
-    wall.minute,
-    wall.second,
-  ];
-  for (var i = 0; i < 6; i++) {
-    if (sent[i] != got[i]) return null;
-  }
-  return instant;
 }
 
 BusLoad? _load(Object? value) => switch (value) {
