@@ -139,7 +139,9 @@ class _Plan extends StatelessWidget {
 
 /// One direct-bus option: which bus and when (the summary) first, then the
 /// steps in the order the rider does them. A [collapsible] option (an
-/// alternative) starts with its steps hidden behind "Show steps".
+/// alternative) starts with only its first step, the walk to its boarding
+/// stop, so its live times always say which stop they are for; "Show steps"
+/// reveals the rest.
 class _Option extends StatefulWidget {
   const _Option({
     super.key,
@@ -197,7 +199,7 @@ class _OptionState extends State<_Option> {
               ),
             ],
           ),
-          if (_expanded) _Steps(option: o),
+          _Steps(option: o, full: _expanded),
           if (widget.collapsible)
             Align(
               alignment: Alignment.centerLeft,
@@ -243,10 +245,12 @@ class _ServiceBadge extends StatelessWidget {
   }
 }
 
-/// Walk, ride, alight, walk: the rider's order (§5.6).
+/// Walk, ride, alight, walk: the rider's order (§5.6). Without [full], only
+/// the walk to the boarding stop.
 class _Steps extends StatelessWidget {
-  const _Steps({required this.option});
+  const _Steps({required this.option, required this.full});
   final BusOption option;
+  final bool full;
 
   @override
   Widget build(BuildContext context) {
@@ -261,18 +265,20 @@ class _Steps extends StatelessWidget {
             '${o.walkToStop.label} to Bus Stop ${o.board.code} — '
             '${o.board.name}',
           ),
-          _Step(
-            Icons.directions_bus_outlined,
-            '${o.stops} ${o.stops == 1 ? 'stop' : 'stops'}',
-          ),
-          _Step(
-            Icons.place_outlined,
-            'Alight at ${o.alight.code} — ${o.alight.name}',
-          ),
-          _Step(
-            Icons.directions_walk,
-            '${o.walkFromStop.label} to destination',
-          ),
+          if (full) ...[
+            _Step(
+              Icons.directions_bus_outlined,
+              '${o.stops} ${o.stops == 1 ? 'stop' : 'stops'}',
+            ),
+            _Step(
+              Icons.place_outlined,
+              'Alight at ${o.alight.code} — ${o.alight.name}',
+            ),
+            _Step(
+              Icons.directions_walk,
+              '${o.walkFromStop.label} to destination',
+            ),
+          ],
         ],
       ),
     );

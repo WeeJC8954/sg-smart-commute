@@ -462,18 +462,26 @@ void main() {
     Finder inAlt(Finder f) =>
         find.descendant(of: find.byKey(const Key(alt)), matching: f);
     expect(inKey(alt, 'Take Bus F10 toward VivoCity (fake)'), findsOneWidget);
-    // Live times stay in the collapsed summary (whatever their load state).
+    // Live times stay in the collapsed summary (whatever their load state),
+    // with the stop they belong to: an alternative may board elsewhere.
     expect(inAlt(find.byKey(const Key('arrivals-BSH1-F10'))), findsOneWidget);
-    expect(inAlt(find.textContaining('to Bus Stop')), findsNothing);
+    expect(inAlt(find.textContaining('to Bus Stop BSH1')), findsOneWidget);
+    expect(inAlt(find.textContaining('Alight at')), findsNothing);
+    expect(inAlt(find.textContaining('to destination')), findsNothing);
 
     await tester.tap(inKey(alt, 'Show steps'));
     await tester.pump();
     expect(inAlt(find.textContaining('to Bus Stop BSH1')), findsOneWidget);
+    expect(
+      inAlt(find.text('Alight at VIV1 — VivoCity (fake)')),
+      findsOneWidget,
+    );
     expect(inKey(alt, 'Hide steps'), findsOneWidget);
 
     await tester.tap(inKey(alt, 'Hide steps'));
     await tester.pump();
-    expect(inAlt(find.textContaining('to Bus Stop')), findsNothing);
+    expect(inAlt(find.textContaining('to Bus Stop BSH1')), findsOneWidget);
+    expect(inAlt(find.textContaining('Alight at')), findsNothing);
 
     // The suggestion is always open and has no toggle.
     expect(inKey('journey-suggested', 'Show steps'), findsNothing);
