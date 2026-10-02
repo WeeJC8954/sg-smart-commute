@@ -143,6 +143,11 @@ abstract final class HomeLayout {
   static const double minWideTileWidth = 220;
 
   static const double gridGap = 8;
+
+  /// The arrivals footer keeps the attribution and "Refresh arrivals" side by
+  /// side while it has at least this × the text scale; otherwise the button
+  /// goes below the attribution (M5: 2× text overflowed a phone).
+  static const double arrivalsFooterMinRowWidth = 280;
 }
 
 /// Stale thresholds (§6.3, docs/assumptions.md).
