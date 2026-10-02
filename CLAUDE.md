@@ -110,7 +110,9 @@ Key flows that span several files:
   `busArrivalCacheTtlProvider`, `uiMotionDurationProvider` (`buildTestApp` defaults it to zero, so layout changes
   land in one frame; `test/core/motion_test.dart` covers the animated path). `integration_test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
-  `integration_test/`. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
+  `integration_test/`. Widget tests importing `integration_test/fakes/` is a deliberate test-harness
+  arrangement required by the Web integration build (see below), not a general `test/` → `integration_test/`
+  dependency: the fakes are the only thing `test/` imports from there. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
   with fake time (`tester.pump(AppTimings.uiTick)`).
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual
   smoke tests and probes in `docs/testing.md`.
@@ -119,7 +121,7 @@ Key flows that span several files:
   settles while a progress indicator animates. Use `fake_async` / injected `Clock` for time-dependent logic.
   Every integration test's `main` starts with `initIntegrationTest()` (registers `TestTextInput`, so
   `enterText` works in the profile builds the Web runs use); shared fakes stay under `integration_test/` (Web
-  builds cannot import outside it).
+  builds cannot import outside it), and nothing else in `test/` should import from `integration_test/`.
 - A new provider host must be added to the CSP `connect-src` in `web/index.html`
   (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
 - **Evidence rule:** never claim a test or gate passed unless it actually ran. Record the command and its
