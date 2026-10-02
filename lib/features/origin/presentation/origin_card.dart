@@ -62,7 +62,7 @@ class OriginCard extends ConsumerWidget {
             onSelected: (place) => controller.selectManualOrigin(
               place.displayName,
               place.position,
-              detail: place.address,
+              detail: place.distinctAddress,
             ),
           ),
         );

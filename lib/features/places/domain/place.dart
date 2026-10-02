@@ -43,6 +43,11 @@ class Place {
 
   LatLng get position => LatLng(latitude, longitude);
 
+  /// [address], unless it only repeats [displayName] (OneMap names HDB blocks
+  /// by their full address). Null when there is no distinct address, so it is
+  /// never shown twice.
+  String? get distinctAddress => address == displayName ? null : address;
+
   @override
   String toString() => 'Place($displayName, $postalCode)';
 }

@@ -181,7 +181,7 @@ String placeSearchFailureMessage(AppFailure failure) => switch (failure) {
 /// address identical to the name (HDB blocks) is not repeated.
 String _detailOf(Place place) {
   final postal = place.postalCode;
-  final address = place.address == place.displayName ? null : place.address;
+  final address = place.distinctAddress;
   if (address == null) return postal ?? 'No address details';
   if (postal != null && !address.contains(postal)) return '$address · $postal';
   return address;

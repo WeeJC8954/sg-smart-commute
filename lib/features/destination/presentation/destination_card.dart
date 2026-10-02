@@ -41,8 +41,9 @@ class DestinationCard extends ConsumerWidget {
           ],
         ),
       );
-      if (place.address != null) {
-        children.add(Text(place.address!, style: theme.textTheme.bodySmall));
+      final address = place.distinctAddress;
+      if (address != null) {
+        children.add(Text(address, style: theme.textTheme.bodySmall));
       }
     }
 

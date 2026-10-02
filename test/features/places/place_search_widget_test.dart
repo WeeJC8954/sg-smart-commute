@@ -131,6 +131,29 @@ void main() {
     await type(tester, originField, 'Blk 123 Ang Mo Kio Ave 6');
     expect(find.text(hdb), findsOneWidget); // title only
     expect(find.text('560123'), findsOneWidget); // subtitle: the postcode
+
+    // Neither card repeats it under the name either.
+    await pick(tester, hdb);
+    expect(find.text('From: $hdb (chosen manually)'), findsOneWidget);
+    expect(find.text(hdb), findsNothing);
+    expect(originOf(tester).origin!.detail, isNull);
+
+    await type(tester, destinationField, 'Blk 123 Ang Mo Kio Ave 6');
+    await pick(tester, hdb);
+    expect(find.text('To: $hdb'), findsOneWidget);
+    expect(find.text(hdb), findsNothing);
+  });
+
+  testWidgets('a distinct address is shown under the name in both cards', (
+    tester,
+  ) async {
+    await pumpApp(tester, deniedApp());
+    await type(tester, originField, 'VivoCity');
+    await pick(tester, 'VIVOCITY');
+    await type(tester, destinationField, 'ION Orchard');
+    await pick(tester, 'ION ORCHARD');
+    expect(find.text(vivoCity.address!), findsOneWidget);
+    expect(find.text(ionOrchard.address!), findsOneWidget);
   });
 
   testWidgets('no results, too short, and the no-exact-postcode state', (
