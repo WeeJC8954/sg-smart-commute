@@ -1,0 +1,177 @@
+# probe run: 2026-10-02T18:01:17Z
+
+## Raster basemaps
+=== OneMap Default
+GET https://www.onemap.gov.sg/maps/tiles/Default/16/51673/32534.png
+Access-Control-Allow-Origin: *
+Cache-Control: max-age=14400, s-maxage=14400, must-revalidate
+Content-Type: image/png
+HTTP/1.1 200 OK
+bytes: 17675
+body: <binary>
+
+=== OneMap Night
+GET https://www.onemap.gov.sg/maps/tiles/Night/16/51673/32534.png
+Access-Control-Allow-Origin: *
+Cache-Control: max-age=14400, s-maxage=14400, must-revalidate
+Content-Type: image/png
+HTTP/1.1 200 OK
+bytes: 19193
+body: <binary>
+
+=== OneMap Grey
+GET https://www.onemap.gov.sg/maps/tiles/Grey/16/51673/32534.png
+Access-Control-Allow-Origin: *
+Cache-Control: max-age=14400, s-maxage=14400, must-revalidate
+Content-Type: image/png
+HTTP/1.1 200 OK
+bytes: 18118
+body: <binary>
+
+=== OneMap Original
+GET https://www.onemap.gov.sg/maps/tiles/Original/16/51673/32534.png
+Access-Control-Allow-Origin: *
+Cache-Control: max-age=14400, s-maxage=14400, must-revalidate
+Content-Type: image/png
+HTTP/1.1 200 OK
+bytes: 17875
+body: <binary>
+
+=== OneMap Default (z19)
+GET https://www.onemap.gov.sg/maps/tiles/Default/19/413388/260273.png
+Access-Control-Allow-Origin: *
+Cache-Control: max-age=14400, s-maxage=14400, must-revalidate
+Content-Type: image/png
+HTTP/1.1 200 OK
+bytes: 8934
+body: <binary>
+
+=== OneMap Default (outside SG: London z16)
+GET https://www.onemap.gov.sg/maps/tiles/Default/16/32744/21792.png
+Access-Control-Allow-Origin: *
+Cache-Control: max-age=14400, s-maxage=14400, must-revalidate
+Content-Type: image/png
+HTTP/1.1 200 OK
+bytes: 0
+body: 
+
+=== OSM standard
+GET https://tile.openstreetmap.org/16/51673/32534.png
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+cache-control: max-age=1212, stale-while-revalidate=604800, stale-if-error=604800
+content-type: image/png
+bytes: 30929
+body: <binary>
+
+=== CARTO light_all
+GET https://a.basemaps.cartocdn.com/light_all/16/51673/32534.png
+Access-Control-Allow-Origin: *
+Cache-Control: public, max-age=86400
+Content-Type: image/png
+HTTP/1.1 200 OK
+Retry-After: 0
+bytes: 2049
+body: <binary>
+
+=== CARTO dark_all
+GET https://a.basemaps.cartocdn.com/dark_all/16/51673/32534.png
+Access-Control-Allow-Origin: *
+Cache-Control: public, max-age=86400
+Content-Type: image/png
+HTTP/1.1 200 OK
+Retry-After: 0
+bytes: 2513
+body: <binary>
+
+=== CARTO light_all @2x
+GET https://a.basemaps.cartocdn.com/light_all/16/51673/32534@2x.png
+Access-Control-Allow-Origin: *
+Cache-Control: public, max-age=86400
+Content-Type: image/png
+HTTP/1.1 200 OK
+Retry-After: 0
+bytes: 2049
+body: <binary>
+
+## Vector basemap (keyless)
+=== OpenFreeMap style liberty
+GET https://tiles.openfreemap.org/styles/liberty
+Cache-Control: public, max-age=86400
+Content-Type: application/json
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 43079
+body: {"version":8,"sources":{"ne2_shaded":{"maxzoom":6,"tileSize":256,"tiles":["https://tiles.openfreemap.org/natural_earth/ne2sr/{z}/{x}/{y}.png"],"type":"raster"},"openmaptiles":{"type":"vector","url":"h
+
+=== OpenFreeMap TileJSON
+GET https://tiles.openfreemap.org/planet
+Cache-Control: public, max-age=86400
+Content-Type: application/json
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+bytes: 19254
+body: {"tilejson":"3.0.0","tiles":["https://tiles.openfreemap.org/planet/20260927_080001_pt/{z}/{x}/{y}.pbf"],"vector_layers":[{"id":"aerodrome_label","fields":{"class":"String","ele":"Number","ele_ft":"Num
+
+## Bus route geometry
+=== busrouter routes.min.json
+GET https://data.busrouter.sg/v1/routes.min.json
+Access-Control-Allow-Origin: *
+Cache-Control: public,max-age=86400
+Content-Type: application/json
+HTTP/1.1 200 OK
+bytes: 289256
+body: {"2":["olnG{`uyRX|AvDw@~EIyAt[NzBjCzKhB`DzCbCjCx@`CTnb@y@bE^jDfBnJtJ`DlC`BR`@I|AyBxCcSl@uAvAgA|A_@dAE`BVv@`@tG~GxI~LjA`AbPxDzBv@nA|@tAxBlClJxHfH~B~@`]`G`Bj@v@r@v@~A`EtS~M|@rbAhSrGjChLtHwFtFd\\raApC{A`
+
+## Walking routes, Raffles Place MRT -> Fullerton Hotel (~600 m)
+=== OSRM demo (foot)
+GET https://router.project-osrm.org/route/v1/foot/103.8515,1.2840;103.8531,1.2862?overview=full&geometries=polyline
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=UTF-8
+HTTP/1.1 200 OK
+bytes: 782
+body: {"code":"Ok","routes":[{"legs":[{"steps":[],"weight":124,"summary":"","duration":124,"distance":1206.8}],"weight_name":"routability","geometry":"cvyFmmzxRCDCv@El@?NAHCf@CDEBSAcACKAQ?WAe@AIAk@AIAGh@AHK
+
+=== FOSSGIS OSRM routed-foot
+GET https://routing.openstreetmap.de/routed-foot/route/v1/driving/103.8515,1.2840;103.8531,1.2862?overview=full&geometries=polyline
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=UTF-8
+HTTP/1.1 200 OK
+bytes: 709
+body: {"code":"Ok","routes":[{"legs":[{"steps":[],"weight":75.95,"summary":"","duration":685.9,"distance":852.5}],"weight_name":"routability","geometry":"_xyFynzxRB?`@@vDLV@X@^ZGV?DAV?D?FG?G?ANEFAGCO@}@K??}
+
+=== FOSSGIS Valhalla pedestrian
+GET https://valhalla1.openstreetmap.de/route?json=%7B%22locations%22%3A%5B%7B%22lon%22%3A103.8515%2C%22lat%22%3A1.2840%7D%2C%7B%22lon%22%3A103.8531%2C%22lat%22%3A1.2862%7D%5D%2C%22costing%22%3A%22pedestrian%22%7D
+Access-Control-Allow-Origin: *
+Content-Type: application/json;charset=utf-8
+HTTP/1.1 200 OK
+bytes: 7954
+body: {"trip":{"locations":[{"type":"break","lat":1.284,"lon":103.8515,"original_index":0},{"type":"break","lat":1.2862,"lon":103.8531,"side_of_street":"left","original_index":1}],"legs":[{"maneuvers":[{"ty
+
+=== BRouter (hiking-mountain)
+GET https://brouter.de/brouter?lonlats=103.8515,1.2840%7C103.8531,1.2862&profile=hiking-mountain&alternativeidx=0&format=geojson
+Access-Control-Allow-Origin: *
+Content-Type: application/vnd.geo+json; charset=utf-8
+HTTP/1.1 200 OK
+bytes: 7672
+body: {   "type": "FeatureCollection",   "features": [     {       "type": "Feature",       "properties": {         "creator": "BRouter-1.7.10",         "name": "brouter_hiking-mountain_0",         "track-l
+
+=== OneMap routing, no token
+GET https://www.onemap.gov.sg/api/public/routingsvc/route?start=1.2840,103.8515&end=1.2862,103.8531&routeType=walk
+Access-Control-Allow-Origin: *
+Content-Type: application/json
+HTTP/1.1 401 Unauthorized
+bytes: 26
+body: {"message":"Unauthorized"}
+
+## OneMap: one map view of tiles in parallel (8 x 5 at z16), then one search
+Does tile traffic trip the per-host limit that 429s search after 2-3 calls in ~1.5 s?
+tile responses: 40 x 200 of 40
+=== OneMap search right after the burst
+GET https://www.onemap.gov.sg/api/common/elastic/search?searchVal=VivoCity&returnGeom=Y&getAddrDetails=N&pageNum=1
+Access-Control-Allow-Origin: *
+Content-Type: application/json
+HTTP/1.1 200 OK
+bytes: 565
+body: {   "error": "Authentication token missing. Please create an account and generate or renew your API Token.",   "found": 2,   "totalNumPages": 1,   "pageNum": 1,   "results": [     {       "SEARCHVAL":
+
