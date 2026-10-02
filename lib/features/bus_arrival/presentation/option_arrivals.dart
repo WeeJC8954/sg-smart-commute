@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../../core/time/clock.dart';
 import '../../../core/time/sgt_format.dart';
 import '../../../core/ui/status_rows.dart';
 import '../../journey/domain/direct_bus_planner.dart';
@@ -22,12 +23,17 @@ class OptionArrivals extends ConsumerWidget {
 
   static const String noArrival = 'No live arrival available';
   static const String checking = 'Checking live arrivals…';
+  static final String outdated =
+      'Times checked over ${BusArrivalConfig.outdatedAfter.inMinutes} min ago. '
+      'Refresh arrivals for current times.';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(journeyArrivalsProvider);
     final current = async.arrivalsFor(plan);
     final theme = Theme.of(context);
+    ref.watch(uiTickProvider); // ETAs count down between checks
+    final now = ref.watch(clockProvider)();
 
     if (current == null) {
       if (async case AsyncValue(:final error?, isLoading: false)) {
@@ -41,15 +47,28 @@ class OptionArrivals extends ConsumerWidget {
       StopArrivalsLoaded(:final arrivals) => _loaded(
         theme,
         arrivals,
+        now,
         current.checkedAt,
       ),
     };
   }
 
-  Widget _loaded(ThemeData theme, StopArrivals arrivals, DateTime checkedAt) {
+  /// ETAs are counted from [now] (the clock, re-read every UI tick), so they
+  /// count down between checks; past [BusArrivalConfig.outdatedAfter] since
+  /// [checkedAt] they are replaced by a prompt to refresh.
+  Widget _loaded(
+    ThemeData theme,
+    StopArrivals arrivals,
+    DateTime now,
+    DateTime checkedAt,
+  ) {
+    if (now.difference(checkedAt) > BusArrivalConfig.outdatedAfter) {
+      return Text(outdated, style: theme.textTheme.bodyMedium);
+    }
     final next = nextArrivals(
       arrivals,
       option.service.number,
+      now: now,
       boardsAtLoopTerminal: boardsAtLoopTerminal(option),
     );
     if (next.isEmpty) return Text(noArrival, style: theme.textTheme.bodyMedium);
@@ -58,10 +77,10 @@ class OptionArrivals extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Next buses: ${next.map((a) => _eta(a, checkedAt)).join(' · ')}',
+          'Next buses: ${next.map((a) => _eta(a, now)).join(' · ')}',
           semanticsLabel:
               'Next buses: '
-              '${next.map((a) => _spokenEta(a, checkedAt)).join(', ')}',
+              '${next.map((a) => _spokenEta(a, now)).join(', ')}',
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),

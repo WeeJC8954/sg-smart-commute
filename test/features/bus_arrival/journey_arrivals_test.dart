@@ -93,8 +93,8 @@ void main() {
       expect(identical(result.plan, toVivo), isTrue);
       expect(arrivals.calls, {'BSH2': 1, 'BSH1': 1});
       final bsh1 = result.byStop['BSH1']! as StopArrivalsLoaded;
-      expect(nextArrivals(bsh1.arrivals, 'F10'), hasLength(2));
-      expect(nextArrivals(bsh1.arrivals, 'F30'), hasLength(1));
+      expect(nextArrivals(bsh1.arrivals, 'F10', now: now), hasLength(2));
+      expect(nextArrivals(bsh1.arrivals, 'F30', now: now), hasLength(1));
       expect(result.checkedAt, now);
     },
   );

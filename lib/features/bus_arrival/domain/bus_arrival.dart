@@ -73,11 +73,11 @@ class StopArrivals {
   final List<ServiceArrivals> services;
 }
 
-/// The next arrivals of [serviceNo] at [stop], soonest first, at most
-/// [BusArrivalConfig.maxShown]. Only arrivals with a time are returned, so an
-/// empty list means "no live arrival available": the service is not listed
-/// (which says nothing about whether the route is valid), or none of its slots
-/// has a time.
+/// The next arrivals of [serviceNo] at [stop] as of [now], soonest first, at
+/// most [BusArrivalConfig.maxShown]. Only arrivals with a plausible time
+/// ([isPlausibleEta]) are returned, so an empty list means "no live arrival
+/// available": the service is not listed (which says nothing about whether the
+/// route is valid), or none of its slots has a usable time.
 ///
 /// [boardsAtLoopTerminal]: the rider boards a loop service at the stop where
 /// the loop starts and ends. There, LTA's visit 2 is a bus finishing the loop
@@ -85,6 +85,7 @@ class StopArrivals {
 List<BusArrival> nextArrivals(
   StopArrivals stop,
   String serviceNo, {
+  required DateTime now,
   bool boardsAtLoopTerminal = false,
 }) {
   final wanted = _normalise(serviceNo);
@@ -92,11 +93,23 @@ List<BusArrival> nextArrivals(
     for (final s in stop.services)
       if (_normalise(s.serviceNo) == wanted)
         for (final a in s.arrivals)
-          if (a.estimatedArrival != null &&
-              !(boardsAtLoopTerminal && a.visitNumber == 2))
+          if (a.estimatedArrival case final eta?
+              when isPlausibleEta(eta, now) &&
+                  !(boardsAtLoopTerminal && a.visitNumber == 2))
             a,
   ]..sort((a, b) => a.estimatedArrival!.compareTo(b.estimatedArrival!));
   return arrivals.take(BusArrivalConfig.maxShown).toList();
+}
+
+/// Whether [eta] is a believable estimate at [now]: at most
+/// [BusArrivalConfig.maxPastEta] ago and at most
+/// [BusArrivalConfig.maxFutureEta] ahead. ArriveLah is an unofficial proxy,
+/// so a replayed old response or a bogus far-future time is treated as no
+/// time, never shown as "Arr" or as thousands of minutes.
+bool isPlausibleEta(DateTime eta, DateTime now) {
+  final until = eta.difference(now);
+  return until >= -BusArrivalConfig.maxPastEta &&
+      until <= BusArrivalConfig.maxFutureEta;
 }
 
 String _normalise(String serviceNo) => serviceNo.trim().toUpperCase();

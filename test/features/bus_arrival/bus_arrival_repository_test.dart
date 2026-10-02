@@ -47,7 +47,9 @@ void main() {
           'https://arrivelah2.busrouter.sg/?id=03019',
         );
         expect(stop.services, hasLength(10));
-        expect(nextArrivals(stop, '57'), hasLength(3));
+        // Captured at about 11:00 SGT.
+        final capturedAt = DateTime.utc(2026, 10, 2, 3);
+        expect(nextArrivals(stop, '57', now: capturedAt), hasLength(3));
       },
     );
 

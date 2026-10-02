@@ -3,6 +3,7 @@
 // injected, so every ETA below is exact.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
@@ -263,6 +264,50 @@ void main() {
       endsWith('checked 12:14 SGT'),
     );
     expect(bus.loads, 1);
+  });
+
+  testWidgets('ETAs count down between checks without a request, then ask '
+      'for a refresh once the check is outdated', (tester) async {
+    await pumpApp(tester, app());
+    await pick(tester, 'VivoCity', 'VIVOCITY');
+    expect(inKey(f20, 'Next buses: Arr · 7 min · 19 min'), findsOneWidget);
+
+    // Two minutes later, one UI tick: counted from the clock, not the check.
+    // The "Arr" bus is now 90 s past and still within maxPastEta.
+    now = now.add(const Duration(minutes: 2));
+    await tester.pump(AppTimings.uiTick);
+    expect(inKey(f20, 'Next buses: Arr · 5 min · 17 min'), findsOneWidget);
+    expect(
+      inKey(f10, 'Next buses: 2 min · 10 min (scheduled)'),
+      findsOneWidget,
+    );
+    expect(inKey(f30, 'Next buses: Arr'), findsOneWidget);
+
+    // Past outdatedAfter the minutes are replaced, never left frozen.
+    now = now.add(const Duration(minutes: 1, seconds: 1));
+    await tester.pump(AppTimings.uiTick);
+    expect(inKey(f20, OptionArrivals.outdated), findsOneWidget);
+    expect(inKey(f30, OptionArrivals.outdated), findsOneWidget);
+    expect(find.textContaining('Next buses'), findsNothing);
+    expect(arrivals.totalCalls, 2, reason: 'the tick never sends a request');
+
+    // A manual refresh brings current times back.
+    arrivals.stops = fakeStopArrivals(from: now);
+    await tester.tap(find.byKey(const Key('arrivals-refresh')));
+    await tester.pump();
+    await tester.pump();
+    expect(inKey(f20, 'Next buses: Arr · 7 min · 19 min'), findsOneWidget);
+  });
+
+  testWidgets('a bus far past its time drops off the list as time passes', (
+    tester,
+  ) async {
+    await pumpApp(tester, app());
+    await pick(tester, 'VivoCity', 'VIVOCITY');
+    // F20's first bus was due at +30 s; 3 min later it is 2.5 min past.
+    now = now.add(const Duration(minutes: 2, seconds: 59));
+    await tester.pump(AppTimings.uiTick);
+    expect(inKey(f20, 'Next buses: 4 min · 16 min'), findsOneWidget);
   });
 
   testWidgets('changing the destination while arrivals load: the old '

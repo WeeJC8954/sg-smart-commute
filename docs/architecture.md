@@ -136,7 +136,9 @@ lib/
   Refresh and Retry invalidate this provider only: the plan is not recomputed, and the cache prevents
   re-requesting a stop inside the TTL.
 - `presentation/option_arrivals.dart`: `OptionArrivals` (under each option, after "Take Bus …") and
-  `ArrivalsFooter` (source, check time, "Refresh arrivals"). The M3 journey card embeds them; the route itself is
+  `ArrivalsFooter` (source, check time, "Refresh arrivals"). `OptionArrivals` watches the UI-only
+  `uiTickProvider`, so ETAs count down from the clock between checks and give way to a refresh prompt once the
+  check is outdated; implausible times are dropped by `nextArrivals` (`isPlausibleEta`). The M3 journey card embeds them; the route itself is
   rendered exactly as in M3 and never depends on arrival state.
 - New failure: `BusArrivalUnavailable` (provider error body). Network / timeout / HTTP / malformed reuse the
   existing `NetworkUnavailable` / `ApiUnavailable` / `InvalidApiResponse`.

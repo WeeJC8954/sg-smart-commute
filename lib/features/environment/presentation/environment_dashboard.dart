@@ -21,6 +21,7 @@ class EnvironmentDashboard extends ConsumerWidget {
     final position = ref.watch(
       originControllerProvider.select((s) => s.origin?.position),
     );
+    ref.watch(uiTickProvider); // recompute ages, Stale and UV night over time
     final now = ref.watch(clockProvider)();
 
     return Column(
