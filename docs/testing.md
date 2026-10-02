@@ -62,47 +62,33 @@ example with `npx @puppeteer/browsers install chromedriver@<version>`, and put i
 
 ## Open acceptance items
 
-- **Web (Chrome) integration test: not run.** chromedriver was not available in Milestone 0, and was still not
-  installed in Milestone 1 (`command -v chromedriver` → not found), so no `flutter drive … -d chrome` run has
-  happened. Still not installed in Milestone 2 (`command -v chromedriver` → not found, `where chromedriver` → not found; nothing was installed), nor in Milestone 4 (`command -v chromedriver` → not found). The
-  targets are `app_boot_test.dart`, `happy_path_test.dart` and `fallback_path_test.dart` (extended in M2 with
-  place search). Run them once chromedriver is available:
+Status after Milestone 5 (2026-10-02). Evidence for each line is in the run log below.
 
-  ```bash
-  chromedriver --port=4444 &
-  flutter drive --driver=test_driver/integration_test.dart \
-    --target=integration_test/app_boot_test.dart -d chrome
-  ```
-
-  Repeat with `--target=` set to each integration test file as they are added (guide v2.1 §18), and record
-  the result in the run log.
-- This does **not** block Milestone 1. It is carried forward from M1 and must be closed by Milestone 5 at the latest.
-- **Manual smoke tests (§18), partly done.**
-  - Done: item 2 (Android emulator with an SG location, real geolocator, live data.gov.sg) in M1.
-  - Done in M2, on the Android emulator, recorded in the run log:
-    - item 4 (GPS denied, via the real permission dialog → manual prompt);
-    - item 6 (postal-code origin, `098585`, live OneMap);
-    - item 7 (mall destination, ION Orchard, live OneMap).
-  - Still not run: 1 (Chrome localhost), 3 (emulator default location, outside SG) and 5 (GPS timeout) on a real
-    device or browser. These are covered only by automated tests with fakes. Item 1 was attempted in M4 with the
-    release web build: the app waited on Chrome's unanswered location prompt with no manual origin offered (see the
-    run log), so item 1 stays open. Issue #9 (permission-prompt timeout → manual origin) fixes that trap in code
-    and is covered by unit and widget tests with fakes; a live Chrome re-run of item 1 has not been done yet.
-  - Done in M3, on the Android emulator with the release APK and live data, recorded in the run log: item 9 (no
-    direct bus: Changi Village Bus Terminal → Jurong Point). Item 8 was **partly** done in M3 (direct-bus
-    suggestion only).
-  - Done in M4, on the Android emulator with the release APK and live ArriveLah, recorded in the run log: the
-    live-ETA part of item 8 (Raffles Place → VivoCity, ETAs compared with raw ArriveLah responses, manual refresh)
-    and item 10 (provider unavailable: emulator offline → arrivals unavailable + Retry, route kept → recovered).
-    Also checked: a missing live arrival (Bus 651 off-peak → "No live arrival available").
-- **Android timeout runs while the system "Location Accuracy" prompt is open (observed in M1, not fixed).** On a
-  device where Location Accuracy is off, the geolocator request shows this Google Play services prompt. The 10 s
-  timeout keeps running while it is on screen, so a first-time user can land on "Finding your location took too
-  long" before answering it. The fallback itself is correct, and "Try location again" then succeeded. In that
-  session, the first attempt's request never delivered a late fix (cause not confirmed on the device). To be decided
-  by the reviewer: fix it, or leave it as an accepted limitation.
-- **Cross-platform integration coverage is not complete** until the Web run has been executed and its
-  result recorded below. Until then, integration coverage is Android only.
+- **Web (Chrome) integration: closed in M5.** All three files pass on Chrome 154 with chromedriver 154.0.8037.92
+  (`-d web-server --browser-name=chrome --profile`, see above): 5/5 at the final M5 head, with the
+  Content-Security-Policy active and no violations. Integration coverage is now Android **and** Web.
+- **Manual smoke tests (§18): all ten done.**
+  - 1 (Chrome localhost): M5, live. An unanswered location prompt falls back to manual entry after the 10 s
+    bound; a manual origin is never replaced by a later fix (only offered); a full real-data journey ran.
+  - 2 (emulator, SG location): M1. 3 (emulator, outside SG): M5, live ("Your reported location is outside
+    Singapore."). 4 (GPS denied): M2. 5 (GPS timeout): M5, seen live once on the emulator ("Finding your location
+    took too long."); not reproducible on demand, also covered by tests with fakes. 6 (postal code) and 7 (mall):
+    M2. 8 (direct bus + live ETA): M3/M4, and again in M5 on Android and Web with ETAs cross-checked against raw
+    ArriveLah. 9 (no direct bus): M3. 10 (provider unavailable): M4.
+  - Still only on an emulator, not a physical phone: items 3 and 5, "Keep this origin", "Try location again" and
+    the ETA countdown. This needs hardware the project does not have; the behaviour is covered by tests.
+- **Android "Location Accuracy" prompt: closed as an accepted platform limitation (M5).** Reproduced with Location
+  Accuracy off: Play services' dialog appears inside the position request, and the 10 s timeout fires behind it
+  ("Finding your location took too long."). "Turn on" → the late fix fills the origin by itself (or is only
+  offered if manual entry started); "No thanks" → manual entry. Pausing the timers while the app is in the
+  background, or `forceLocationManager`, was judged not worth the risk (docs/architecture.md, Milestone 5).
+- **Emulator-only ANR (observed in M5, not an app defect).** On one boot of the `android-37.2` image, every real
+  position request froze the app: the geolocator plugin's GNSS NMEA-listener binder call
+  (`LocationManager.addNmeaListener` / `removeNmeaListener`) never returned on the main thread (two ANR traces).
+  It did not recur after a cold boot (no ANR in any later run). If it reappears on a real device, report it to the
+  geolocator plugin.
+- **Web location after a late "Allow"**: the browser's permission request returns only with a position, so the
+  "not answered" fallback stays until a fix arrives. Accepted: manual entry stays available.
 
 ## Evidence rule
 
@@ -254,3 +240,6 @@ Note: building the probe APK replaces `app-debug.apk`. Rebuild the real app afte
 | 2026-10-02 | M5 Web integration (branch `chore/m5-hardening`) | chromedriver 154.0.8037.92 (Chrome for Testing, same build as Chrome 154.0.8037.93; outside the repo) on port 4444. First `flutter drive … -d chrome` (debug) for each file: compile errors `'org-dartlang-app:///test/fakes/…': File not found` (fakes imported from outside `integration_test/`). After moving the fakes, debug `-d chrome` and `-d web-server` both never started (killed after ~10 min). `-d web-server --browser-name=chrome --profile`: `app_boot_test` passed; `happy_path_test` and `fallback_path_test` failed (console via `--enable-chrome-logs`: `Timed out waiting for … "VIVOCITY"` / `"OUR TAMPINES HUB"` / `"ION ORCHARD"`; a diagnostic test showed `TestTextInput` unregistered and the field text still empty after `enterText`). After `initIntegrationTest()` registers the stub, each file once, 11:22–11:28 UTC | Pass: `app_boot_test` exit 0 (1 test), `happy_path_test` exit 0 (1 test), `fallback_path_test` exit 0 (3 tests) → Web integration 5/5. `flutter test` 408/408 and `flutter analyze` clean after the change. Android integration re-run with this change: see the M5 final gates row |
 | 2026-10-02 | M5 Chrome smoke item 1 + late-fix rule, live (release web build of `e334ff7`, served statically from a copy of `build/web` at `http://127.0.0.1:8771`; live data.gov.sg + OneMap) | (1) The user's Chrome 154, new origin so geolocation was `prompt`; the prompt left unanswered. (2) A chromedriver-launched Chrome, same build; manual origin chosen via "Change", then `Browser.grantPermissions` + `Emulation.setGeolocationOverride` (1.3048, 103.8318, Orchard) over CDP and "Try location again". Two earlier chromedriver sessions were disturbed by clicks in the window (one late "Allow" plus a focus of the origin field) and are reported only for what they show | Pass. (1) ~10 s after load: "We couldn't determine your location. Where are you now? / The location request has not been answered yet." with the search field; `navigator.permissions` still `prompt` 60 s later; live OneMap search "Raffles Place MRT" (10 matches) → "From: RAFFLES PLACE MRT STATION (EW14 / NS26) (chosen manually)", dashboard City area / South region. (2) After the CDP fix: origin unchanged, "Use my current location" chip offered; tapping it → "From: Current location (from GPS)". Disturbed session: late Allow while the origin field was focused → fix only offered (correct), but the note still said "not answered" — **fixed** in this branch (note cleared on a late grant; regression test `granted later while typing → the "not answered" note is cleared`). Also seen: with nothing typed, a real late fix (Sengkang) filled the origin, as specified. On Web the permission request does not return until the browser has a position, so a grant with no position keeps the fallback note until a fix arrives — accepted (manual entry stays available) |
 | 2026-10-02 | M5 Android smoke items 3 and 5 + Location Accuracy (release APK of `3361c6f`, Pixel_8_Pro AVD, image `android-37.2` Play Store 16 KB, real geolocator, live data.gov.sg) | `adb install -r`, `pm clear`, `adb emu geo fix …`, launch with `monkey`, `adb shell input tap`, `screencap`. **First boot (11:52 UTC):** fix set to Kuala Lumpur (101.6869, 3.1390); permission dialog → "While using the app". **Cold boot again (12:09 UTC, with the user's OK)**, same fixes; then Settings → Location → Location services → Location Accuracy off; Raffles Place fix (103.8510, 1.2840); relaunch → Play services dialog answered "Turn on", then (accuracy off again) "No thanks"; Location Accuracy restored to on afterwards | **First boot: ANR (emulator fault, not app logic).** After the grant the app froze on "Finding your location…" and Android showed "isn't responding". Two ANR traces (`dumpsys dropbox --print data_app_anr`): the main thread was blocked in a binder call from the geolocator plugin, `LocationManager.removeNmeaListener` → `unregisterGnssNmeaCallback` (11:55:34) and `LocationManager.addNmeaListener` → `registerGnssNmeaCallback` (11:59:51); the plugin registers that GNSS NMEA listener on every position request. The UWB HAL (`android.hardware.uwb-service`) crash-looped every 5 s on both boots. **Not reproduced after the cold boot** (no ANR in any later run). **Item 5 (GPS timeout), live:** first launch after the cold boot → "We couldn't determine your location… / Finding your location took too long." + search field (no fix within 10 s; the KL fix reached GNSS later and, being out of SG, was ignored). **Item 3 (outside SG), live:** "Try location again" → "Your reported location is outside Singapore." + search field; UV tile "UV not measured at night" (20:10 SGT). **Location Accuracy:** with it off, Play services shows "For a better experience, your device will need to use Location Accuracy"; the 10 s timeout fires behind it ("took too long"). "Turn on" → the late fix filled "From: Current location (from GPS)" by itself (City area / South region, live). "No thanks" → stays on the timeout fallback with manual entry. Closed as an accepted platform limitation (see Open acceptance items) |
+| 2026-10-02 | M5 Android large text (C3) and refresh (C4), live | Release APK of `3361c6f` (before the fix) and of `553105c` (after), emulator at `wm density 597` (360 dp wide) and `font_scale 2.0`, live Raffles Place → VivoCity; settings restored afterwards (`wm density reset`, `font_scale 1.0`) | Before: the attribution beside "Refresh arrivals" broke words mid-way ("Arrive / Lah", "(LTA Da / taMall)", "check / ed"); no overflow at 448 dp but cramped. After: the attribution reads on full lines with "Refresh arrivals" below; tapping it updated "checked 21:10 SGT" → "21:12 SGT". C4 on Web (final build): after a successful load, two taps on Refresh conditions → second says "Conditions were just updated. Try again shortly." (true); the failed / still-running cases are covered by `test/widget_test.dart` |
+| 2026-10-02 | M5 final gates at `553105c` (clean tree; the commits after it change only `docs/testing.md`) | `dart format --set-exit-if-changed .`; `flutter analyze`; `flutter test`; `flutter build web`; `flutter build apk --debug`; `flutter build apk --release` (no release key: debug-key fallback, local only); `flutter test integration_test -d emulator-5554` (Pixel 8 Pro cold-booted, one run 13:14–13:20 UTC, boot id `a57da7f2-…` unchanged); Web: chromedriver 154.0.8037.92 + `flutter drive … -d web-server --browser-name=chrome --profile` for `app_boot_test`, `happy_path_test`, `fallback_path_test` (13:21–13:26 UTC), Chrome console checked for CSP violations | Pass: 100 files, 0 changed; no issues; 422/422; web built; debug APK built; release APK built (49.0 MB); Android integration 5/5, exit 0; Web integration 1/1 + 1/1 + 3/3 = 5/5, each exit 0, 0 CSP violations |
+| 2026-10-02 | M5 real-data journeys at `553105c` | **Android:** release APK, emulator at normal scale, GPS Raffles Place (`adb emu geo fix 103.8515 1.2840`), live dashboard → destination search "VivoCity" (live OneMap) → plan → live ArriveLah, cross-checked with `curl https://arrivelah2.busrouter.sg/?id=03019` one second later. **Web:** release build served at `http://127.0.0.1:8771` (CSP active), chromedriver Chrome, location via CDP (Raffles Place), same search, plan and cross-check | Pass. Android: "Take Bus 10 toward Kent Ridge Ter" from 03019 OUE Bayfront, 9 stops to 14141; ETAs 10 → 1 · 21 · 34 min, 57 → 1 · 12 · 23, 100 → Arr · 20 · 39; raw: 10 [1, 21, 34], 57 [1, 12, 23], 100 [−1, 20, 39]; MRT alternative Raffles Place → HarbourFront; dashboard City area / South region (PM2.5 43, PSI 77). Web: 10 → 3 · 19 · 31, 57 → 4 · 28 · 39 (scheduled), 100 → 4 · 22 · 33; raw a few seconds later: 10 [3, 19, 31], 57 [4, 27, 39], 100 [4, 22, 33] (57's second ETA crossed a minute between the two reads); 0 CSP violations |
