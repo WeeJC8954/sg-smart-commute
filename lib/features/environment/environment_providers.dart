@@ -59,17 +59,32 @@ final environmentRefresherProvider =
 /// caller, by `dataGovSgRateLimiterProvider` in the HTTP client: calls beyond
 /// it wait for capacity instead of being sent.
 /// State: when the last accepted refresh happened.
+///
+/// The cooldown only holds after a refresh that fully succeeded: if any
+/// dataset is still loading, nothing new starts; if any failed, the refresh
+/// may be repeated at once (as each tile's Retry can).
 class EnvironmentRefresher extends Notifier<DateTime?> {
   @override
   DateTime? build() => null;
 
-  /// Returns false (and does nothing) while inside the cooldown.
-  bool refreshAll() {
+  List<AsyncValue<Object>> get _datasets => [
+    ref.read(forecastSnapshotProvider),
+    ref.read(uvSnapshotProvider),
+    ref.read(pm25SnapshotProvider),
+    ref.read(psiSnapshotProvider),
+  ];
+
+  RefreshAllResult refreshAll() {
+    final datasets = _datasets;
+    if (datasets.any((d) => d.isLoading)) {
+      return RefreshAllResult.stillRefreshing;
+    }
     final now = ref.read(clockProvider)();
     final last = state;
     if (last != null &&
-        now.difference(last) < ref.read(environmentRefreshIntervalProvider)) {
-      return false;
+        now.difference(last) < ref.read(environmentRefreshIntervalProvider) &&
+        !datasets.any((d) => d.hasError)) {
+      return RefreshAllResult.justUpdated;
     }
     state = now;
     ref
@@ -77,6 +92,18 @@ class EnvironmentRefresher extends Notifier<DateTime?> {
       ..invalidate(uvSnapshotProvider)
       ..invalidate(pm25SnapshotProvider)
       ..invalidate(psiSnapshotProvider);
-    return true;
+    return RefreshAllResult.started;
   }
+}
+
+/// Outcome of [EnvironmentRefresher.refreshAll].
+enum RefreshAllResult {
+  /// All four datasets are being fetched again.
+  started,
+
+  /// A fetch is still running; nothing new was started.
+  stillRefreshing,
+
+  /// Inside the cooldown after a refresh that fully succeeded.
+  justUpdated,
 }
