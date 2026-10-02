@@ -68,15 +68,32 @@ class OriginController extends Notifier<OriginState> {
       if (_isCurrent(attempt)) _fallBack(const LocationPermissionUnanswered());
     });
 
+    // A background attempt whose prompt is answered after its permission
+    // timeout is running again: its own outcome (granted, denied, blocked,
+    // service off or an error) replaces the "not answered" note. Without
+    // this, _fallBack would drop a late failure.
+    void resumeIfAnsweredLate() {
+      if (background && _hasManualOrigin && !state.locatingInBackground) {
+        state = state.copyWith(
+          locatingInBackground: true,
+          clearBackgroundFailure: true,
+        );
+      }
+    }
+
     final LocationAccess access;
     try {
       access = await _service.requestAccess();
     } catch (_) {
-      if (_isCurrent(attempt)) _fallBack(const LocationUnavailable());
+      if (_isCurrent(attempt)) {
+        resumeIfAnsweredLate();
+        _fallBack(const LocationUnavailable());
+      }
       return;
     }
     if (!_isCurrent(attempt)) return;
     _timeout?.cancel(); // the permission timer
+    resumeIfAnsweredLate();
 
     switch (access) {
       case LocationAccess.denied:
@@ -95,13 +112,6 @@ class OriginController extends Notifier<OriginState> {
       state = state.copyWith(
         phase: OriginPhase.acquiring,
         clearFallbackReason: true,
-      );
-    } else if (background && _hasManualOrigin && !state.locatingInBackground) {
-      // A background attempt whose prompt was answered after its timeout:
-      // it is running again, and its own outcome replaces that note.
-      state = state.copyWith(
-        locatingInBackground: true,
-        clearBackgroundFailure: true,
       );
     }
     _timeout = Timer(ref.read(locationTimeoutProvider), () {

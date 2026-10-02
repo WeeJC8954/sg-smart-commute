@@ -45,9 +45,29 @@ flutter build apk --release \
 (Verified 2026-10-02 with a throwaway keystore; `ORG_GRADLE_PROJECT_*` environment variables did not reach
 Gradle through `flutter build` in the same test, so use `-P`.)
 
-## Without a release key
+## What each configuration does
 
-If none of the values is set, the release build falls back to the debug key and Gradle prints a warning
-("the release build is signed with the DEBUG key. Do not distribute it."). That is only for local smoke tests
-on an emulator: Play rejects it, and it cannot update an install signed with the release key. If only some of
-the values are set, the build fails and names the missing ones, instead of silently signing with the debug key.
+The four values are `storeFile`, `storePassword`, `keyAlias` and `keyPassword`, each read from
+`key.properties` or else from the matching `-Prelease…` property. A blank value counts as missing.
+
+| Values set | Release build | Debug build, `flutter run`, Android integration tests |
+|---|---|---|
+| None | Signed with the **debug** key. Gradle prints "the release build is signed with the DEBUG key. Do not distribute it." | Work as usual, with no warning |
+| All four | Signed with the release key | Work as usual (debug builds always use the debug key) |
+| Some, not all | **Fails** | **Also fail** |
+
+The debug-key fallback is for local smoke tests on an emulator only: Play rejects such an APK, and it cannot
+update an install signed with the release key.
+
+A partial configuration is rejected while Gradle *configures* the app module, before any task runs. So it stops
+every Android Gradle invocation, debug ones included, with:
+
+```text
+Release signing is partly configured; missing: [keyPassword]
+```
+
+(the list names whichever values are missing). This is deliberate: a half-written `key.properties` is a mistake
+to fix, not something to sign around silently with the debug key. Complete it, or delete it to get the debug
+fallback back. Dart-only commands such as `flutter test` and `flutter analyze` don't run Gradle and are not
+affected. (Verified 2026-10-02: `flutter build apk --debug` with `keyPassword` left out fails with the message
+above.)

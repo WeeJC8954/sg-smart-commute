@@ -23,6 +23,13 @@ class FakeLocationService implements LocationService {
 
   void grant() => _access.complete(LocationAccess.granted);
   void answer(LocationAccess access) => _access.complete(access);
+
+  /// Makes the current attempt's permission request throw.
+  void failAccess(Object error) => _access.completeError(error);
+
+  /// The current attempt's permission completer, so a test can answer it
+  /// after [reset] has started a newer attempt.
+  Completer<LocationAccess> get pendingAccess => _access;
   void fix(LatLng position) => _position.complete(position);
   void fail(Object error) => _position.completeError(error);
 
