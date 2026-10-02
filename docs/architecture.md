@@ -147,6 +147,34 @@ lib/
   `busArrivalRepositoryProvider`, `busArrivalCacheTtlProvider` (plus `clockProvider`).
 - No polling, no maps, no vehicle tracking, no MRT arrivals.
 
+## Milestone 5 (hardening)
+
+- **Response size cap** (`JsonHttpClient`): a 2xx body over `AppTimings.httpMaxResponseBytes` (4 MiB) is an
+  `InvalidApiResponse` and is not retried. A declared `Content-Length` over the cap is refused unread; otherwise
+  reading stops as soon as the cap is passed. Non-2xx bodies are not read. The request timeout covers headers
+  and body. Numbers and the measured payload sizes: `docs/assumptions.md`.
+- **Content-Security-Policy** (`web/index.html`, a `<meta>`, since static hosting such as GitHub Pages cannot
+  set headers). Measured in Chrome on 2026-10-02 over a full journey, the app contacts only itself, the four
+  keyless APIs (`api-open.data.gov.sg`, `www.onemap.gov.sg`, `data.busrouter.sg`, `arrivelah2.busrouter.sg`), and
+  the Flutter engine's CDN (`www.gstatic.com` for CanvasKit script + WebAssembly, `fonts.gstatic.com` for
+  fallback fonts). The policy allows exactly those:
+  - `connect-src` = self + those six origins; `script-src` = self + `www.gstatic.com` + `'wasm-unsafe-eval'`
+    (CanvasKit is WebAssembly) + one `sha256-` hash; no `'unsafe-eval'`, no `'unsafe-inline'` scripts;
+  - the hash is the inline snippet that the **debug** web loader (Flutter 3.47.2) runs; without it `flutter run`
+    on Web shows a blank page. Release builds never run it. After a Flutter upgrade, a blank debug page plus a
+    console line "Executing inline script violates … a hash ('sha256-…')" means: replace the hash;
+  - `style-src 'unsafe-inline'` (Flutter sets inline styles), `img-src` self/data/blob, `object-src 'none'`,
+    `base-uri 'self'`, `form-action 'none'`, `default-src 'self'`;
+  - not settable from a `<meta>`: `frame-ancestors`. A host that can send headers should add it.
+  - `test/web/content_security_policy_test.dart` keeps `connect-src` equal to the endpoints in
+    `app_config.dart` (+ the engine CDN), so a new provider cannot be added without updating the policy.
+  - Using the engine CDN is Flutter's default (`flutter build web`); building with `--no-web-resources-cdn` would
+    serve CanvasKit locally, but fallback fonts still come from `fonts.gstatic.com`, so the CDN stays listed.
+- **Integration tests on Web**: the fakes moved to `integration_test/fakes/` (a Web build cannot import outside
+  the target's folder), and `initIntegrationTest()` registers the `TestTextInput` stub so `enterText` works in
+  the profile builds the Web runs use. How to run them: `docs/testing.md`.
+- **Origin**: a prompt answered late (granted) while manual entry is open clears the "not answered" note.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),
