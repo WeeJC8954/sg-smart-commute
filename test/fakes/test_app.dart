@@ -4,11 +4,15 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_repository.dart';
 import 'package:sg_smart_commute/features/environment/environment_providers.dart';
+import 'package:sg_smart_commute/features/journey/data/mrt_asset_repository.dart';
+import 'package:sg_smart_commute/features/journey/domain/bus_network_repository.dart';
+import 'package:sg_smart_commute/features/journey/journey_providers.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
 import 'package:sg_smart_commute/features/places/place_providers.dart';
 import 'package:sg_smart_commute/main.dart';
 
+import 'fake_bus_network.dart';
 import 'fake_environment_repository.dart';
 import 'fake_place_search_repository.dart';
 
@@ -17,6 +21,8 @@ Widget buildTestApp({
   required LocationService location,
   required EnvironmentRepository environment,
   PlaceSearchRepository? places,
+  BusNetworkRepository? busNetwork,
+  MrtAssetRepository? mrt,
   Duration? placeSearchDebounce,
   int? placeSearchMinQueryLength,
   Duration locationTimeout = const Duration(seconds: 10),
@@ -32,6 +38,10 @@ Widget buildTestApp({
       placeSearchRepositoryProvider.overrideWithValue(
         places ?? FakePlaceSearchRepository(),
       ),
+      busNetworkRepositoryProvider.overrideWithValue(
+        busNetwork ?? FakeBusNetworkRepository(),
+      ),
+      mrtRepositoryProvider.overrideWithValue(mrt ?? fakeMrtRepository()),
       if (placeSearchDebounce != null)
         placeSearchDebounceProvider.overrideWithValue(placeSearchDebounce),
       if (placeSearchMinQueryLength != null)

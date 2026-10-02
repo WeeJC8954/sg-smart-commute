@@ -83,6 +83,12 @@ Key flows that span several files:
   `FutureProvider` per dataset plus a refresh-all with cooldown; `domain/environment_locator.dart` picks the
   nearest forecast area / PM2.5–PSI region to the origin by haversine; `domain/bands.dart` holds the band
   tables; staleness thresholds and the UV night rule come from `app_config.dart` / `docs/assumptions.md`.
+- **Journey** (`features/journey/`): `journeyPlanProvider` watches origin + destination and runs the pure
+  `planDirectBus` (zero transfers; 400 → 800 m candidates; shortest valid segment per direction; score
+  `walk + walk + 1.5 × stops`) on busrouter data loaded once per session (`busNetworkProvider`). Stops are
+  `[lng, lat, name, road]` — converted only in `busrouter_parser.dart`. The MRT alternative uses the bundled
+  `assets/mrt_stations.json` (regenerate with `tool/build_mrt_asset.dart`; code-only station names map only
+  through the cited table in `mrt_grouping.dart`). No arrival times before M4.
 - **Time**: parse ISO `+08:00` timestamps, store UTC, display at a fixed +08:00 offset (no `timezone`
   package).
 
@@ -90,7 +96,8 @@ Key flows that span several files:
 
 - Test seams overridden via providers: `locationServiceProvider`, `environmentRepositoryProvider`,
   `locationTimeoutProvider`, `clockProvider`, `placeSearchRepositoryProvider` (plus
-  `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`). `test/fakes/test_app.dart`
+  `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
+  `mrtRepositoryProvider`. `test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
   `integration_test/`.
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual

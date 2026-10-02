@@ -1,7 +1,7 @@
 /// Typed failures carried in `AsyncValue.error` (guide v2.1 §13).
 ///
-/// Only the failures Milestones 1–2 can produce are defined here. The rest of
-/// the §13 list (journey, bus arrival) arrives with those features. An empty
+/// Only the failures Milestones 1–3 can produce are defined here. The rest of
+/// the §13 list (bus arrival) arrives with that feature. An empty
 /// place search is an empty result list, not a failure.
 sealed class AppFailure implements Exception {
   const AppFailure();
@@ -101,4 +101,20 @@ final class NoExactPostalMatch extends AppFailure {
   final String postalCode;
   @override
   String get message => 'No exact match for $postalCode.';
+}
+
+// --- Journey ----------------------------------------------------------------
+
+/// Static transport data (busrouter stops/services or the bundled MRT asset)
+/// could not be loaded or did not match the expected schema (§13).
+final class StaticDataUnavailable extends AppFailure {
+  const StaticDataUnavailable(this.dataset, [this.detail]);
+
+  /// Which dataset failed, e.g. "busrouter" or "MRT stations".
+  final String dataset;
+  final String? detail;
+  @override
+  String get message => dataset == 'MRT stations'
+      ? 'MRT station data is unavailable.'
+      : 'Bus data is unavailable right now.';
 }

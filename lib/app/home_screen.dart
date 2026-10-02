@@ -5,6 +5,7 @@ import '../core/config/app_config.dart';
 import '../features/environment/environment_providers.dart';
 import '../features/destination/presentation/destination_card.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
+import '../features/journey/presentation/journey_card.dart';
 import '../features/origin/presentation/origin_card.dart';
 import 'app.dart';
 
@@ -48,6 +49,7 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 const OriginCard(),
                 const DestinationCard(),
+                const JourneyCard(),
                 const SizedBox(height: 8),
                 Text(
                   'Conditions',
@@ -57,7 +59,8 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text(
                   'Data: $neaSourceLabel (Singapore Open Data Licence) · '
-                  '$oneMapAttribution',
+                  '$oneMapAttribution · $busrouterAttribution · '
+                  '$mrtAttribution',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
