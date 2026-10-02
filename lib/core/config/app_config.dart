@@ -120,6 +120,14 @@ abstract final class TransportDataBounds {
   static const double maxLongitude = 104.20;
 }
 
+/// busrouter payload validation (docs/assumptions.md, "busrouter validation").
+abstract final class BusrouterValidation {
+  /// The whole stops or services dataset fails when more than this share of
+  /// its entries is malformed: that points at a schema change, not a stray
+  /// record.
+  static const double maxInvalidShare = 0.05;
+}
+
 /// Direct-bus planner and walking estimate (guide v2.1 §9.2, §9.3). These are
 /// documented heuristic assumptions (docs/assumptions.md), not official values.
 abstract final class JourneyConfig {
