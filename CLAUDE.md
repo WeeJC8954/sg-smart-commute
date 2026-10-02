@@ -88,7 +88,12 @@ Key flows that span several files:
   `walk + walk + 1.5 × stops`) on busrouter data loaded once per session (`busNetworkProvider`). Stops are
   `[lng, lat, name, road]` — converted only in `busrouter_parser.dart`. The MRT alternative uses the bundled
   `assets/mrt_stations.json` (regenerate with `tool/build_mrt_asset.dart`; code-only station names map only
-  through the cited table in `mrt_grouping.dart`). No arrival times before M4.
+  through the cited table in `mrt_grouping.dart`).
+- **Bus arrival** (`features/bus_arrival/`): `journeyArrivalsProvider` runs only after the plan exists and
+  requests each displayed boarding stop once through `BusArrivalCache` (15 s TTL, in-flight dedup, failures
+  not cached). Its result carries the exact plan it was fetched for, and widgets show it only against that
+  plan (no stale attach). ArriveLah JSON is parsed only in `arrivelah_parser.dart`; ETAs come from `time` and
+  the clock (`Arr` ≤ 1 min, else minutes rounded down), never `duration_ms`. Refresh never recomputes the plan.
 - **Time**: parse ISO `+08:00` timestamps, store UTC, display at a fixed +08:00 offset (no `timezone`
   package).
 
@@ -97,7 +102,8 @@ Key flows that span several files:
 - Test seams overridden via providers: `locationServiceProvider`, `environmentRepositoryProvider`,
   `locationTimeoutProvider`, `clockProvider`, `placeSearchRepositoryProvider` (plus
   `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
-  `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`. `test/fakes/test_app.dart`
+  `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`, `busArrivalRepositoryProvider`,
+  `busArrivalCacheTtlProvider`. `test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
   `integration_test/`.
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual

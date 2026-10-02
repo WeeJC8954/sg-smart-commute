@@ -119,6 +119,30 @@ lib/
   `plannerConfigProvider`. Test seams: `busNetworkRepositoryProvider`, `mrtRepositoryProvider`.
 - No live calls are made during the candidate search, and no arrival data is fetched in M3.
 
+## Milestone 4 (live bus arrivals)
+
+- `lib/features/bus_arrival/domain/`: `bus_arrival.dart` (`BusArrival`, `BusLoad`, `BusType`, `ServiceArrivals`,
+  `StopArrivals`; `nextArrivals` picks one service's next three; `etaLabel` gives `Arr` / `N min`),
+  `bus_arrival_repository.dart` (interface, so ArriveLah can be replaced), `bus_arrival_cache.dart`
+  (`BusArrivalCache`: the only caller of the repository; 15 s per-stop TTL, in-flight dedup, failures not cached).
+- `lib/features/bus_arrival/data/`: `arrivelah_parser.dart` (the only code that knows ArriveLah's JSON; strict
+  offset-aware time parsing; lenient optional fields; `{"error"}` → `BusArrivalUnavailable`) and
+  `arrivelah_bus_arrival_repository.dart` (one GET per stop through `JsonHttpClient`).
+- `bus_arrival_providers.dart`: `journeyArrivalsProvider` awaits `journeyPlanProvider`, and only for
+  `DirectBusOptions` requests each distinct boarding stop once. Its `JourneyArrivals` holds the exact plan it was
+  fetched for, the check time and a per-stop result (`StopArrivalsLoaded` / `StopArrivalsFailed`). Widgets show it
+  only while that same plan is displayed, so a late answer for an older journey never attaches to a new one.
+  Refresh and Retry invalidate this provider only: the plan is not recomputed, and the cache prevents
+  re-requesting a stop inside the TTL.
+- `presentation/option_arrivals.dart`: `OptionArrivals` (under each option, after "Take Bus …") and
+  `ArrivalsFooter` (source, check time, "Refresh arrivals"). The M3 journey card embeds them; the route itself is
+  rendered exactly as in M3 and never depends on arrival state.
+- New failure: `BusArrivalUnavailable` (provider error body). Network / timeout / HTTP / malformed reuse the
+  existing `NetworkUnavailable` / `ApiUnavailable` / `InvalidApiResponse`.
+- Tunables in `ArriveLahEndpoints` / `BusArrivalConfig` (`app_config.dart`). Test seams:
+  `busArrivalRepositoryProvider`, `busArrivalCacheTtlProvider` (plus `clockProvider`).
+- No polling, no maps, no vehicle tracking, no MRT arrivals.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),

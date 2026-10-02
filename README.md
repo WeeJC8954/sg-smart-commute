@@ -4,9 +4,9 @@ A **front-end-only** Flutter app (Android + Web) for Singapore. It shows current
 UV, 1-hr PM2.5, 24-hr PSI) and suggests how to start a journey: a direct bus with live arrival times, and the
 nearest MRT station as an alternative. University course project.
 
-> **Status:** Milestone 3. The app has location with manual fallback, the environmental dashboard, OneMap
-> place search for origin and destination, and a direct-bus suggestion with an MRT alternative. Live bus
-> arrival times arrive in Milestone 4; none are shown yet.
+> **Status:** Milestone 4. The app has location with manual fallback, the environmental dashboard, OneMap
+> place search for origin and destination, a direct-bus suggestion with an MRT alternative, and live bus
+> arrival times (ArriveLah) for each suggested bus, refreshed manually.
 
 ## No credentials required
 
@@ -63,7 +63,8 @@ The dev-only feasibility probes are described in [`docs/testing.md`](docs/testin
 
 NEA / data.gov.sg (Singapore Open Data Licence) · busrouter.sg (community project; bus data © LTA) ·
 MRT station exits: LTA via data.gov.sg (Singapore Open Data Licence), bundled as `assets/mrt_stations.json`
-(regenerate with `dart run tool/build_mrt_asset.dart`) · OneMap © SLA. ArriveLah (live arrivals) arrives in M4.
+(regenerate with `dart run tool/build_mrt_asset.dart`) · OneMap © SLA · live arrivals: ArriveLah (community
+proxy of LTA DataMall Bus Arrival; not an official LTA API).
 Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 
 ## Known limitations
@@ -75,6 +76,10 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - Bus stop data comes from busrouter.sg and is loaded on the first journey request (about 570 KB).
 - Tokenless OneMap search can rate-limit (HTTP 429 after a few quick calls was seen in M3 testing).
 - busrouter, ArriveLah and tokenless OneMap search are third-party services with no SLA.
+- Live arrivals are shown only for the suggested buses' boarding stops and refresh only when you tap
+  "Refresh arrivals" (reused for 15 s). An arrival can be missing (e.g. a peak-hour-only service off-peak):
+  the app then says "No live arrival available" and still shows the route. "(scheduled)" marks estimates LTA
+  bases on the timetable rather than the bus's position.
 
 ## Documentation
 
