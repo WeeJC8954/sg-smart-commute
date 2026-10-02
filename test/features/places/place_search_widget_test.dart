@@ -131,6 +131,39 @@ void main() {
     await type(tester, originField, 'Blk 123 Ang Mo Kio Ave 6');
     expect(find.text(hdb), findsOneWidget); // title only
     expect(find.text('560123'), findsOneWidget); // subtitle: the postcode
+
+    // Neither card repeats it under the name either.
+    await pick(tester, hdb);
+    expect(find.text('From: $hdb (chosen manually)'), findsOneWidget);
+    expect(find.text(hdb), findsNothing);
+    expect(originOf(tester).origin!.detail, isNull);
+
+    await type(tester, destinationField, 'Blk 123 Ang Mo Kio Ave 6');
+    await pick(tester, hdb);
+    expect(find.text('To: $hdb'), findsOneWidget);
+    expect(find.text(hdb), findsNothing);
+  });
+
+  testWidgets('a distinct address is shown under the name in both cards', (
+    tester,
+  ) async {
+    await pumpApp(tester, deniedApp());
+    await type(tester, originField, 'VivoCity');
+    await pick(tester, 'VIVOCITY');
+    await type(tester, destinationField, 'ION Orchard');
+    await pick(tester, 'ION ORCHARD');
+    expect(find.text(vivoCity.address!), findsOneWidget);
+    expect(find.text(ionOrchard.address!), findsOneWidget);
+  });
+
+  testWidgets('the search field accepts at most maxQueryLength characters', (
+    tester,
+  ) async {
+    await pumpApp(tester, deniedApp());
+    await tester.enterText(find.byKey(originField), 'x' * 500);
+    await tester.pump();
+    final field = tester.widget<TextField>(find.byKey(originField));
+    expect(field.controller!.text.length, PlaceSearchConfig.maxQueryLength);
   });
 
   testWidgets('no results, too short, and the no-exact-postcode state', (
@@ -238,6 +271,95 @@ void main() {
     expect(originOf(tester).origin!.position, ionOrchard.position);
     expect(find.text('To: VIVOCITY'), findsOneWidget);
     expect(destinationOf(tester).place, vivoCity);
+  });
+
+  testWidgets('"Keep this origin" cancels a change', (tester) async {
+    await pumpApp(tester, deniedApp());
+    await type(tester, originField, 'Tampines Hub');
+    await pick(tester, 'OUR TAMPINES HUB');
+    final origin = originOf(tester).origin!;
+
+    await tester.tap(find.byKey(const Key('change-origin')));
+    await tester.pump();
+    expect(find.byKey(originField), findsOneWidget);
+    await tester.tap(find.byKey(const Key('keep-origin')));
+    await tester.pump();
+
+    expect(find.byKey(originField), findsNothing);
+    expect(
+      find.text('From: OUR TAMPINES HUB (chosen manually)'),
+      findsOneWidget,
+    );
+    expect(originOf(tester).origin, same(origin));
+    expect(originOf(tester).phase, OriginPhase.ready);
+  });
+
+  testWidgets('with a manual origin, "Try location again" can switch back to '
+      'GPS after location is re-enabled', (tester) async {
+    final location = FakeLocationService(access: LocationAccess.denied);
+    await pumpApp(
+      tester,
+      buildTestApp(
+        location: location,
+        environment: FakeEnvironmentRepository(),
+        places: places,
+      ),
+    );
+    await type(tester, originField, 'Tampines Hub');
+    await pick(tester, 'OUR TAMPINES HUB');
+
+    // Location stays denied: the failure is reported, the origin kept.
+    location.reset();
+    await tester.tap(find.byKey(const Key('retry-location')));
+    await tester.pump();
+    expect(find.text('Finding your location…'), findsOneWidget);
+    location.answer(LocationAccess.denied);
+    await tester.pump();
+    expect(
+      find.text(
+        '${const LocationPermissionDenied().message} '
+        'Your chosen origin is kept.',
+      ),
+      findsOneWidget,
+    );
+    expect(originOf(tester).origin!.label, 'OUR TAMPINES HUB');
+
+    // Re-enabled: the fix is offered, and only the chip applies it.
+    location.reset();
+    await tester.tap(find.byKey(const Key('retry-location')));
+    await tester.pump();
+    location
+      ..grant()
+      ..fix(bishan);
+    await tester.pump();
+    expect(find.byKey(const Key('background-location-failure')), findsNothing);
+    expect(originOf(tester).origin!.label, 'OUR TAMPINES HUB');
+    await tester.tap(find.byKey(const Key('use-current-location')));
+    await tester.pump();
+    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+  });
+
+  testWidgets('an unanswered location prompt does not block the app: manual '
+      'search appears after the permission timeout', (tester) async {
+    final location = FakeLocationService(); // the prompt is never answered
+    await pumpApp(
+      tester,
+      buildTestApp(
+        location: location,
+        environment: FakeEnvironmentRepository(),
+        places: places,
+      ),
+    );
+    expect(find.text('Checking location permission…'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10));
+    expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
+    expect(
+      find.text(const LocationPermissionUnanswered().message),
+      findsOneWidget,
+    );
+    await type(tester, originField, 'Tampines Hub');
+    await pick(tester, 'OUR TAMPINES HUB');
+    expect(find.text(DestinationCard.prompt), findsOneWidget);
   });
 
   testWidgets('changing the destination never alters the origin', (

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/status_rows.dart';
 import '../domain/place.dart';
 import '../domain/place_search_session.dart';
 import '../place_providers.dart';
@@ -75,11 +76,13 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
           controller: _controller,
           focusNode: _focus,
           textInputAction: TextInputAction.search,
+          maxLength: PlaceSearchConfig.maxQueryLength,
           decoration: InputDecoration(
             labelText: widget.label,
             hintText: PlaceSearchField.hint,
             prefixIcon: const Icon(Icons.search),
             border: const OutlineInputBorder(),
+            counterText: '', // the limit is generous; no visible counter
           ),
           onChanged: (text) {
             widget.onEditingStarted?.call();
@@ -156,11 +159,9 @@ class _SearchBody extends StatelessWidget {
       ),
       PlaceSearchFailed(:final failure) => Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: Row(
-          children: [
-            Expanded(child: Text(placeSearchFailureMessage(failure))),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
+        child: ErrorRetryRow(
+          message: placeSearchFailureMessage(failure),
+          onRetry: onRetry,
         ),
       ),
     };
@@ -181,7 +182,7 @@ String placeSearchFailureMessage(AppFailure failure) => switch (failure) {
 /// address identical to the name (HDB blocks) is not repeated.
 String _detailOf(Place place) {
   final postal = place.postalCode;
-  final address = place.address == place.displayName ? null : place.address;
+  final address = place.distinctAddress;
   if (address == null) return postal ?? 'No address details';
   if (postal != null && !address.contains(postal)) return '$address · $postal';
   return address;

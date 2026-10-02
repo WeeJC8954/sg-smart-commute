@@ -67,7 +67,8 @@ lib/
 - `lib/core/`: `config/app_config.dart` (SG bounds, endpoints, timings, stale thresholds), `errors/app_failure.dart`
   (sealed `AppFailure`), `geo/geo.dart` (`LatLng`, `isWithinSingapore`, haversine), `time/` (SGT formatting,
   injectable `Clock`), `http/json_http_client.dart` (timeout, bounded retry, 429, dedup, optional per-URI rate limiter),
-  `http/rate_limiter.dart` (generic `RollingWindowRateLimiter`; only the provider wiring maps data.gov.sg to it),
+  `http/rate_limiter.dart` (generic `RollingWindowRateLimiter`; only the provider wiring maps data.gov.sg and OneMap
+  to their own limiters), `ui/status_rows.dart` (shared `BusyRow` / `ErrorRetryRow`),
   `location/` (`LocationService` seam + geolocator adapter).
 - `lib/features/origin/`: `OriginController` (Riverpod `Notifier`) is the permission → timeout → fallback →
   late-fix state machine. `Origin` carries provenance (`gps` | `manual`). `OriginCard` is the UI. Each
@@ -92,12 +93,12 @@ lib/
   - `presentation/place_search_field.dart`: one search component for origin and destination. States: loading,
     too short, no results, no exact postcode, unauthorized, and network/unavailable/malformed with Retry. Shows the
     attribution.
-- The origin card uses `PlaceSearchField` for the manual origin. It calls the unchanged
-  `OriginController.beginManualEntry` / `selectManualOrigin`, so the M1 late-fix and attempt-id rules apply as before.
+- The origin card uses `PlaceSearchField` for the manual origin. It calls `OriginController.beginManualEntry` /
+  `selectManualOrigin`, so the M1 late-fix and attempt-id rules apply.
 - `lib/features/destination/`: `DestinationController` (a separate `Notifier`, so a destination can never change
   the origin) and `DestinationCard` ("Where are you heading to today?", shown once an origin exists).
-- OneMap calls go through the generic `JsonHttpClient` (timeout, retry, 401/403, 429) with no rate limiter, because
-  type-ahead is debounced and cached. Photon / Nominatim / bundled fallbacks are not built (guide §0.1 item 6).
+- OneMap calls go through the generic `JsonHttpClient` (timeout, retry, 401/403, 429) with a shared `OneMapRateLimit`
+  limiter (1 request per 1 s, FIFO, retries included), on top of the debounce and the bounded cache. Photon / Nominatim / bundled fallbacks are not built (guide §0.1 item 6).
 - `ProviderScope(retry: noAutomaticRetry)`: Riverpod 3's automatic retry is off (rate limits; explicit Retry).
 - Dependencies added: `flutter_riverpod` 3.4.3, `geolocator` 14.1.1, `fake_async` (dev).
 
@@ -136,7 +137,9 @@ lib/
   Refresh and Retry invalidate this provider only: the plan is not recomputed, and the cache prevents
   re-requesting a stop inside the TTL.
 - `presentation/option_arrivals.dart`: `OptionArrivals` (under each option, after "Take Bus …") and
-  `ArrivalsFooter` (source, check time, "Refresh arrivals"). The M3 journey card embeds them; the route itself is
+  `ArrivalsFooter` (source, check time, "Refresh arrivals"). `OptionArrivals` watches the UI-only
+  `uiTickProvider`, so ETAs count down from the clock between checks and give way to a refresh prompt once the
+  check is outdated; implausible times are dropped by `nextArrivals` (`isPlausibleEta`). The M3 journey card embeds them; the route itself is
   rendered exactly as in M3 and never depends on arrival state.
 - New failure: `BusArrivalUnavailable` (provider error body). Network / timeout / HTTP / malformed reuse the
   existing `NetworkUnavailable` / `ApiUnavailable` / `InvalidApiResponse`.

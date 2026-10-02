@@ -29,13 +29,19 @@ class PlaceQuery {
   /// `Blk 123 Ang Mo Kio Ave 6` but finds `123 Ang Mo Kio Ave 6`. A bare
   /// `Block 71` (a place name) is kept as typed.
   ///
+  /// A query longer than [maxLength] characters is cut to it (then trimmed).
+  ///
   /// [minLength] is the shortest searchable non-postal-code query (§8.3).
   factory PlaceQuery.normalise(
     String raw, {
     int minLength = PlaceSearchConfig.minQueryLength,
+    int maxLength = PlaceSearchConfig.maxQueryLength,
   }) {
     var text = raw.trim().replaceAll(_whitespace, ' ');
     text = text.replaceFirst(_blockPrefix, '');
+    if (text.runes.length > maxLength) {
+      text = String.fromCharCodes(text.runes.take(maxLength)).trimRight();
+    }
     return PlaceQuery._(
       text,
       isPostalCode: _postalCode.hasMatch(text),

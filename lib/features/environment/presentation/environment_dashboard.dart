@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../../../core/time/clock.dart';
+import '../../../core/ui/status_rows.dart';
 import '../../origin/domain/origin_controller.dart';
 import '../domain/environment_locator.dart';
 import '../domain/environment_models.dart';
@@ -20,6 +21,7 @@ class EnvironmentDashboard extends ConsumerWidget {
     final position = ref.watch(
       originControllerProvider.select((s) => s.origin?.position),
     );
+    ref.watch(uiTickProvider); // recompute ages, Stale and UV night over time
     final now = ref.watch(clockProvider)();
 
     return Column(
@@ -135,16 +137,33 @@ class _SnapshotTile<T> extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final value = ref.watch(provider);
+    void retry() => ref.invalidate(provider);
+    // Riverpod keeps the previous value when a refresh fails: that reading
+    // stays on screen with its own timestamp, and the failure is shown under
+    // it (docs/data-sources.md: "show the stale reading with its timestamp").
+    final refreshFailed = value.hasError && !value.isLoading;
     final Widget body;
     if (value.isLoading && !value.hasValue) {
-      body = _Loading(label: 'Loading $title…');
-    } else if (value.hasError && !value.isLoading) {
-      body = _ErrorView(
-        failure: value.error,
-        onRetry: () => ref.invalidate(provider),
+      body = BusyRow('Loading $title…');
+    } else if (refreshFailed && !value.hasValue) {
+      body = ErrorRetryRow(
+        message: failureMessage(value.error),
+        onRetry: retry,
       );
     } else if (needsPosition && position == null) {
       body = const Text('Waiting for your location');
+    } else if (refreshFailed) {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _guardBuild(context, value.requireValue),
+          ErrorRetryRow(
+            key: const Key('refresh-failed'),
+            message: "Couldn't refresh: ${failureMessage(value.error)}",
+            onRetry: retry,
+          ),
+        ],
+      );
     } else {
       body = _guardBuild(context, value.requireValue);
     }
@@ -182,7 +201,7 @@ class _SnapshotTile<T> extends ConsumerWidget {
     try {
       return builder(snapshot, position);
     } on AppFailure catch (f) {
-      return _ErrorView(failure: f, onRetry: null);
+      return ErrorRetryRow(message: f.message);
     }
   }
 }
@@ -234,46 +253,6 @@ class _ReadingView extends StatelessWidget {
               ),
           ],
         ),
-      ],
-    );
-  }
-}
-
-class _Loading extends StatelessWidget {
-  const _Loading({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: label,
-    child: Row(
-      children: [
-        const SizedBox.square(
-          dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        const SizedBox(width: 8),
-        ExcludeSemantics(child: Text(label)),
-      ],
-    ),
-  );
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.failure, required this.onRetry});
-  final Object? failure;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final message = failure is AppFailure
-        ? (failure as AppFailure).message
-        : 'Something went wrong.';
-    return Row(
-      children: [
-        Expanded(child: Text(message)),
-        if (onRetry != null)
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
       ],
     );
   }

@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
@@ -293,6 +294,96 @@ void main() {
     expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
     expect(env.calls['psi'], 2);
     expect(env.calls['pm25'], 1); // Retry is per dataset.
+  });
+
+  testWidgets('a failed refresh keeps the previous reading and its time', (
+    tester,
+  ) async {
+    var now = fakeNow;
+    location = FakeLocationService(
+      access: LocationAccess.granted,
+      position: bishan,
+    );
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, clock: () => now),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    const asOf = 'As of 12:00 SGT · 12 min ago';
+    expect(inTile('tile-psi', asOf), findsOneWidget);
+
+    env.failPsi = const NetworkUnavailable();
+    await tester.tap(find.byKey(const Key('refresh-conditions')));
+    await tester.pump();
+    await tester.pump();
+
+    // The earlier reading and its timestamp stay; the failure is added.
+    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', asOf), findsOneWidget);
+    final failed = find.descendant(
+      of: tile('tile-psi'),
+      matching: find.byKey(const Key('refresh-failed')),
+    );
+    expect(failed, findsOneWidget);
+    expect(
+      find.descendant(
+        of: failed,
+        matching: find.text(
+          "Couldn't refresh: ${const NetworkUnavailable().message}",
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    // Retry recovers and removes the failure line.
+    env.failPsi = null;
+    final retry = find.descendant(of: failed, matching: find.text('Retry'));
+    await tester.ensureVisible(retry);
+    await tester.pump();
+    await tester.tap(retry);
+    await tester.pump();
+    await tester.pump();
+    expect(find.byKey(const Key('refresh-failed')), findsNothing);
+    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(env.calls['psi'], 3);
+  });
+
+  testWidgets('ages, the Stale marker and the UV night rule update while '
+      'the screen stays open, without new requests', (tester) async {
+    var now = fakeNow; // 12:12 SGT; readings are from 12:00 SGT
+    location = FakeLocationService(
+      access: LocationAccess.granted,
+      position: bishan,
+    );
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, clock: () => now),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(inTile('tile-psi', 'As of 12:00 SGT · 12 min ago'), findsOneWidget);
+    expect(find.text('Stale'), findsNothing);
+    expect(inTile('tile-uv', 'UV 7 (High)'), findsOneWidget);
+
+    now = now.add(const Duration(minutes: 30));
+    await tester.pump(AppTimings.uiTick);
+    expect(inTile('tile-psi', 'As of 12:00 SGT · 42 min ago'), findsOneWidget);
+
+    // 14:01 SGT: PM2.5 and PSI pass their 2 h threshold.
+    now = fakeNow.add(const Duration(hours: 1, minutes: 49));
+    await tester.pump(AppTimings.uiTick);
+    expect(inTile('tile-psi', 'Stale'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Stale'), findsOneWidget);
+    expect(inTile('tile-forecast', 'Stale'), findsNothing); // 3 h threshold
+
+    // 20:00 SGT: the UV night rule switches on.
+    now = DateTime.utc(2026, 10, 1, 12);
+    await tester.pump(AppTimings.uiTick);
+    expect(inTile('tile-uv', 'UV not measured at night'), findsOneWidget);
+
+    expect(env.calls, {'forecast': 1, 'uv': 1, 'pm25': 1, 'psi': 1});
   });
 
   testWidgets('stale readings are marked, not replaced', (tester) async {

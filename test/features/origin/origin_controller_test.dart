@@ -28,6 +28,9 @@ void main() {
       overrides: [
         locationServiceProvider.overrideWithValue(location),
         locationTimeoutProvider.overrideWithValue(const Duration(seconds: 10)),
+        locationPermissionTimeoutProvider.overrideWithValue(
+          const Duration(seconds: 10),
+        ),
       ],
     );
     c.listen(originControllerProvider, (_, _) {});
@@ -89,11 +92,10 @@ void main() {
     });
   });
 
-  test('timeout starts only after permission resolves as granted', () {
+  test('the acquisition timeout starts only once permission is granted', () {
     fakeAsync((async) {
       final c = makeContainer();
-      // The permission dialog stays open for 30 s: no timeout yet.
-      async.elapse(const Duration(seconds: 30));
+      async.elapse(const Duration(seconds: 5)); // dialog open, answered at 5 s
       expect(
         c.read(originControllerProvider).phase,
         OriginPhase.checkingPermission,
@@ -109,6 +111,99 @@ void main() {
       expect(s.fallbackReason, isA<LocationTimeout>());
       c.dispose();
     });
+  });
+
+  // A browser location prompt left open never resolves (issue #9).
+  group('unanswered permission prompt', () {
+    void leaveUnanswered(FakeAsync async) {
+      async.elapse(const Duration(milliseconds: 9999));
+      async.flushMicrotasks();
+    }
+
+    test('falls back to manual entry after the permission timeout', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        leaveUnanswered(async);
+        expect(
+          c.read(originControllerProvider).phase,
+          OriginPhase.checkingPermission,
+        );
+        async.elapse(const Duration(milliseconds: 1));
+        final s = c.read(originControllerProvider);
+        expect(s.phase, OriginPhase.needsManual);
+        expect(s.fallbackReason, isA<LocationPermissionUnanswered>());
+        expect(location.positionRequests, 0);
+        c.dispose();
+      });
+    });
+
+    test('granted later, nothing typed → acquires and sets the GPS origin', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        async.elapse(const Duration(seconds: 30));
+        location.grant();
+        async.flushMicrotasks();
+        expect(c.read(originControllerProvider).phase, OriginPhase.acquiring);
+        location.fix(bishan);
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expect(s.phase, OriginPhase.ready);
+        expect(s.origin!.provenance, OriginProvenance.gps);
+        c.dispose();
+      });
+    });
+
+    test('granted later while typing → the fix is only offered', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        async.elapse(const Duration(seconds: 30));
+        c.read(originControllerProvider.notifier).beginManualEntry();
+        location.grant();
+        async.flushMicrotasks();
+        expect(c.read(originControllerProvider).phase, OriginPhase.needsManual);
+        location.fix(bishan);
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expect(s.origin, isNull);
+        expect(s.offeredGpsFix, bishan);
+        c.dispose();
+      });
+    });
+
+    test('denied later → the reason becomes "denied"', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        async.elapse(const Duration(seconds: 30));
+        location.answer(LocationAccess.denied);
+        async.flushMicrotasks();
+        expect(
+          c.read(originControllerProvider).fallbackReason,
+          isA<LocationPermissionDenied>(),
+        );
+        c.dispose();
+      });
+    });
+
+    test(
+      'a manual origin chosen meanwhile is kept; a later fix is offered',
+      () {
+        fakeAsync((async) {
+          final c = makeContainer();
+          async.elapse(const Duration(seconds: 30));
+          c
+              .read(originControllerProvider.notifier)
+              .selectManualOrigin('Tampines', tampines);
+          location.grant();
+          async.flushMicrotasks();
+          location.fix(bishan);
+          async.flushMicrotasks();
+          final s = c.read(originControllerProvider);
+          expect(s.origin!.provenance, OriginProvenance.manual);
+          expect(s.offeredGpsFix, bishan);
+          c.dispose();
+        });
+      },
+    );
   });
 
   test('out-of-Singapore fix (emulator default) → manual origin', () {
@@ -313,6 +408,163 @@ void main() {
       expect(s.origin!.position, bishan);
       expect(s.fallbackReason, isNull);
       c.dispose();
+    });
+  });
+
+  group('cancelChange ("Keep this origin")', () {
+    test('returns to the same origin, GPS or manual', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        location.grant();
+        async.flushMicrotasks();
+        location.fix(bishan);
+        async.flushMicrotasks();
+        final ctl = c.read(originControllerProvider.notifier);
+        final before = c.read(originControllerProvider).origin;
+        ctl
+          ..changeOrigin()
+          ..cancelChange();
+        final s = c.read(originControllerProvider);
+        expect(s.phase, OriginPhase.ready);
+        expect(s.origin, same(before));
+        expect(s.manualEntryInProgress, isFalse);
+        c.dispose();
+      });
+    });
+
+    test('does nothing on the fallback prompt (no origin to keep)', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        location.answer(LocationAccess.denied);
+        async.flushMicrotasks();
+        c.read(originControllerProvider.notifier).cancelChange();
+        final s = c.read(originControllerProvider);
+        expect(s.phase, OriginPhase.needsManual);
+        expect(s.fallbackReason, isA<LocationPermissionDenied>());
+        c.dispose();
+      });
+    });
+  });
+
+  // "Try location again" behind a manual origin (issue #13).
+  group('background retry with a manual origin', () {
+    ProviderContainer manualAfterDenial(FakeAsync async) {
+      final c = makeContainer();
+      location.answer(LocationAccess.denied);
+      async.flushMicrotasks();
+      c
+          .read(originControllerProvider.notifier)
+          .selectManualOrigin('Tampines', tampines);
+      location.reset();
+      c.read(originControllerProvider.notifier).retryLocation();
+      async.flushMicrotasks();
+      return c;
+    }
+
+    void expectTampinesKept(OriginState s) {
+      expect(s.phase, OriginPhase.ready);
+      expect(s.origin!.provenance, OriginProvenance.manual);
+      expect(s.origin!.position, tampines);
+    }
+
+    test('reports progress, then offers the fix', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        expect(c.read(originControllerProvider).locatingInBackground, isTrue);
+        location.grant();
+        async.flushMicrotasks();
+        location.fix(bishan);
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.locatingInBackground, isFalse);
+        expect(s.backgroundFailure, isNull);
+        expect(s.offeredGpsFix, bishan);
+        c.dispose();
+      });
+    });
+
+    test('a denial is reported and keeps the origin', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        location.answer(LocationAccess.denied);
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.locatingInBackground, isFalse);
+        expect(s.backgroundFailure, isA<LocationPermissionDenied>());
+        c.dispose();
+      });
+    });
+
+    test('a timeout is reported; a fix after it is still offered', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        location.grant();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 10));
+        var s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.backgroundFailure, isA<LocationTimeout>());
+
+        location.fix(bishan);
+        async.flushMicrotasks();
+        s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.offeredGpsFix, bishan);
+        expect(s.backgroundFailure, isNull);
+        c.dispose();
+      });
+    });
+
+    test('an unanswered prompt is reported too', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        async.elapse(const Duration(seconds: 10));
+        final s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.backgroundFailure, isA<LocationPermissionUnanswered>());
+        c.dispose();
+      });
+    });
+
+    test('a prompt answered after the timeout resumes and reports its own '
+        'outcome', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        async.elapse(const Duration(seconds: 10));
+        expect(
+          c.read(originControllerProvider).backgroundFailure,
+          isA<LocationPermissionUnanswered>(),
+        );
+        location.grant();
+        async.flushMicrotasks();
+        var s = c.read(originControllerProvider);
+        expect(s.locatingInBackground, isTrue);
+        expect(s.backgroundFailure, isNull);
+
+        async.elapse(const Duration(seconds: 10)); // no fix
+        s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.locatingInBackground, isFalse);
+        expect(s.backgroundFailure, isA<LocationTimeout>());
+        c.dispose();
+      });
+    });
+
+    test('an out-of-Singapore fix is reported, never offered', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        location.grant();
+        async.flushMicrotasks();
+        location.fix(mountainView);
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.offeredGpsFix, isNull);
+        expect(s.backgroundFailure, isA<LocationOutsideSingapore>());
+        c.dispose();
+      });
     });
   });
 

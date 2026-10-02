@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/status_rows.dart';
 import '../../bus_arrival/presentation/option_arrivals.dart';
 import '../../destination/domain/destination_controller.dart';
 import '../../origin/domain/origin_controller.dart';
@@ -44,11 +45,11 @@ class JourneyCard extends ConsumerWidget {
             Text('Suggested journey', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             switch (plan) {
-              AsyncValue(isLoading: true) => const _Busy(
+              AsyncValue(isLoading: true) => const BusyRow(
                 'Finding a direct bus…',
               ),
-              AsyncValue(:final error?, isLoading: false) => _Failed(
-                error: error,
+              AsyncValue(:final error?, isLoading: false) => ErrorRetryRow(
+                message: failureMessage(error),
                 onRetry: () => ref
                   ..invalidate(busNetworkProvider)
                   ..invalidate(journeyPlanProvider),
@@ -196,11 +197,11 @@ class _Mrt extends StatelessWidget {
       children: [
         Text('MRT alternative', style: theme.textTheme.titleSmall),
         switch (mrt) {
-          AsyncValue(isLoading: true) => const _Busy(
+          AsyncValue(isLoading: true) => const BusyRow(
             'Finding the nearest MRT…',
           ),
-          AsyncValue(:final error?, isLoading: false) => _Failed(
-            error: error,
+          AsyncValue(:final error?, isLoading: false) => ErrorRetryRow(
+            message: failureMessage(error),
             onRetry: onRetry,
           ),
           AsyncValue(:final value) => Column(
@@ -224,44 +225,4 @@ class _Mrt extends StatelessWidget {
   String _line(String label, MrtSuggestion? s) => s == null
       ? '$label: none within about ${distanceText(maxMeters)}'
       : '$label: ${s.station.name} — ${s.walk.label}';
-}
-
-class _Failed extends StatelessWidget {
-  const _Failed({required this.error, required this.onRetry});
-  final Object error;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          error is AppFailure
-              ? (error as AppFailure).message
-              : const InvalidApiResponse().message,
-        ),
-      ),
-      TextButton(onPressed: onRetry, child: const Text('Retry')),
-    ],
-  );
-}
-
-class _Busy extends StatelessWidget {
-  const _Busy(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: label,
-    child: Row(
-      children: [
-        const SizedBox.square(
-          dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        const SizedBox(width: 8),
-        ExcludeSemantics(child: Text(label)),
-      ],
-    ),
-  );
 }

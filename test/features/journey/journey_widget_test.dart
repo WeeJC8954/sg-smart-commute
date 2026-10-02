@@ -368,7 +368,7 @@ void main() {
       ),
     ];
 
-    // Pulau Ubin Jetty is ~5.4 km from the nearest fake exit (Tampines).
+    // Pulau Ubin Jetty is ~5.8 km from the nearest fake exit (Tampines).
     for (final (meters, shown) in [
       (null, '1.5 km'), // the default, JourneyConfig.mrtMaxDistanceMeters
       (2500.0, '2.5 km'),

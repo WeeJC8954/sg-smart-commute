@@ -41,6 +41,8 @@ class OriginState {
     this.fallbackReason,
     this.offeredGpsFix,
     this.manualEntryInProgress = false,
+    this.locatingInBackground = false,
+    this.backgroundFailure,
   });
 
   const OriginState.initial() : this(phase: OriginPhase.checkingPermission);
@@ -60,6 +62,14 @@ class OriginState {
   /// The user has started manual entry; a late fix must not overwrite it.
   final bool manualEntryInProgress;
 
+  /// "Try location again" is running behind a manual origin. Its fix is only
+  /// offered ([offeredGpsFix]); the manual origin stays in effect.
+  final bool locatingInBackground;
+
+  /// Why the last background attempt found no usable fix. Shown as a note;
+  /// it never changes the origin.
+  final LocationFailure? backgroundFailure;
+
   OriginState copyWith({
     OriginPhase? phase,
     Origin? origin,
@@ -68,6 +78,9 @@ class OriginState {
     LatLng? offeredGpsFix,
     bool clearOfferedGpsFix = false,
     bool? manualEntryInProgress,
+    bool? locatingInBackground,
+    LocationFailure? backgroundFailure,
+    bool clearBackgroundFailure = false,
   }) => OriginState(
     phase: phase ?? this.phase,
     origin: origin ?? this.origin,
@@ -78,5 +91,9 @@ class OriginState {
         ? null
         : (offeredGpsFix ?? this.offeredGpsFix),
     manualEntryInProgress: manualEntryInProgress ?? this.manualEntryInProgress,
+    locatingInBackground: locatingInBackground ?? this.locatingInBackground,
+    backgroundFailure: clearBackgroundFailure
+        ? null
+        : (backgroundFailure ?? this.backgroundFailure),
   );
 }

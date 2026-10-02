@@ -73,7 +73,8 @@ Don't add a parallel `LoadState` type.
 Key flows that span several files:
 
 - **Origin** (`features/origin/domain/origin_controller.dart`): a `Notifier` state machine — permission →
-  10 s timeout (started only after permission is granted) → GPS fix validated against SG bounds → manual
+  10 s timeout (started only after permission is granted; the permission prompt has its own 10 s bound that falls
+  back to manual entry without abandoning the attempt) → GPS fix validated against SG bounds → manual
   fallback. Each acquisition attempt has an id and superseded attempts' results are dropped. **No location
   attempt may replace a manual origin**; a late or retried fix is only offered via the "Use my current
   location" chip (`useCurrentLocation()`). Since M2 the manual origin is a searched place
@@ -101,12 +102,14 @@ Key flows that span several files:
 ## Testing
 
 - Test seams overridden via providers: `locationServiceProvider`, `environmentRepositoryProvider`,
-  `locationTimeoutProvider`, `clockProvider`, `placeSearchRepositoryProvider` (plus
+  `locationTimeoutProvider`, `locationPermissionTimeoutProvider`, `clockProvider`,
+  `placeSearchRepositoryProvider` (plus
   `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
   `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`, `busArrivalRepositoryProvider`,
   `busArrivalCacheTtlProvider`. `test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
-  `integration_test/`.
+  `integration_test/`. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
+  with fake time (`tester.pump(AppTimings.uiTick)`).
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual
   smoke tests and probes in `docs/testing.md`.
 - NEA parser tests use real payloads captured once in `test/fixtures/*.json`.

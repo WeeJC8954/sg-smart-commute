@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/status_rows.dart';
 import '../../places/presentation/place_search_field.dart';
 import '../domain/origin.dart';
 import '../domain/origin_controller.dart';
@@ -23,27 +24,55 @@ class OriginCard extends ConsumerWidget {
     final children = <Widget>[];
     switch (state.phase) {
       case OriginPhase.checkingPermission:
-        children.add(const _Busy('Checking location permission…'));
+        children.add(const BusyRow('Checking location permission…'));
       case OriginPhase.acquiring:
-        children.add(const _Busy('Finding your location…'));
+        children.add(const BusyRow('Finding your location…'));
       case OriginPhase.ready:
-        children.add(_OriginLine(origin: state.origin!));
+        final origin = state.origin!;
+        final manual = origin.provenance == OriginProvenance.manual;
+        children.add(_OriginLine(origin: origin));
         children.add(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              key: const Key('change-origin'),
-              onPressed: controller.changeOrigin,
-              child: const Text('Change'),
-            ),
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton(
+                key: const Key('change-origin'),
+                onPressed: controller.changeOrigin,
+                child: const Text('Change'),
+              ),
+              // GPS can be retried at any time behind a manual origin; the
+              // fix is only offered, never applied (docs/assumptions.md).
+              if (manual)
+                TextButton(
+                  key: const Key('retry-location'),
+                  onPressed: state.locatingInBackground
+                      ? null
+                      : controller.retryLocation,
+                  child: const Text('Try location again'),
+                ),
+            ],
           ),
         );
+        if (manual && state.locatingInBackground) {
+          children.add(const BusyRow('Finding your location…', compact: true));
+        }
+        final failure = state.backgroundFailure;
+        if (manual && failure != null) {
+          children.add(
+            Text(
+              '${locationFailureText(failure, isWeb: kIsWeb)} '
+              'Your chosen origin is kept.',
+              key: const Key('background-location-failure'),
+              style: theme.textTheme.bodySmall,
+            ),
+          );
+        }
       case OriginPhase.needsManual:
         final reason = state.fallbackReason;
         if (reason != null) {
           children
             ..add(Text(fallbackPrompt, style: theme.textTheme.titleMedium))
-            ..add(Text(reason.message))
+            ..add(Text(locationFailureText(reason, isWeb: kIsWeb)))
             ..add(_FallbackActions(reason: reason));
         } else {
           children.add(
@@ -62,10 +91,23 @@ class OriginCard extends ConsumerWidget {
             onSelected: (place) => controller.selectManualOrigin(
               place.displayName,
               place.position,
-              detail: place.address,
+              detail: place.distinctAddress,
             ),
           ),
         );
+        // Opened with "Change": the current origin can be kept.
+        if (reason == null && state.origin != null) {
+          children.add(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                key: const Key('keep-origin'),
+                onPressed: controller.cancelChange,
+                child: const Text('Keep this origin'),
+              ),
+            ),
+          );
+        }
     }
 
     if (state.offeredGpsFix != null) {
@@ -134,6 +176,18 @@ class _OriginLine extends StatelessWidget {
   }
 }
 
+/// User-facing text for a location failure. On Web, geolocator reports any
+/// error of the browser's location request (blocked, position unavailable,
+/// OS location off) as "permanently denied", and there is no settings deep
+/// link, so the Web wording covers both and points to the site settings.
+String locationFailureText(LocationFailure reason, {required bool isWeb}) =>
+    switch (reason) {
+      LocationPermissionPermanentlyDenied() when isWeb =>
+        'Location is blocked or unavailable in this browser. You can allow it '
+            "in the site's settings.",
+      _ => reason.message,
+    };
+
 class _FallbackActions extends ConsumerWidget {
   const _FallbackActions({required this.reason});
   final LocationFailure reason;
@@ -160,24 +214,4 @@ class _FallbackActions extends ConsumerWidget {
       ],
     );
   }
-}
-
-class _Busy extends StatelessWidget {
-  const _Busy(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: label,
-    child: Row(
-      children: [
-        const SizedBox.square(
-          dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        const SizedBox(width: 8),
-        ExcludeSemantics(child: Text(label)),
-      ],
-    ),
-  );
 }

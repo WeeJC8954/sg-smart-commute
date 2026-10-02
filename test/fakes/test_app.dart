@@ -32,6 +32,7 @@ Widget buildTestApp({
   Duration? placeSearchDebounce,
   int? placeSearchMinQueryLength,
   Duration locationTimeout = const Duration(seconds: 10),
+  Duration locationPermissionTimeout = const Duration(seconds: 10),
   Clock? clock,
 }) {
   return ProviderScope(
@@ -40,6 +41,9 @@ Widget buildTestApp({
       locationServiceProvider.overrideWithValue(location),
       environmentRepositoryProvider.overrideWithValue(environment),
       locationTimeoutProvider.overrideWithValue(locationTimeout),
+      locationPermissionTimeoutProvider.overrideWithValue(
+        locationPermissionTimeout,
+      ),
       clockProvider.overrideWithValue(clock ?? () => fakeNow),
       placeSearchRepositoryProvider.overrideWithValue(
         places ?? FakePlaceSearchRepository(),

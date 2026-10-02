@@ -12,6 +12,12 @@ sealed class AppFailure implements Exception {
   String toString() => '$runtimeType: $message';
 }
 
+/// The user-facing message for an error caught from a provider or a call.
+/// Errors are [AppFailure]s by contract (§13); anything else is reported as
+/// an unexpected response, never with technical detail.
+String failureMessage(Object? error) =>
+    error is AppFailure ? error.message : const InvalidApiResponse().message;
+
 // --- Location -------------------------------------------------------------
 
 sealed class LocationFailure extends AppFailure {
@@ -29,6 +35,15 @@ final class LocationPermissionPermanentlyDenied extends LocationFailure {
   @override
   String get message =>
       'Location permission is blocked. You can allow it in settings.';
+}
+
+/// The permission prompt was not answered within the permission timeout
+/// (e.g. a browser prompt left open). The attempt carries on: if the prompt is
+/// answered later, its fix follows the late-fix rule.
+final class LocationPermissionUnanswered extends LocationFailure {
+  const LocationPermissionUnanswered();
+  @override
+  String get message => 'The location request has not been answered yet.';
 }
 
 final class LocationServiceDisabled extends LocationFailure {
