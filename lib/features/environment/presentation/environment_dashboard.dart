@@ -136,16 +136,33 @@ class _SnapshotTile<T> extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final value = ref.watch(provider);
+    void retry() => ref.invalidate(provider);
+    // Riverpod keeps the previous value when a refresh fails: that reading
+    // stays on screen with its own timestamp, and the failure is shown under
+    // it (docs/data-sources.md: "show the stale reading with its timestamp").
+    final refreshFailed = value.hasError && !value.isLoading;
     final Widget body;
     if (value.isLoading && !value.hasValue) {
       body = BusyRow('Loading $title…');
-    } else if (value.hasError && !value.isLoading) {
+    } else if (refreshFailed && !value.hasValue) {
       body = ErrorRetryRow(
         message: failureMessage(value.error),
-        onRetry: () => ref.invalidate(provider),
+        onRetry: retry,
       );
     } else if (needsPosition && position == null) {
       body = const Text('Waiting for your location');
+    } else if (refreshFailed) {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _guardBuild(context, value.requireValue),
+          ErrorRetryRow(
+            key: const Key('refresh-failed'),
+            message: "Couldn't refresh: ${failureMessage(value.error)}",
+            onRetry: retry,
+          ),
+        ],
+      );
     } else {
       body = _guardBuild(context, value.requireValue);
     }

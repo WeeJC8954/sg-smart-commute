@@ -295,6 +295,60 @@ void main() {
     expect(env.calls['pm25'], 1); // Retry is per dataset.
   });
 
+  testWidgets('a failed refresh keeps the previous reading and its time', (
+    tester,
+  ) async {
+    var now = fakeNow;
+    location = FakeLocationService(
+      access: LocationAccess.granted,
+      position: bishan,
+    );
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, clock: () => now),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    const asOf = 'As of 12:00 SGT · 12 min ago';
+    expect(inTile('tile-psi', asOf), findsOneWidget);
+
+    env.failPsi = const NetworkUnavailable();
+    await tester.tap(find.byKey(const Key('refresh-conditions')));
+    await tester.pump();
+    await tester.pump();
+
+    // The earlier reading and its timestamp stay; the failure is added.
+    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', asOf), findsOneWidget);
+    final failed = find.descendant(
+      of: tile('tile-psi'),
+      matching: find.byKey(const Key('refresh-failed')),
+    );
+    expect(failed, findsOneWidget);
+    expect(
+      find.descendant(
+        of: failed,
+        matching: find.text(
+          "Couldn't refresh: ${const NetworkUnavailable().message}",
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    // Retry recovers and removes the failure line.
+    env.failPsi = null;
+    final retry = find.descendant(of: failed, matching: find.text('Retry'));
+    await tester.ensureVisible(retry);
+    await tester.pump();
+    await tester.tap(retry);
+    await tester.pump();
+    await tester.pump();
+    expect(find.byKey(const Key('refresh-failed')), findsNothing);
+    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(env.calls['psi'], 3);
+  });
+
   testWidgets('stale readings are marked, not replaced', (tester) async {
     location = FakeLocationService(
       access: LocationAccess.granted,
