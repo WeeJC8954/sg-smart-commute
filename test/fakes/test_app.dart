@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
+import 'package:sg_smart_commute/features/bus_arrival/bus_arrival_providers.dart';
+import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival_repository.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_repository.dart';
 import 'package:sg_smart_commute/features/environment/environment_providers.dart';
 import 'package:sg_smart_commute/features/journey/data/mrt_asset_repository.dart';
@@ -12,6 +14,7 @@ import 'package:sg_smart_commute/features/places/domain/place.dart';
 import 'package:sg_smart_commute/features/places/place_providers.dart';
 import 'package:sg_smart_commute/main.dart';
 
+import 'fake_bus_arrival_repository.dart';
 import 'fake_bus_network.dart';
 import 'fake_environment_repository.dart';
 import 'fake_place_search_repository.dart';
@@ -24,6 +27,8 @@ Widget buildTestApp({
   BusNetworkRepository? busNetwork,
   MrtAssetRepository? mrt,
   double? mrtMaxDistanceMeters,
+  BusArrivalRepository? busArrivals,
+  Duration? busArrivalCacheTtl,
   Duration? placeSearchDebounce,
   int? placeSearchMinQueryLength,
   Duration locationTimeout = const Duration(seconds: 10),
@@ -43,6 +48,11 @@ Widget buildTestApp({
         busNetwork ?? FakeBusNetworkRepository(),
       ),
       mrtRepositoryProvider.overrideWithValue(mrt ?? fakeMrtRepository()),
+      busArrivalRepositoryProvider.overrideWithValue(
+        busArrivals ?? FakeBusArrivalRepository(),
+      ),
+      if (busArrivalCacheTtl != null)
+        busArrivalCacheTtlProvider.overrideWithValue(busArrivalCacheTtl),
       if (mrtMaxDistanceMeters != null)
         mrtMaxDistanceMetersProvider.overrideWithValue(mrtMaxDistanceMeters),
       if (placeSearchDebounce != null)

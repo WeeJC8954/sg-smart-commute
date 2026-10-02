@@ -11,6 +11,7 @@ import 'package:sg_smart_commute/features/journey/domain/walking.dart';
 import 'package:sg_smart_commute/features/journey/presentation/journey_card.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
 
+import '../../fakes/fake_bus_arrival_repository.dart';
 import '../../fakes/fake_bus_network.dart';
 import '../../fakes/fake_environment_repository.dart';
 import '../../fakes/fake_location_service.dart';
@@ -60,11 +61,13 @@ String walk(LatLng a, LatLng b) => WalkEstimate.between(a, b).label;
 void main() {
   late FakeBusNetworkRepository bus;
   late FakePlaceSearchRepository places;
+  late FakeBusArrivalRepository arrivals;
   final stops = fakeBusNetwork().stops;
 
   setUp(() {
     bus = FakeBusNetworkRepository();
     places = FakePlaceSearchRepository();
+    arrivals = FakeBusArrivalRepository();
   });
 
   Widget gpsApp({
@@ -81,6 +84,7 @@ void main() {
     busNetwork: network ?? bus,
     mrt: fakeMrtRepository(fail: mrtFails),
     mrtMaxDistanceMeters: mrtMaxDistanceMeters,
+    busArrivals: arrivals,
   );
 
   Widget deniedApp() => buildTestApp(
@@ -89,6 +93,7 @@ void main() {
     places: places,
     busNetwork: bus,
     mrt: fakeMrtRepository(),
+    busArrivals: arrivals,
   );
 
   testWidgets('no journey card, and no bus data load, until both ends exist', (
@@ -152,11 +157,11 @@ void main() {
     );
     expect(find.byKey(const Key('journey-alternative-3')), findsNothing);
 
-    // Estimates are labelled as estimates; no arrival time is invented.
+    // Walks are labelled as estimates. Live arrivals (M4) have their own
+    // tests in test/features/bus_arrival/.
     expect(find.textContaining('min walk (est.)'), findsWidgets);
-    expect(inCard(JourneyCard.noArrivals), findsOneWidget);
     expect(inCard(JourneyCard.estimateNote), findsOneWidget);
-    expect(find.textContaining(RegExp(r'\b(Arr|arriving)\b')), findsNothing);
+    expect(find.byKey(const Key('arrivals-footer')), findsOneWidget);
   });
 
   testWidgets(
@@ -243,7 +248,9 @@ void main() {
     );
     await searchAndPick(tester, destinationField, '238801', 'ION ORCHARD');
     expect(inCard('No direct bus found'), findsOneWidget);
-    expect(inCard(JourneyCard.noArrivals), findsNothing);
+    // No displayed bus option → no arrivals requested or shown.
+    expect(find.byKey(const Key('arrivals-footer')), findsNothing);
+    expect(arrivals.totalCalls, 0);
     expect(
       find.descendant(
         of: find.byKey(const Key('journey-mrt')),

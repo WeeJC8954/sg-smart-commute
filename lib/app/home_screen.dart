@@ -60,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
                 Text(
                   'Data: $neaSourceLabel (Singapore Open Data Licence) · '
                   '$oneMapAttribution · $busrouterAttribution · '
-                  '$mrtAttribution',
+                  '$arriveLahAttribution · $mrtAttribution',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

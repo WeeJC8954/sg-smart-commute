@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../bus_arrival/presentation/option_arrivals.dart';
 import '../../destination/domain/destination_controller.dart';
 import '../../origin/domain/origin_controller.dart';
 import '../domain/direct_bus_planner.dart';
@@ -9,15 +10,13 @@ import '../domain/mrt.dart';
 import '../journey_providers.dart';
 import 'distance_text.dart';
 
-/// The journey result (guide v2.1 §5.6, §9): one "Suggested" direct bus plus
-/// up to two alternatives, or a clear "no direct bus" / walk / unavailable
-/// state, and the MRT alternative. No arrival times: those come with live
-/// data in a later milestone, and are never invented.
+/// The journey result (guide v2.1 §5.6, §9, §10): one "Suggested" direct bus
+/// plus up to two alternatives, each with its live arrivals, or a clear
+/// "no direct bus" / walk / unavailable state, and the MRT alternative. Live
+/// arrivals are never invented, and their failure never hides the route.
 class JourneyCard extends ConsumerWidget {
   const JourneyCard({super.key});
 
-  static const String noArrivals =
-      'Live bus arrival times are not available yet.';
   static const String estimateNote =
       'Walking times are straight-line estimates, not routes.';
 
@@ -101,22 +100,27 @@ class _Plan extends StatelessWidget {
           ),
         ],
       ),
-      DirectBusOptions(:final options) => Column(
+      final DirectBusOptions direct => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Option(
             key: const Key('journey-suggested'),
-            option: options.first,
+            plan: direct,
+            option: direct.options.first,
             heading: 'Suggested',
           ),
-          if (options.length > 1) ...[
+          if (direct.options.length > 1) ...[
             const SizedBox(height: 12),
             Text('Alternatives', style: theme.textTheme.titleSmall),
-            for (var i = 1; i < options.length; i++)
-              _Option(key: Key('journey-alternative-$i'), option: options[i]),
+            for (var i = 1; i < direct.options.length; i++)
+              _Option(
+                key: Key('journey-alternative-$i'),
+                plan: direct,
+                option: direct.options[i],
+              ),
           ],
           const SizedBox(height: 8),
-          Text(JourneyCard.noArrivals, style: theme.textTheme.bodySmall),
+          ArrivalsFooter(plan: direct),
         ],
       ),
     };
@@ -125,7 +129,13 @@ class _Plan extends StatelessWidget {
 
 /// One direct-bus option, in the order the rider does it.
 class _Option extends StatelessWidget {
-  const _Option({super.key, required this.option, this.heading});
+  const _Option({
+    super.key,
+    required this.plan,
+    required this.option,
+    this.heading,
+  });
+  final DirectBusOptions plan;
   final BusOption option;
   final String? heading;
 
@@ -147,6 +157,11 @@ class _Option extends StatelessWidget {
           Text(
             'Take Bus ${o.service.number} toward ${o.towardName}$loop',
             style: theme.textTheme.titleSmall,
+          ),
+          OptionArrivals(
+            key: Key('arrivals-${o.board.code}-${o.service.number}'),
+            plan: plan,
+            option: o,
           ),
           Text('${o.stops} ${o.stops == 1 ? 'stop' : 'stops'}'),
           Text('Alight at ${o.alight.code} — ${o.alight.name}'),
