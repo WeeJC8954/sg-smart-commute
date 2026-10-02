@@ -23,6 +23,7 @@ Widget buildTestApp({
   PlaceSearchRepository? places,
   BusNetworkRepository? busNetwork,
   MrtAssetRepository? mrt,
+  double? mrtMaxDistanceMeters,
   Duration? placeSearchDebounce,
   int? placeSearchMinQueryLength,
   Duration locationTimeout = const Duration(seconds: 10),
@@ -42,6 +43,8 @@ Widget buildTestApp({
         busNetwork ?? FakeBusNetworkRepository(),
       ),
       mrtRepositoryProvider.overrideWithValue(mrt ?? fakeMrtRepository()),
+      if (mrtMaxDistanceMeters != null)
+        mrtMaxDistanceMetersProvider.overrideWithValue(mrtMaxDistanceMeters),
       if (placeSearchDebounce != null)
         placeSearchDebounceProvider.overrideWithValue(placeSearchDebounce),
       if (placeSearchMinQueryLength != null)

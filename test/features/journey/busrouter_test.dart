@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/http/json_http_client.dart';
 import 'package:sg_smart_commute/features/journey/data/busrouter_parser.dart';
@@ -92,6 +93,16 @@ void main() {
         }),
         unavailable(),
       );
+    });
+
+    test('invalid-share boundary: exactly 5 % passes, just above fails', () {
+      expect(BusrouterValidation.maxInvalidShare, 0.05);
+      Map<String, dynamic> withOneBad(int good) => {
+        for (var i = 0; i < good; i++) 'A$i': [103.8, 1.3, 'Stop $i', 'Road'],
+        'BAD': {'lng': 103.8},
+      };
+      expect(parseBusrouterStops(withOneBad(19)), hasLength(19)); // 1/20 = 5 %
+      expect(() => parseBusrouterStops(withOneBad(18)), unavailable()); // 5.3 %
     });
   });
 

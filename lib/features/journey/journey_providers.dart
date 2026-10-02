@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/geo/geo.dart';
 import '../../core/http/json_http_client.dart';
 import '../destination/domain/destination_controller.dart';
@@ -18,8 +19,12 @@ final busNetworkRepositoryProvider = Provider<BusNetworkRepository>(
 );
 
 /// The bus network, loaded on first use and then held for the session
-/// (whatever the repository implementation). A failure is not held: Retry
-/// invalidates this provider and loads again.
+/// (whatever the repository implementation). A failed load is held too: the
+/// error stays until the user taps Retry on the journey card, which
+/// invalidates this provider and loads again. Changing the origin or
+/// destination re-plans against the held result and does not reload, so a
+/// failure keeps showing the error (with Retry) rather than refetching the
+/// same static data on every change.
 final busNetworkProvider = FutureProvider<BusNetwork>(
   (ref) => ref.watch(busNetworkRepositoryProvider).load(),
 );
@@ -27,6 +32,13 @@ final busNetworkProvider = FutureProvider<BusNetwork>(
 /// The bundled MRT station asset. Overridden with a fake in tests.
 final mrtRepositoryProvider = Provider<MrtAssetRepository>(
   (ref) => MrtAssetRepository(),
+);
+
+/// Beyond this straight-line distance no MRT station is suggested (default:
+/// JourneyConfig). The lookup and the "none within …" text both read it, so
+/// they cannot disagree. Injectable for tests.
+final mrtMaxDistanceMetersProvider = Provider<double>(
+  (ref) => JourneyConfig.mrtMaxDistanceMeters,
 );
 
 /// Planner tunables (defaults: JourneyConfig). Injectable for tests.
@@ -66,9 +78,14 @@ final mrtSuggestionProvider =
       final origin = _origin(ref);
       final destination = _destination(ref);
       if (origin == null || destination == null) return null;
+      final maxMeters = ref.watch(mrtMaxDistanceMetersProvider);
       final stations = await ref.watch(mrtRepositoryProvider).stations();
       return (
-        nearOrigin: nearestMrtStation(stations, origin),
-        nearDestination: nearestMrtStation(stations, destination),
+        nearOrigin: nearestMrtStation(stations, origin, maxMeters: maxMeters),
+        nearDestination: nearestMrtStation(
+          stations,
+          destination,
+          maxMeters: maxMeters,
+        ),
       );
     });

@@ -3,10 +3,6 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../domain/bus_network.dart';
 
-/// Fails the whole dataset when more than this share of entries is malformed:
-/// that points at a schema change, not a stray record.
-const double _maxInvalidShare = 0.05;
-
 const String _dataset = 'busrouter';
 
 /// Parses busrouter `stops.min.json`: `{code: [lng, lat, name, road]}`
@@ -16,7 +12,8 @@ const String _dataset = 'busrouter';
 /// Entries that are not `[number, number, string, string]`, or whose
 /// coordinates fall outside [TransportDataBounds] (which also catches a
 /// lat/lng swap), are dropped. Throws [StaticDataUnavailable] if the top level
-/// is not an object, nothing valid remains, or > 5 % of entries are invalid.
+/// is not an object, nothing valid remains, or more than
+/// [BusrouterValidation.maxInvalidShare] of entries are invalid.
 Map<String, BusStop> parseBusrouterStops(Object? json) {
   if (json is! Map<String, dynamic> || json.isEmpty) {
     throw const StaticDataUnavailable(_dataset, 'stops: not an object');
@@ -103,7 +100,7 @@ void _checkShare(String what, int invalid, int total, bool nothingValid) {
   if (nothingValid) {
     throw StaticDataUnavailable(_dataset, '$what: no valid entries');
   }
-  if (invalid / total > _maxInvalidShare) {
+  if (invalid / total > BusrouterValidation.maxInvalidShare) {
     throw StaticDataUnavailable(
       _dataset,
       '$what: $invalid of $total entries invalid',
