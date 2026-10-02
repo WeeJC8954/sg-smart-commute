@@ -29,7 +29,7 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 | | |
 |---|---|
 | Owner | busrouter.sg (community project by Lim Chee Aun, `github.com/cheeaun/busrouter-sg`), derived from LTA data |
-| Endpoints | `https://data.busrouter.sg/v1/stops.min.json` (~317 KB), `services.min.json` (~255 KB); `routes.min.json` (polylines, Phase 2) |
+| Endpoints | `https://data.busrouter.sg/v1/stops.min.json` (~317 KB), `services.min.json` (~255 KB); `routes.min.json` (~289 KB, one precision-5 polyline per service direction; Phase 2, not loaded yet: fit to stops measured in `docs/map-feasibility.md` §5) |
 | Data used (M3) | Stops `{code: [lng, lat, name, road]}` (**lng first**; converted to latitude-first once, in `busrouter_parser.dart`). Services `{number: {name, routes: [[codes], [codes]?]}}`: one list per direction, in stop order. On 2026-10-01: 5,208 stops, 602 services (406 one-direction, 222 loops with first == last stop) |
 | Auth | None. HTTP 200, CORS `*`, `Cache-Control: public,max-age=86400` |
 | Update cadence | Static; refreshed by the project periodically |
@@ -104,3 +104,9 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 - **LTA DataMall:** needs an AccountKey, and has no browser CORS support. Never called by the app. A local
   reference check is optional and needs the developer's own key (`api-feasibility.md` §5).
 - **OneMap routing:** needs a token.
+- **Phase 2 map candidates ruled out in P2-M0** (`docs/map-feasibility.md` §4, §6):
+  - CARTO basemaps now need a key; keyless tiles are watermarked "API KEY REQUIRED" (seen 2026-10-02).
+  - The OSRM demo server is car-only.
+  - FOSSGIS Valhalla is for development and testing only.
+  - BRouter has no usage policy.
+  - openrouteservice, GraphHopper, Mapbox, Stadia, MapTiler, Thunderforest, Esri and Google Maps need keys.
