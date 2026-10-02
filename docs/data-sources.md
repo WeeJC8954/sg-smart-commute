@@ -37,14 +37,17 @@ All Phase 1 sources are keyless and called directly from the client. Verificatio
 
 | | |
 |---|---|
-| Owner | Community project by Lim Chee Aun (`github.com/cheeaun/arrivelah`), proxying LTA DataMall Bus Arrival |
-| Endpoint | `https://arrivelah2.busrouter.sg/?id={busStopCode}` |
-| Data used | Per service: `next` / `subsequent` arrival `time` (ISO `+08:00`), `duration_ms`, `load` (SEA/SDA/LSD), `feature` (`WAB`), `type` |
-| Auth | None |
-| Update cadence | Near real time. The app only refreshes manually (≤ 20 s cache) |
-| Licence / attribution | Verify the repo licence. Attribute "Arrivals: ArriveLah (LTA DataMall)" |
-| Limitations | No SLA. Called only for ≤ 3 shortlisted stops per journey |
-| Fallback | `No live arrival available`. A missing ETA is never shown as 0 min |
+| Owner | Community project by Lim Chee Aun (`github.com/cheeaun/arrivelah`), hosted on Vercel. Its source (`api/arrival.js`, read 2026-10-02) calls **LTA DataMall v3 BusArrival** with the project's own keys and reshapes the answer. It is **not an official LTA API** and has **no SLA** |
+| Endpoint | `GET https://arrivelah2.busrouter.sg/?id={busStopCode}`: one request per stop, listing every service calling there |
+| Auth / CORS | None (no key, no token). `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: *` on GET and preflight (curl, 2026-10-02 03:01 UTC). Real Chrome: a page on `http://localhost:8765` fetched and read the JSON (2026-10-02 03:03 UTC). Android: the release APK on the emulator (see `testing.md`) |
+| Response (observed 2026-10-02) | `{"services": [{"no", "operator", "next", "subsequent", "next2", "next3"}]}`. Each slot is `null` (no estimate) or `{"time", "duration_ms", "lat", "lng", "load", "feature", "type", "visit_number", "origin_code", "destination_code", "monitored"}`. `subsequent` is a legacy copy of `next2` |
+| Fields used | `no` (service number, string, e.g. `10`, `196A`), slot `time` (ISO-8601 with `+08:00`; parsed with its own offset and stored in UTC), `load` (`SEA` seats / `SDA` standing / `LSD` limited standing), `feature` (`WAB` = wheelchair-accessible, empty = not marked), `type` (`SD` / `DD` / `BD`), `monitored` (1 = from the bus's live position, 0 = schedule-based; 65 of 141 buses sampled were 0, all with lat/lng 0), `visit_number` (2 = a loop bus's second visit) |
+| Not used | `duration_ms`: computed when the response was made, and the response is cached for 15 s, so it goes stale. The ETA is `time` minus the app clock. Also unused: `lat`/`lng`, `operator`, `origin_code`, `destination_code` |
+| Failure / empty bodies (all HTTP 200) | Unknown stop (`?id=99999`) → `{"services":[]}`. Malformed id (`?id=abc`) → `{"error":"Failed to retrieve bus data.","statusCode":500}`. Missing id → an instruction object with no `services`. Upstream exception → `{"error": …}` |
+| Caching / rate limit | Responses carry `Cache-Control: max-age=15` (`s-maxage=15` at Vercel's edge). 20 requests for 10 different stops within ~3 s all returned 200, with no rate-limit or `Retry-After` headers. **No published limit**; none is assumed |
+| Licence / provenance / attribution | ArriveLah is a **third-party community service**: a proxy of **LTA DataMall** bus-arrival data, run by an individual developer, not by LTA or by this project. **Its repository currently has no explicit licence file** (GitHub `license: null`, checked 2026-10-02), and its README states no terms of use. This project does **not** assign, assume or imply any licence for ArriveLah or its code. **Availability and usage rights are not guaranteed**: the service can change, rate-limit or stop without notice. The arrival data itself originates from LTA DataMall, whose terms apply to it. The app keeps the attribution "Arrivals: ArriveLah (LTA DataMall)" on the journey card and in the footer. Re-check before any wider release or reuse |
+| App usage | Only for the boarding stops of the ≤ 3 displayed direct-bus options, after the static plan exists, once per distinct stop; 15 s in-memory cache; manual refresh; no polling |
+| Fallback | Missing or absent estimate → "No live arrival available" (never "0 min"). Error / network / malformed → "Live arrivals: …" + Retry, and the static route stays |
 
 ## OneMap search (tokenless)
 

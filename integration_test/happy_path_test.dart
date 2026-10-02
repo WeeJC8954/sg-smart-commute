@@ -1,20 +1,20 @@
-// Phase 1 happy-path integration test (guide v2.1 §18, item 1), M1–M3:
+// Phase 1 happy-path integration test (guide v2.1 §18, item 1), M1–M4:
 // fake GPS inside Singapore → dashboard shows the fake forecast / UV /
 // PM2.5 / PSI with scope labels and timestamps → the user searches for and
 // selects a destination (fake place search) → a direct-bus suggestion with
 // stop, service, stops and estimated walks, plus the MRT alternative (fake
-// bus network and MRT asset, test/fakes/fake_bus_network.dart).
+// bus network and MRT asset, test/fakes/fake_bus_network.dart) → live ETAs
+// (fake arrivals) → manual refresh updates the ETAs.
 //
-// The live ETA → manual refresh steps are added by Milestone 4. Every
-// provider is a fake; no live API is called.
+// Every provider is a fake and the clock is injected; no live API is called.
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
-import 'package:sg_smart_commute/features/journey/presentation/journey_card.dart';
 
+import '../test/fakes/fake_bus_arrival_repository.dart';
 import '../test/fakes/fake_environment_repository.dart';
 import '../test/fakes/fake_location_service.dart';
 import '../test/fakes/fake_place_search_repository.dart';
@@ -28,6 +28,8 @@ void main() {
       'search and select a destination', (tester) async {
     final env = FakeEnvironmentRepository();
     final places = FakePlaceSearchRepository();
+    final arrivals = FakeBusArrivalRepository();
+    var now = fakeNow;
     await tester.pumpWidget(
       buildTestApp(
         location: FakeLocationService(
@@ -36,6 +38,8 @@ void main() {
         ),
         environment: env,
         places: places,
+        busArrivals: arrivals,
+        clock: () => now,
       ),
     );
 
@@ -107,7 +111,39 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('journey-alternative-1')), findsOneWidget);
-    expect(find.text(JourneyCard.noArrivals), findsOneWidget);
+
+    // M4: live ETAs for the displayed option's boarding stop and service.
+    final eta = find.byKey(const Key('arrivals-BSH2-F20'));
+    await pumpUntilFound(
+      tester,
+      find.descendant(
+        of: eta,
+        matching: find.text('Next buses: Arr · 7 min · 19 min'),
+      ),
+    );
+    expect(arrivals.calls, {'BSH2': 1, 'BSH1': 1});
+
+    // Manual refresh, after the cache TTL: new ETAs, the route is unchanged.
+    now = now.add(const Duration(minutes: 2));
+    arrivals.stops = fakeStopArrivals(
+      from: now.add(const Duration(minutes: 3)),
+    );
+    await scrollToAndTap(tester, find.byKey(const Key('arrivals-refresh')));
+    await pumpUntilFound(
+      tester,
+      find.descendant(
+        of: eta,
+        matching: find.text('Next buses: 3 min · 10 min · 22 min'),
+      ),
+    );
+    expect(arrivals.calls, {'BSH2': 2, 'BSH1': 2});
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.text('Take Bus F20 toward VivoCity (fake)'),
+      ),
+      findsOneWidget,
+    );
     final mrt = find.byKey(const Key('journey-mrt'));
     await tester.ensureVisible(mrt);
     await tester.pump();

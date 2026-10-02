@@ -153,4 +153,65 @@ void main() {
       },
     );
   });
+  group('source timestamps are parsed strictly', () {
+    test('valid fixture timestamps keep their meaning (stored in UTC)', () {
+      final f = parseTwoHourForecast(
+        fixture('two-hr-forecast'),
+        fetchedAt: fetchedAt,
+      );
+      expect(f.updatedAt, DateTime.utc(2026, 10, 1, 12, 6, 33));
+      expect(f.validFrom, DateTime.utc(2026, 10, 1, 12));
+      expect(f.validTo, DateTime.utc(2026, 10, 1, 14));
+      final pm25 = parsePm25(fixture('pm25'), fetchedAt: fetchedAt);
+      expect(pm25.observedAt, DateTime.utc(2026, 10, 1, 12));
+      expect(pm25.updatedAt, DateTime.utc(2026, 10, 1, 12, 1, 33));
+      final uv = parseUv(fixture('uv'), fetchedAt: fetchedAt);
+      expect(uv.updatedAt, DateTime.utc(2026, 10, 1, 11, 11, 17));
+    });
+
+    for (final (value, why) in [
+      ('2026-13-45T25:00:00+08:00', 'out-of-range fields'),
+      ('2026-02-30T20:00:00+08:00', 'Feb 30'),
+      ('2026-10-01T22:61:00+08:00', 'minute 61'),
+      ('2026-10-01T22:00:00', 'no offset'),
+      ('2026-10-01T22:00:00+25:00', 'invalid offset'),
+    ]) {
+      test('a malformed forecast time ($why) → InvalidApiResponse, never a '
+          'rolled-over date', () {
+        final json = fixture('two-hr-forecast') as Map<String, dynamic>;
+        (json['data']['items'] as List).first['valid_period']['end'] = value;
+        expect(
+          () => parseTwoHourForecast(json, fetchedAt: fetchedAt),
+          throwsA(isA<InvalidApiResponse>()),
+        );
+      });
+    }
+
+    test('a malformed PM2.5 / PSI / UV time → InvalidApiResponse', () {
+      final pm25 = fixture('pm25') as Map<String, dynamic>;
+      (pm25['data']['items'] as List).first['updatedTimestamp'] =
+          '2026-10-01T20:01:33';
+      expect(
+        () => parsePm25(pm25, fetchedAt: fetchedAt),
+        throwsA(isA<InvalidApiResponse>()),
+      );
+
+      final psi = fixture('psi') as Map<String, dynamic>;
+      for (final item in psi['data']['items'] as List) {
+        item['timestamp'] = '2026-10-32T20:00:00+08:00';
+      }
+      expect(
+        () => parsePsi(psi, fetchedAt: fetchedAt),
+        throwsA(isA<InvalidApiResponse>()),
+      );
+
+      final uv = fixture('uv') as Map<String, dynamic>;
+      (uv['data']['records'] as List).first['updatedTimestamp'] =
+          '2026-10-01T19:11:17+08:61';
+      expect(
+        () => parseUv(uv, fetchedAt: fetchedAt),
+        throwsA(isA<InvalidApiResponse>()),
+      );
+    });
+  });
 }
