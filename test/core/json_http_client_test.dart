@@ -52,6 +52,101 @@ void main() {
     expect(calls, 1);
   });
 
+  group('response size cap', () {
+    // A 16-byte cap; `{"code":12345}` is 14 bytes.
+    JsonHttpClient capped(http.Client client, {Duration? timeout}) =>
+        JsonHttpClient(
+          client,
+          maxResponseBytes: 16,
+          timeout: timeout ?? const Duration(seconds: 10),
+          delay: (d) async => delays.add(d),
+        );
+
+    /// A 200 response whose body is [body] (a fresh stream per send, since
+    /// retries send again), with no Content-Length unless given.
+    http.Client streaming(
+      Stream<List<int>> Function() body, {
+      int? contentLength,
+      void Function()? onSend,
+    }) => MockClient.streaming((request, _) async {
+      onSend?.call();
+      return http.StreamedResponse(body(), 200, contentLength: contentLength);
+    });
+
+    test('a body within the cap is decoded', () async {
+      final c = capped(
+        MockClient((_) async => http.Response('{"code":12345}', 200)),
+      );
+      expect(await c.getJson(uri), {'code': 12345});
+    });
+
+    test('a body over the cap → InvalidApiResponse, never retried', () async {
+      var calls = 0;
+      final c = capped(
+        streaming(
+          () => Stream.fromIterable([
+            utf8.encode('{"code":'),
+            utf8.encode('123456789}'),
+          ]),
+          onSend: () => calls++,
+        ),
+      );
+      await expectLater(c.getJson(uri), throwsA(isA<InvalidApiResponse>()));
+      expect(calls, 1);
+    });
+
+    test(
+      'a Content-Length over the cap is rejected; the body is cancelled unread',
+      () async {
+        var cancelled = false;
+        var dataRequested = false;
+        final body = StreamController<List<int>>(
+          onCancel: () => cancelled = true,
+          onResume: () => dataRequested = true,
+        );
+        final c = capped(streaming(() => body.stream, contentLength: 1 << 20));
+        await expectLater(c.getJson(uri), throwsA(isA<InvalidApiResponse>()));
+        await pumpEventQueue();
+        expect(cancelled, isTrue);
+        expect(dataRequested, isFalse);
+        await body.close();
+      },
+    );
+
+    test('reading stops as soon as the cap is passed', () async {
+      var chunksSent = 0;
+      Stream<List<int>> endless() async* {
+        while (true) {
+          chunksSent++;
+          yield List<int>.filled(8, 0x20); // spaces
+        }
+      }
+
+      final c = capped(streaming(endless));
+      await expectLater(c.getJson(uri), throwsA(isA<InvalidApiResponse>()));
+      expect(chunksSent, lessThan(5));
+    });
+
+    test('a body that stalls → timeout → NetworkUnavailable', () async {
+      final bodies = <StreamController<List<int>>>[];
+      Stream<List<int>> stalled() {
+        final body = StreamController<List<int>>()..add(utf8.encode('{"co'));
+        bodies.add(body);
+        return body.stream;
+      }
+
+      final c = capped(
+        streaming(stalled),
+        timeout: const Duration(milliseconds: 50),
+      );
+      await expectLater(c.getJson(uri), throwsA(isA<NetworkUnavailable>()));
+      expect(bodies, hasLength(3)); // first try + 2 retries
+      for (final b in bodies) {
+        await b.close();
+      }
+    });
+  });
+
   test('429 → ApiRateLimited with Retry-After, never retried', () async {
     var calls = 0;
     final c = make((_) async {

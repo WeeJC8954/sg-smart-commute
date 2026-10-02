@@ -109,6 +109,11 @@ abstract final class AppTimings {
   /// Backoff before retry n (0-based) is this × 2^n: 500 ms, then 1 s.
   static const Duration httpBaseBackoff = Duration(milliseconds: 500);
 
+  /// Largest response body accepted from any provider. The biggest real one
+  /// is busrouter `stops.min.json` (~317 KB decoded, 2026-10-02), so this
+  /// leaves > 12× headroom while bounding a runaway response.
+  static const int httpMaxResponseBytes = 4 * 1024 * 1024;
+
   /// Minimum gap between accepted "Refresh all" taps (a UX debounce). The
   /// data.gov.sg limit itself is enforced for every caller by the shared
   /// limiter ([DataGovSgRateLimit]), not by this cooldown.
