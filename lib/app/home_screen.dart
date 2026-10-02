@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
+import '../core/ui/motion.dart';
 import '../features/environment/environment_providers.dart';
 import '../features/destination/presentation/destination_card.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
@@ -52,7 +53,11 @@ class HomeScreen extends ConsumerWidget {
               maxWidth: HomeLayout.contentMaxWidth,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [OriginCard(), DestinationCard(), JourneyCard()],
+                children: [
+                  OriginCard(),
+                  DestinationCard(),
+                  MotionSize(child: JourneyCard()),
+                ],
               ),
             ),
             const SizedBox(height: 8),

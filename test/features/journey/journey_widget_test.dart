@@ -7,6 +7,7 @@ import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/core/ui/motion.dart';
 import 'package:sg_smart_commute/features/journey/domain/walking.dart';
 import 'package:sg_smart_commute/features/journey/presentation/journey_card.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
@@ -102,6 +103,19 @@ void main() {
     await pumpApp(tester, gpsApp());
     expect(find.byKey(const Key('journey-card')), findsNothing);
     expect(bus.loads, 0);
+  });
+
+  testWidgets('the journey card unfolds inside one MotionSize', (tester) async {
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    expect(
+      find.ancestor(
+        of: find.byKey(const Key('journey-card')),
+        matching: find.byType(MotionSize),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('loading → Suggested direct bus with alternatives', (

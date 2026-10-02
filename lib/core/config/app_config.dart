@@ -125,6 +125,14 @@ abstract final class AppTimings {
   static const Duration uiTick = Duration(seconds: 15);
 }
 
+/// Layout transitions (presentation only; docs/assumptions.md, "Motion").
+abstract final class AppMotion {
+  /// How long a card takes to grow or shrink to new content. The short end
+  /// of the 0.3–0.4 s response of a critically damped UI spring, because a
+  /// card resizing is a reveal, not a journey across the screen.
+  static const Duration resize = Duration(milliseconds: 250);
+}
+
 /// Home-screen layout (presentation only; docs/assumptions.md, "Conditions
 /// grid"). Widths are logical pixels at text scale 1.0; the tile minimums grow
 /// with the text scale, so large text falls back to fewer columns.
