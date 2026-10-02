@@ -53,7 +53,7 @@ Future<void> pumpApp(WidgetTester tester, Widget app) async {
   await tester.pumpWidget(app);
 }
 
-const tampinesHubLine = 'From: OUR TAMPINES HUB (chosen manually)';
+const tampinesHubLine = 'From: OUR TAMPINES HUB';
 
 void main() {
   late FakeLocationService location;
@@ -90,7 +90,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
 
     expect(inTile('tile-forecast', 'Partly Cloudy (Day)'), findsOneWidget);
     expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
@@ -210,7 +210,7 @@ void main() {
     // Only an explicit tap switches to GPS.
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
     expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
   });
 
@@ -239,7 +239,7 @@ void main() {
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
     expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
   });
 

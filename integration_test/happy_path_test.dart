@@ -42,10 +42,7 @@ void main() {
       ),
     );
 
-    await pumpUntilFound(
-      tester,
-      find.text('From: Current location (from GPS)'),
-    );
+    await pumpUntilFound(tester, find.text('From: Current location'));
 
     // Forecast: area scope.
     await pumpUntilFound(tester, inTile('tile-forecast', 'Bishan area'));
@@ -83,7 +80,7 @@ void main() {
     );
     await pumpUntilFound(tester, find.text('To: VIVOCITY'));
     // Choosing a destination does not change the GPS origin.
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
     expect(places.queries, ['vivocity']);
 
     // M3: direct-bus recommendation (fake network) and MRT alternative.

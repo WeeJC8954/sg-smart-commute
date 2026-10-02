@@ -50,10 +50,7 @@ void main() {
       query: 'Tampines Hub',
       result: 'OUR TAMPINES HUB',
     );
-    await pumpUntilFound(
-      tester,
-      find.text('From: OUR TAMPINES HUB (chosen manually)'),
-    );
+    await pumpUntilFound(tester, find.text('From: OUR TAMPINES HUB'));
 
     // M2: destination search after the manual origin.
     await pumpUntilFound(tester, find.text(DestinationCard.prompt));
@@ -64,10 +61,7 @@ void main() {
       result: 'ION ORCHARD',
     );
     await pumpUntilFound(tester, find.text('To: ION ORCHARD'));
-    expect(
-      find.text('From: OUR TAMPINES HUB (chosen manually)'),
-      findsOneWidget,
-    );
+    expect(find.text('From: OUR TAMPINES HUB'), findsOneWidget);
 
     // M3: no single fake service connects Tampines Hub and ION Orchard.
     await pumpUntilFound(tester, find.byKey(const Key('journey-no-direct')));
@@ -216,6 +210,6 @@ void main() {
     );
     location.fix(const LatLng(1.3508, 103.8485)); // late, valid
     await pumpUntilFound(tester, find.byKey(const Key('use-current-location')));
-    expect(find.text('From: ION ORCHARD (chosen manually)'), findsOneWidget);
+    expect(find.text('From: ION ORCHARD'), findsOneWidget);
   });
 }

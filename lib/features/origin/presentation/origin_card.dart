@@ -8,7 +8,8 @@ import '../../places/presentation/place_search_field.dart';
 import '../domain/origin.dart';
 import '../domain/origin_controller.dart';
 
-/// Origin status, the manual-origin prompt and the late-fix offer (§5.1–§5.4).
+/// The origin section of the route card (lib/app/route_card.dart): status,
+/// the manual-origin prompt and the late-fix offer (§5.1–§5.4).
 class OriginCard extends ConsumerWidget {
   const OriginCard({super.key});
 
@@ -124,14 +125,9 @@ class OriginCard extends ConsumerWidget {
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 }
@@ -142,12 +138,9 @@ class _OriginLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final how = switch (origin.provenance) {
-      OriginProvenance.gps => 'from GPS',
-      OriginProvenance.manual => 'chosen manually',
-    };
     final line = Row(
       children: [
+        // The icon alone shows GPS vs a searched place, as in maps apps.
         Icon(
           origin.provenance == OriginProvenance.gps
               ? Icons.my_location
@@ -157,7 +150,7 @@ class _OriginLine extends StatelessWidget {
         const SizedBox(width: 8),
         Flexible(
           child: Text(
-            'From: ${origin.label} ($how)',
+            'From: ${origin.label}',
             key: const Key('origin-line'),
             style: Theme.of(context).textTheme.titleMedium,
           ),

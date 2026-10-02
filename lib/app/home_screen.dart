@@ -4,11 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/config/app_config.dart';
 import '../core/ui/motion.dart';
 import '../features/environment/environment_providers.dart';
-import '../features/destination/presentation/destination_card.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
 import '../features/journey/presentation/journey_card.dart';
-import '../features/origin/presentation/origin_card.dart';
 import 'app_logo.dart';
+import 'route_card.dart';
 
 /// Home: rendered immediately, never blocked on location (§5.1 step 1).
 class HomeScreen extends ConsumerWidget {
@@ -54,8 +53,7 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  OriginCard(),
-                  DestinationCard(),
+                  RouteCard(),
                   MotionSize(child: JourneyCard()),
                 ],
               ),
