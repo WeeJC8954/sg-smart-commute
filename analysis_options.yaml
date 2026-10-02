@@ -14,6 +14,8 @@ analyzer:
     - build/**
     - android/**
     - web/**
+    # P2-M0 map spike: its own package (tool/map_spike/pubspec.yaml); remove with the spike in P2-M1.
+    - tool/map_spike/**
 
 linter:
   # The lint rules applied to this project can be customized in the

@@ -1,0 +1,19 @@
+# Phase 2 M0 map spike: a throwaway, isolated Flutter app (see README.md).
+# Its dependencies are NOT app dependencies; the app's pubspec.yaml is unchanged.
+name: map_spike
+description: "P2-M0 map feasibility spike (not part of the app)."
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+  http: ^1.6.0
+
+flutter:
+  uses-material-design: true
