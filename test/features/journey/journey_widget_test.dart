@@ -488,6 +488,22 @@ void main() {
     expect(inKey('journey-suggested', 'Hide steps'), findsNothing);
   });
 
+  testWidgets('the steps toggle tells screen readers which bus it opens', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.bySemanticsLabel('Show steps for Bus F10'), findsOneWidget);
+    await tester.tap(inKey('journey-alternative-1', 'Show steps'));
+    await tester.pump();
+    expect(find.bySemanticsLabel('Hide steps for Bus F10'), findsOneWidget);
+    semantics.dispose();
+  });
+
   testWidgets('each option leads with a service badge', (tester) async {
     await pumpApp(tester, gpsApp());
     await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');

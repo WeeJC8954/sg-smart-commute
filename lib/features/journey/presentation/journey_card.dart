@@ -205,7 +205,14 @@ class _OptionState extends State<_Option> {
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () => setState(() => _expanded = !_expanded),
-                child: Text(_expanded ? 'Hide steps' : 'Show steps'),
+                // Spoken with the bus: several alternatives each have one,
+                // and a bare "Show steps" doesn't say which it opens (#25).
+                child: Text(
+                  _expanded ? 'Hide steps' : 'Show steps',
+                  semanticsLabel:
+                      '${_expanded ? 'Hide' : 'Show'} steps for Bus '
+                      '${o.service.number}',
+                ),
               ),
             ),
         ],
