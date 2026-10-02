@@ -67,8 +67,12 @@ class EnvironmentDashboard extends ConsumerWidget {
         position: position,
         builder: (s, _) {
           final r = EnvironmentLocator.uv(s);
+          final night = isUvNight(now);
+          final parts = ReadingText.uvParts(r.value);
           return _ReadingView(
-            headline: ReadingText.uv(r, now),
+            headline: night ? ReadingText.uv(r, now) : null,
+            value: night ? null : parts.value,
+            band: night ? null : parts.band,
             scope: ReadingText.scope(r),
             detail: ReadingText.uvNightDetail(r, now),
             timestamp: ReadingText.timestamp(r.observedAt, now),
@@ -85,8 +89,10 @@ class EnvironmentDashboard extends ConsumerWidget {
         position: position,
         builder: (s, p) {
           final r = EnvironmentLocator.regional(s, p!);
+          final parts = ReadingText.pm25Parts(r);
           return _ReadingView(
-            headline: ReadingText.pm25(r),
+            value: parts.value,
+            band: parts.band,
             scope: ReadingText.scope(r),
             timestamp: ReadingText.timestamp(r.observedAt, now),
             stale: r.isStale(now),
@@ -102,8 +108,10 @@ class EnvironmentDashboard extends ConsumerWidget {
         position: position,
         builder: (s, p) {
           final r = EnvironmentLocator.regional(s, p!);
+          final parts = ReadingText.psiParts(r);
           return _ReadingView(
-            headline: ReadingText.psi(r),
+            value: parts.value,
+            band: parts.band,
             scope: ReadingText.scope(r),
             timestamp: ReadingText.timestamp(r.observedAt, now),
             stale: r.isStale(now),
@@ -231,7 +239,9 @@ class _SnapshotTile<T> extends ConsumerWidget {
       body = _guardBuild(context, value.requireValue);
     }
 
-    return Card(
+    // Outlined: lighter than the elevated route and journey cards, since
+    // Conditions are ambient information and the trip is the task.
+    return Card.outlined(
       margin: EdgeInsets.zero, // spacing comes from the grid
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -277,15 +287,25 @@ class _SnapshotTile<T> extends ConsumerWidget {
 
 class _ReadingView extends StatelessWidget {
   const _ReadingView({
-    required this.headline,
     required this.scope,
     required this.timestamp,
     required this.stale,
+    this.value,
+    this.band,
+    this.headline,
     this.detail,
     this.icon,
-  });
+  }) : assert((value == null) != (headline == null));
 
-  final String headline;
+  /// The reading shown large ("54", "18 µg/m³", "7"); null when [headline]
+  /// is used instead.
+  final String? value;
+
+  /// The official band of [value], shown as text (never colour alone, §7).
+  final String? band;
+
+  /// A sentence instead of a number: the forecast condition, or UV at night.
+  final String? headline;
   final String scope;
   final String timestamp;
   final String? detail;
@@ -295,27 +315,50 @@ class _ReadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final small = theme.textTheme.bodySmall;
+    const tabular = [FontFeature.tabularFigures()];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            if (icon != null) ...[Icon(icon), const SizedBox(width: 8)],
-            Flexible(child: Text(headline, style: theme.textTheme.titleMedium)),
-          ],
-        ),
+        if (value != null)
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                value!,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: tabular,
+                ),
+              ),
+              if (band != null) _BandPill(band!),
+            ],
+          )
+        else
+          Row(
+            children: [
+              if (icon != null) ...[Icon(icon), const SizedBox(width: 8)],
+              Flexible(
+                child: Text(headline!, style: theme.textTheme.titleMedium),
+              ),
+            ],
+          ),
+        const SizedBox(height: 4),
         Text(scope),
-        if (detail != null) Text(detail!),
+        if (detail != null) Text(detail!, style: small),
+        const SizedBox(height: 4),
         Wrap(
           spacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text(timestamp, style: theme.textTheme.bodySmall),
+            Text(timestamp, style: small?.copyWith(fontFeatures: tabular)),
             // Text, not colour alone (§7, accessibility).
             if (stale)
               Text(
-                'Stale',
-                style: theme.textTheme.bodySmall?.copyWith(
+                ReadingText.staleLabel,
+                style: small?.copyWith(
                   color: theme.colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
@@ -323,6 +366,33 @@ class _ReadingView extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// A band as a small pill. One neutral colour for every band: the word is
+/// the meaning, so no colour scale implies thresholds NEA did not define.
+class _BandPill extends StatelessWidget {
+  const _BandPill(this.band);
+
+  final String band;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: Text(
+          band,
+          style: Theme.of(context).textTheme.labelLarge
+              ?.copyWith(color: scheme.onSecondaryContainer),
+        ),
+      ),
     );
   }
 }

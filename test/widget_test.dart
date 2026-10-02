@@ -53,7 +53,7 @@ Future<void> pumpApp(WidgetTester tester, Widget app) async {
   await tester.pumpWidget(app);
 }
 
-const tampinesHubLine = 'From: OUR TAMPINES HUB (chosen manually)';
+const tampinesHubLine = 'From: OUR TAMPINES HUB';
 
 void main() {
   late FakeLocationService location;
@@ -73,7 +73,8 @@ void main() {
 
     await tester.pump();
     // National UV doesn't need a position; area/region tiles wait for one.
-    expect(inTile('tile-uv', 'UV 7 (High)'), findsOneWidget);
+    expect(inTile('tile-uv', '7'), findsOneWidget);
+    expect(inTile('tile-uv', 'High'), findsOneWidget);
     expect(inTile('tile-psi', 'Waiting for your location'), findsOneWidget);
     // All four datasets are fetched at launch, once each.
     expect(env.calls, {'forecast': 1, 'uv': 1, 'pm25': 1, 'psi': 1});
@@ -90,14 +91,16 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
 
     expect(inTile('tile-forecast', 'Partly Cloudy (Day)'), findsOneWidget);
     expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
     expect(inTile('tile-uv', 'Singapore (national)'), findsOneWidget);
-    expect(inTile('tile-pm25', '1-hr PM2.5 18 µg/m³ (Normal)'), findsOneWidget);
+    expect(inTile('tile-pm25', '18 µg/m³'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Normal'), findsOneWidget);
     expect(inTile('tile-pm25', 'Central region'), findsOneWidget);
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(inTile('tile-psi', 'Central region'), findsOneWidget);
     expect(inTile('tile-psi', 'As of 12:00 SGT · 12 min ago'), findsOneWidget);
     // PSI and PM2.5 never share a tile or a label.
@@ -115,7 +118,7 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.text('Stale'), findsNothing);
+    expect(find.text('Out of date'), findsNothing);
   });
 
   testWidgets('permission denied → manual origin prompt immediately', (
@@ -185,9 +188,11 @@ void main() {
     expect(find.text(tampinesHubLine), findsOneWidget);
     expect(inTile('tile-forecast', 'Thundery Showers'), findsOneWidget);
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
-    expect(inTile('tile-psi', '24-hr PSI 61 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '61'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(inTile('tile-psi', 'East region'), findsOneWidget);
-    expect(inTile('tile-pm25', '1-hr PM2.5 13 µg/m³ (Normal)'), findsOneWidget);
+    expect(inTile('tile-pm25', '13 µg/m³'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Normal'), findsOneWidget);
   });
 
   testWidgets('late GPS fix does not overwrite a manual origin', (
@@ -210,7 +215,7 @@ void main() {
     // Only an explicit tap switches to GPS.
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
     expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
   });
 
@@ -239,7 +244,7 @@ void main() {
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
     expect(inTile('tile-forecast', 'Bishan area'), findsOneWidget);
   });
 
@@ -280,8 +285,9 @@ void main() {
       inTile('tile-psi', const NetworkUnavailable().message),
       findsOneWidget,
     );
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsNothing);
-    expect(inTile('tile-pm25', '1-hr PM2.5 18 µg/m³ (Normal)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsNothing);
+    expect(inTile('tile-pm25', '18 µg/m³'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Normal'), findsOneWidget);
 
     env.failPsi = null;
     final retry = find.descendant(
@@ -293,7 +299,8 @@ void main() {
     await tester.tap(retry);
     await tester.pump();
     await tester.pump();
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(env.calls['psi'], 2);
     expect(env.calls['pm25'], 1); // Retry is per dataset.
   });
@@ -312,7 +319,8 @@ void main() {
     );
     await tester.pump();
     await tester.pump();
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     const asOf = 'As of 12:00 SGT · 12 min ago';
     expect(inTile('tile-psi', asOf), findsOneWidget);
 
@@ -322,7 +330,8 @@ void main() {
     await tester.pump();
 
     // The earlier reading and its timestamp stay; the failure is added.
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(inTile('tile-psi', asOf), findsOneWidget);
     final failed = find.descendant(
       of: tile('tile-psi'),
@@ -348,11 +357,12 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.byKey(const Key('refresh-failed')), findsNothing);
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
     expect(env.calls['psi'], 3);
   });
 
-  testWidgets('ages, the Stale marker and the UV night rule update while '
+  testWidgets('ages, the out-of-date marker and the UV night rule update while '
       'the screen stays open, without new requests', (tester) async {
     var now = fakeNow; // 12:12 SGT; readings are from 12:00 SGT
     location = FakeLocationService(
@@ -366,8 +376,9 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(inTile('tile-psi', 'As of 12:00 SGT · 12 min ago'), findsOneWidget);
-    expect(find.text('Stale'), findsNothing);
-    expect(inTile('tile-uv', 'UV 7 (High)'), findsOneWidget);
+    expect(find.text('Out of date'), findsNothing);
+    expect(inTile('tile-uv', '7'), findsOneWidget);
+    expect(inTile('tile-uv', 'High'), findsOneWidget);
 
     now = now.add(const Duration(minutes: 30));
     await tester.pump(AppTimings.uiTick);
@@ -376,9 +387,12 @@ void main() {
     // 14:01 SGT: PM2.5 and PSI pass their 2 h threshold.
     now = fakeNow.add(const Duration(hours: 1, minutes: 49));
     await tester.pump(AppTimings.uiTick);
-    expect(inTile('tile-psi', 'Stale'), findsOneWidget);
-    expect(inTile('tile-pm25', 'Stale'), findsOneWidget);
-    expect(inTile('tile-forecast', 'Stale'), findsNothing); // 3 h threshold
+    expect(inTile('tile-psi', 'Out of date'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Out of date'), findsOneWidget);
+    expect(
+      inTile('tile-forecast', 'Out of date'),
+      findsNothing,
+    ); // 3 h threshold
 
     // 20:00 SGT: the UV night rule switches on.
     now = DateTime.utc(2026, 10, 1, 12);
@@ -404,9 +418,11 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(inTile('tile-psi', '24-hr PSI 54 (Moderate)'), findsOneWidget);
-    expect(inTile('tile-psi', 'Stale'), findsOneWidget);
-    expect(inTile('tile-pm25', 'Stale'), findsOneWidget);
+    expect(inTile('tile-psi', '54'), findsOneWidget);
+
+    expect(inTile('tile-psi', 'Moderate'), findsOneWidget);
+    expect(inTile('tile-psi', 'Out of date'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Out of date'), findsOneWidget);
   });
 
   testWidgets('refresh refetches all four, then is throttled', (tester) async {
@@ -509,5 +525,27 @@ void main() {
     env.gate = null;
     await tester.pump();
     await tester.pump();
+  });
+  testWidgets('the conditions refresh sits beside the Conditions heading', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      buildTestApp(
+        location: FakeLocationService(access: LocationAccess.denied),
+        environment: FakeEnvironmentRepository(),
+      ),
+    );
+    await tester.pump();
+    final button = find.byKey(const Key('refresh-conditions'));
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: button),
+      findsNothing,
+    );
+    final heading = tester.getRect(find.text('Conditions'));
+    final rect = tester.getRect(button);
+    expect((rect.center.dy - heading.center.dy).abs(), lessThan(24));
+    // The heading fills its Expanded, so it ends where the button starts.
+    expect(rect.left, greaterThanOrEqualTo(heading.right));
   });
 }

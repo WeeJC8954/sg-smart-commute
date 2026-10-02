@@ -7,6 +7,7 @@ import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/core/ui/motion.dart';
 import 'package:sg_smart_commute/features/journey/domain/walking.dart';
 import 'package:sg_smart_commute/features/journey/presentation/journey_card.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
@@ -102,6 +103,19 @@ void main() {
     await pumpApp(tester, gpsApp());
     expect(find.byKey(const Key('journey-card')), findsNothing);
     expect(bus.loads, 0);
+  });
+
+  testWidgets('the journey card unfolds inside one MotionSize', (tester) async {
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    expect(
+      find.ancestor(
+        of: find.byKey(const Key('journey-card')),
+        matching: find.byType(MotionSize),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('loading → Suggested direct bus with alternatives', (
@@ -436,5 +450,100 @@ void main() {
       findsOneWidget,
     );
     expect(bus.loads, 2);
+  });
+  testWidgets('alternatives show their bus and live times; steps open on '
+      'demand', (tester) async {
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    await tester.pump();
+
+    const alt = 'journey-alternative-1';
+    Finder inAlt(Finder f) =>
+        find.descendant(of: find.byKey(const Key(alt)), matching: f);
+    expect(inKey(alt, 'Take Bus F10 toward VivoCity (fake)'), findsOneWidget);
+    // Live times stay in the collapsed summary (whatever their load state),
+    // with the stop they belong to: an alternative may board elsewhere.
+    expect(inAlt(find.byKey(const Key('arrivals-BSH1-F10'))), findsOneWidget);
+    expect(inAlt(find.textContaining('to Bus Stop BSH1')), findsOneWidget);
+    expect(inAlt(find.textContaining('Alight at')), findsNothing);
+    expect(inAlt(find.textContaining('to destination')), findsNothing);
+
+    await tester.tap(inKey(alt, 'Show steps'));
+    await tester.pump();
+    expect(inAlt(find.textContaining('to Bus Stop BSH1')), findsOneWidget);
+    expect(
+      inAlt(find.text('Alight at VIV1 — VivoCity (fake)')),
+      findsOneWidget,
+    );
+    expect(inKey(alt, 'Hide steps'), findsOneWidget);
+
+    await tester.tap(inKey(alt, 'Hide steps'));
+    await tester.pump();
+    expect(inAlt(find.textContaining('to Bus Stop BSH1')), findsOneWidget);
+    expect(inAlt(find.textContaining('Alight at')), findsNothing);
+
+    // The suggestion is always open and has no toggle.
+    expect(inKey('journey-suggested', 'Show steps'), findsNothing);
+    expect(inKey('journey-suggested', 'Hide steps'), findsNothing);
+  });
+
+  testWidgets('the steps toggle tells screen readers which bus it opens', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.bySemanticsLabel('Show steps for Bus F10'), findsOneWidget);
+    await tester.tap(inKey('journey-alternative-1', 'Show steps'));
+    await tester.pump();
+    expect(find.bySemanticsLabel('Hide steps for Bus F10'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('each option leads with a service badge', (tester) async {
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    await tester.pump();
+    // The badge is the service number on its own.
+    expect(inKey('journey-suggested', 'F20'), findsOneWidget);
+    expect(inKey('journey-alternative-1', 'F10'), findsOneWidget);
+  });
+  testWidgets('dark theme, 2× text, 320 dp: the whole journey renders '
+      'without overflow, with one MotionSize per animated card', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 8000);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(gpsApp());
+    await tester.pump();
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    await tester.pump();
+    final show = inKey('journey-alternative-1', 'Show steps');
+    await tester.ensureVisible(show);
+    await tester.tap(show);
+    await tester.pump();
+
+    expect(tester.takeException(), isNull); // no RenderFlex overflow
+    expect(find.byKey(const Key('journey-suggested')), findsOneWidget);
+    expect(find.byType(MotionSize), findsNWidgets(2)); // route + journey
+    expect(
+      find.descendant(
+        of: find.byType(MotionSize),
+        matching: find.byType(MotionSize),
+      ),
+      findsNothing,
+    );
   });
 }

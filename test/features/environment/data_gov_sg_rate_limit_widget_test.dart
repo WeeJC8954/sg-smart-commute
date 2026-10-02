@@ -15,6 +15,7 @@ import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/http/json_http_client.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
+import 'package:sg_smart_commute/core/ui/motion.dart';
 import 'package:sg_smart_commute/main.dart';
 
 import '../../../integration_test/fakes/fake_location_service.dart';
@@ -67,6 +68,7 @@ Widget app(FakeDataGovSg server, LocationService location) => ProviderScope(
     locationServiceProvider.overrideWithValue(location),
     httpClientProvider.overrideWithValue(MockClient(server.handle)),
     clockProvider.overrideWithValue(() => fixtureNow),
+    uiMotionDurationProvider.overrideWithValue(Duration.zero),
   ],
   child: const SmartCommuteApp(),
 );

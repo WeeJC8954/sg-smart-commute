@@ -2,8 +2,12 @@ import '../../../core/time/sgt_format.dart';
 import '../domain/bands.dart';
 import '../domain/environment_models.dart';
 
+/// A reading split for display: [value] large, [band] as a text pill.
+typedef ReadingParts = ({String value, String? band});
+
 /// Display strings for dashboard readings (§6.1, §7). Pure, so the exact
-/// wording — especially "24-hr PSI" vs "1-hr PM2.5" — is unit-tested.
+/// wording — especially the "24-hr PSI" / "1-hr PM2.5" titles — is
+/// unit-tested.
 abstract final class ReadingText {
   static const String forecastTitle = '2-hr forecast';
   static const String uvTitle = 'UV index';
@@ -39,17 +43,19 @@ abstract final class ReadingText {
       ? 'Last reading ${uvValue(r.value)} at ${formatSgtTime(r.observedAt)} SGT'
       : null;
 
-  static String pm25(EnvironmentalReading<num> r) {
-    final band = pm25Band(r.value);
-    final n = _number(r.value);
-    return band == null ? '$pm25Title $n µg/m³' : '$pm25Title $n µg/m³ ($band)';
-  }
+  /// Shown for a reading older than its dataset's threshold (§6.3).
+  static const String staleLabel = 'Out of date';
 
-  static String psi(EnvironmentalReading<num> r) {
-    final band = psiBand(r.value);
-    final n = _number(r.value);
-    return band == null ? '$psiTitle $n' : '$psiTitle $n ($band)';
-  }
+  /// The number shown large on a tile, and its official band (null when no
+  /// NEA band applies). The metric label is the tile title, shown once.
+  static ReadingParts pm25Parts(EnvironmentalReading<num> r) =>
+      (value: '${_number(r.value)} µg/m³', band: pm25Band(r.value));
+
+  static ReadingParts psiParts(EnvironmentalReading<num> r) =>
+      (value: _number(r.value), band: psiBand(r.value));
+
+  static ReadingParts uvParts(int value) =>
+      (value: '$value', band: uvBand(value));
 
   /// "As of 20:00 SGT · 12 min ago".
   static String timestamp(DateTime observedAt, DateTime now) =>

@@ -48,8 +48,8 @@ Feature-first, with a pragmatic clean architecture (guide §11):
 
 ```text
 lib/
-  app/            app shell, router, theme
-  core/           config (non-secret constants), errors (AppFailure), http, location, geo, time
+  app/            app shell, light/dark theme, home screen, RouteCard (origin + destination)
+  core/           config (non-secret constants), errors (AppFailure), http, location, geo, time, ui
   features/
     environment/  data.gov.sg adapters → EnvironmentLocator → dashboard
     places/       PlaceSearchRepository (OneMap adapter + normaliser), PlaceSearchField
@@ -68,10 +68,12 @@ lib/
   (sealed `AppFailure`), `geo/geo.dart` (`LatLng`, `isWithinSingapore`, haversine), `time/` (SGT formatting,
   injectable `Clock`), `http/json_http_client.dart` (timeout, bounded retry, 429, dedup, optional per-URI rate limiter),
   `http/rate_limiter.dart` (generic `RollingWindowRateLimiter`; only the provider wiring maps data.gov.sg and OneMap
-  to their own limiters), `ui/status_rows.dart` (shared `BusyRow` / `ErrorRetryRow`),
+  to their own limiters), `ui/status_rows.dart` (shared `BusyRow` / `ErrorRetryRow`), `ui/motion.dart` (`MotionSize`: one height animation
+  per card, instant under reduce motion),
   `location/` (`LocationService` seam + geolocator adapter).
 - `lib/features/origin/`: `OriginController` (Riverpod `Notifier`) is the permission → timeout → fallback →
-  late-fix state machine. `Origin` carries provenance (`gps` | `manual`). `OriginCard` is the UI. Each
+  late-fix state machine. `Origin` carries provenance (`gps` | `manual`). `OriginCard` is the UI (the origin section of
+  `RouteCard`, `lib/app/route_card.dart`). Each
   acquisition attempt has an id, so a superseded attempt's results are dropped. No attempt replaces a manual
   origin: only `useCurrentLocation()` (the "Use my current location" chip) does that.
 - `lib/features/environment/`: `data/` (data.gov.sg parsers + repository), `domain/` (models,
@@ -79,7 +81,7 @@ lib/
   dataset, refresh cooldown), `presentation/` (dashboard tiles, display strings).
 - Seams overridden in tests: `locationServiceProvider`, `locationTimeoutProvider`, `environmentRepositoryProvider`,
   `httpClientProvider` (the rate-limit widget tests swap only the transport for a fake data.gov.sg),
-  `clockProvider`, `placeSearchRepositoryProvider`. Fakes are in `integration_test/fakes/` and shared with the widget tests in `test/` (they live under `integration_test/` because a Web `flutter drive` build cannot import files outside the target's folder).
+  `clockProvider`, `placeSearchRepositoryProvider`. Fakes are in `integration_test/fakes/` and shared with the widget tests in `test/`. This is a deliberate test-harness arrangement forced by the Web integration build: a Web `flutter drive` build cannot import files outside the target's folder, so the shared fakes must live under `integration_test/`. It is the only thing `test/` imports from `integration_test/`; `test/` does not otherwise depend on it.
 
 ## Milestone 2 (places)
 
@@ -96,7 +98,8 @@ lib/
 - The origin card uses `PlaceSearchField` for the manual origin. It calls `OriginController.beginManualEntry` /
   `selectManualOrigin`, so the M1 late-fix and attempt-id rules apply.
 - `lib/features/destination/`: `DestinationController` (a separate `Notifier`, so a destination can never change
-  the origin) and `DestinationCard` ("Where are you heading to today?", shown once an origin exists).
+  the origin) and `DestinationCard` ("Where are you heading to today?", shown once an origin exists; the destination section
+  of `RouteCard`).
 - OneMap calls go through the generic `JsonHttpClient` (timeout, retry, 401/403, 429) with a shared `OneMapRateLimit`
   limiter (1 request per 1 s, FIFO, retries included), on top of the debounce and the bounded cache. Photon / Nominatim / bundled fallbacks are not built (guide §0.1 item 6).
 - `ProviderScope(retry: noAutomaticRetry)`: Riverpod 3's automatic retry is off (rate limits; explicit Retry).

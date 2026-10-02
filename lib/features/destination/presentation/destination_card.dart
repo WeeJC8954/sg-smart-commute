@@ -5,8 +5,9 @@ import '../../origin/domain/origin_controller.dart';
 import '../../places/presentation/place_search_field.dart';
 import '../domain/destination_controller.dart';
 
-/// "Where are you heading to today?" (guide v2.1 §5.5). Shown once an origin
-/// is established. Uses the same search component as the manual origin.
+/// The destination section of the route card (lib/app/route_card.dart),
+/// shown once an origin exists: "Where are you heading to today?" (guide v2.1
+/// §5.5). Uses the same search component as the manual origin.
 class DestinationCard extends ConsumerWidget {
   const DestinationCard({super.key});
 
@@ -82,14 +83,9 @@ class DestinationCard extends ConsumerWidget {
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [const Divider(height: 24), ...children],
     );
   }
 }

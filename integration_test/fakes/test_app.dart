@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
+import 'package:sg_smart_commute/core/ui/motion.dart';
 import 'package:sg_smart_commute/features/bus_arrival/bus_arrival_providers.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival_repository.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_repository.dart';
@@ -34,6 +35,7 @@ Widget buildTestApp({
   Duration locationTimeout = const Duration(seconds: 10),
   Duration locationPermissionTimeout = const Duration(seconds: 10),
   Clock? clock,
+  Duration motionDuration = Duration.zero,
 }) {
   return ProviderScope(
     retry: noAutomaticRetry,
@@ -45,6 +47,7 @@ Widget buildTestApp({
         locationPermissionTimeout,
       ),
       clockProvider.overrideWithValue(clock ?? () => fakeNow),
+      uiMotionDurationProvider.overrideWithValue(motionDuration),
       placeSearchRepositoryProvider.overrideWithValue(
         places ?? FakePlaceSearchRepository(),
       ),

@@ -50,10 +50,7 @@ void main() {
       query: 'Tampines Hub',
       result: 'OUR TAMPINES HUB',
     );
-    await pumpUntilFound(
-      tester,
-      find.text('From: OUR TAMPINES HUB (chosen manually)'),
-    );
+    await pumpUntilFound(tester, find.text('From: OUR TAMPINES HUB'));
 
     // M2: destination search after the manual origin.
     await pumpUntilFound(tester, find.text(DestinationCard.prompt));
@@ -64,10 +61,7 @@ void main() {
       result: 'ION ORCHARD',
     );
     await pumpUntilFound(tester, find.text('To: ION ORCHARD'));
-    expect(
-      find.text('From: OUR TAMPINES HUB (chosen manually)'),
-      findsOneWidget,
-    );
+    expect(find.text('From: OUR TAMPINES HUB'), findsOneWidget);
 
     // M3: no single fake service connects Tampines Hub and ION Orchard.
     await pumpUntilFound(tester, find.byKey(const Key('journey-no-direct')));
@@ -108,7 +102,8 @@ void main() {
       findsNothing,
     );
     // The other region tile is unaffected.
-    expect(inTile('tile-pm25', '1-hr PM2.5 13 µg/m³ (Normal)'), findsOneWidget);
+    expect(inTile('tile-pm25', '13 µg/m³'), findsOneWidget);
+    expect(inTile('tile-pm25', 'Normal'), findsOneWidget);
 
     // Recover and retry.
     env.failPsi = null;
@@ -119,7 +114,7 @@ void main() {
         matching: find.text('Retry'),
       ),
     );
-    await pumpUntilFound(tester, inTile('tile-psi', '24-hr PSI 61 (Moderate)'));
+    await pumpUntilFound(tester, inTile('tile-psi', '61'));
     expect(inTile('tile-psi', 'East region'), findsOneWidget);
     expect(env.calls['psi'], 2);
 
@@ -216,6 +211,6 @@ void main() {
     );
     location.fix(const LatLng(1.3508, 103.8485)); // late, valid
     await pumpUntilFound(tester, find.byKey(const Key('use-current-location')));
-    expect(find.text('From: ION ORCHARD (chosen manually)'), findsOneWidget);
+    expect(find.text('From: ION ORCHARD'), findsOneWidget);
   });
 }

@@ -1,6 +1,7 @@
 // Milestone 2 widget tests: origin and destination place search (guide v2.1
 // §5.3–§5.5, §8.3, §18). Location, environment and place search are fakes.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
@@ -89,7 +90,7 @@ void main() {
     expect(originOf(tester).origin, isNull);
 
     await pick(tester, 'VIVOCITY');
-    expect(find.text('From: VIVOCITY (chosen manually)'), findsOneWidget);
+    expect(find.text('From: VIVOCITY'), findsOneWidget);
     final origin = originOf(tester).origin!;
     expect(origin.provenance, OriginProvenance.manual);
     expect(origin.position, vivoCity.position);
@@ -134,7 +135,7 @@ void main() {
 
     // Neither card repeats it under the name either.
     await pick(tester, hdb);
-    expect(find.text('From: $hdb (chosen manually)'), findsOneWidget);
+    expect(find.text('From: $hdb'), findsOneWidget);
     expect(find.text(hdb), findsNothing);
     expect(originOf(tester).origin!.detail, isNull);
 
@@ -154,6 +155,20 @@ void main() {
     await pick(tester, 'ION ORCHARD');
     expect(find.text(vivoCity.address!), findsOneWidget);
     expect(find.text(ionOrchard.address!), findsOneWidget);
+  });
+
+  testWidgets('origin and destination share one route card', (tester) async {
+    await pumpApp(tester, gpsApp());
+    await tester.pump();
+    final card = find.byKey(const Key('route-card'));
+    expect(
+      find.descendant(of: card, matching: find.text('From: Current location')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: card, matching: find.text(DestinationCard.prompt)),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the search field accepts at most maxQueryLength characters', (
@@ -234,7 +249,7 @@ void main() {
     'GPS origin → search and select a destination; origin unchanged',
     (tester) async {
       await pumpApp(tester, gpsApp());
-      expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+      expect(find.text('From: Current location'), findsOneWidget);
       expect(find.text(DestinationCard.prompt), findsOneWidget);
       final before = originOf(tester).origin!;
 
@@ -247,7 +262,7 @@ void main() {
       expect(after.provenance, OriginProvenance.gps);
       expect(after.position, before.position);
       expect(after.label, before.label);
-      expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+      expect(find.text('From: Current location'), findsOneWidget);
     },
   );
 
@@ -267,7 +282,7 @@ void main() {
     await type(tester, originField, 'ION Orchard');
     await pick(tester, 'ION ORCHARD');
 
-    expect(find.text('From: ION ORCHARD (chosen manually)'), findsOneWidget);
+    expect(find.text('From: ION ORCHARD'), findsOneWidget);
     expect(originOf(tester).origin!.position, ionOrchard.position);
     expect(find.text('To: VIVOCITY'), findsOneWidget);
     expect(destinationOf(tester).place, vivoCity);
@@ -286,10 +301,7 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(originField), findsNothing);
-    expect(
-      find.text('From: OUR TAMPINES HUB (chosen manually)'),
-      findsOneWidget,
-    );
+    expect(find.text('From: OUR TAMPINES HUB'), findsOneWidget);
     expect(originOf(tester).origin, same(origin));
     expect(originOf(tester).phase, OriginPhase.ready);
   });
@@ -336,7 +348,7 @@ void main() {
     expect(originOf(tester).origin!.label, 'OUR TAMPINES HUB');
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
   });
 
   testWidgets('an unanswered location prompt does not block the app: manual '
@@ -406,14 +418,11 @@ void main() {
     await type(tester, destinationField, 'VivoCity');
     await pick(tester, 'VIVOCITY');
     await tester.pump(const Duration(seconds: 30));
-    expect(
-      find.text('From: OUR TAMPINES HUB (chosen manually)'),
-      findsOneWidget,
-    );
+    expect(find.text('From: OUR TAMPINES HUB'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
-    expect(find.text('From: Current location (from GPS)'), findsOneWidget);
+    expect(find.text('From: Current location'), findsOneWidget);
     expect(destinationOf(tester).place, vivoCity);
   });
 
@@ -431,5 +440,47 @@ void main() {
     await tester.pump();
     expect(find.text('VIVOCITY'), findsOneWidget);
     expect(find.text('ION ORCHARD'), findsNothing);
+  });
+  testWidgets('the clear button empties the field and its results and '
+      'selects nothing', (tester) async {
+    await pumpApp(tester, deniedApp());
+    final clear = find.descendant(
+      of: find.byKey(originField),
+      matching: find.byTooltip(PlaceSearchField.clearTooltip),
+    );
+    expect(clear, findsNothing); // empty field: no button
+
+    await type(tester, originField, '098585');
+    expect(find.text('1 match. Tap it to confirm.'), findsOneWidget);
+    expect(clear, findsOneWidget);
+
+    await tester.tap(clear);
+    await tester.pump();
+    final field = tester.widget<TextField>(find.byKey(originField));
+    expect(field.controller!.text, isEmpty);
+    expect(find.text('1 match. Tap it to confirm.'), findsNothing);
+    expect(clear, findsNothing);
+    expect(originOf(tester).origin, isNull);
+  });
+
+  testWidgets('choosing a place gives one selection click; typing gives none', (
+    tester,
+  ) async {
+    final haptics = <Object?>[];
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'HapticFeedback.vibrate') haptics.add(call.arguments);
+      return null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+
+    await pumpApp(tester, deniedApp());
+    await type(tester, originField, '098585');
+    expect(haptics, isEmpty);
+
+    await pick(tester, 'VIVOCITY');
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
   });
 }
