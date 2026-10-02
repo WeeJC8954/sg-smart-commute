@@ -170,6 +170,27 @@ void main() {
       });
     });
 
+    // M5, seen live in Chrome: after a late "Allow" the prompt still said the
+    // request had not been answered.
+    test('granted later while typing → the "not answered" note is cleared', () {
+      fakeAsync((async) {
+        final c = makeContainer();
+        async.elapse(const Duration(seconds: 30));
+        c.read(originControllerProvider.notifier).beginManualEntry();
+        expect(
+          c.read(originControllerProvider).fallbackReason,
+          isA<LocationPermissionUnanswered>(),
+        );
+        location.grant();
+        async.flushMicrotasks();
+        final s = c.read(originControllerProvider);
+        expect(s.phase, OriginPhase.needsManual);
+        expect(s.manualEntryInProgress, isTrue);
+        expect(s.fallbackReason, isNull);
+        c.dispose();
+      });
+    });
+
     test('denied later → the reason becomes "denied"', () {
       fakeAsync((async) {
         final c = makeContainer();
