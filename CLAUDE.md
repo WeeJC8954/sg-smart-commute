@@ -68,7 +68,8 @@ Feature-first with a pragmatic clean architecture (guide §11):
   repository interfaces, pure logic), `presentation/` (widgets). DTOs never reach widgets.
 - `lib/app/` — app shell (`SmartCommuteApp` with `ProviderScope(retry: noAutomaticRetry)`) and home screen.
 
-State is Riverpod 3 with `AsyncValue<T>`; errors inside it are typed `AppFailure`s so widgets switch on them.
+State is Riverpod 3 with `AsyncValue<T>`; errors inside it are typed `AppFailure`s so widgets switch on them (loads go
+through `guardAppFailure` in `core/errors/failure_guard.dart`, which also debug-logs the failure detail).
 Don't add a parallel `LoadState` type.
 
 Key flows that span several files:
