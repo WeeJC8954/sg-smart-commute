@@ -1,13 +1,16 @@
 // Phase 1 fallback/error-path integration test (guide v2.1 §18, item 2),
-// M1–M3: permission denied (or a fix outside Singapore, or a timeout) → the
+// M1–M4: permission denied (or a fix outside Singapore, or a timeout) → the
 // manual origin prompt appears → the user searches for and selects an origin
 // → searches for and selects a destination → "No direct bus found" plus the
 // MRT alternative (fake bus network and MRT asset) → a provider fails (24-hr
 // PSI throws NetworkUnavailable) → a clear error with Retry and no
-// fabricated value → Retry with the recovered fake succeeds.
+// fabricated value → Retry with the recovered fake succeeds → the user
+// changes the origin to one with a direct bus → the bus-arrival provider
+// fails (NetworkUnavailable): the route stays visible, arrivals show as
+// unavailable with Retry, and no ETA is fabricated → Retry with the
+// recovered fake shows the ETA.
 //
-// M4 extends the failure step to bus arrival. Every provider is a fake; no
-// live API is called. The 10 s timeout is injected (short), so the test never
+// Every provider is a fake; no live API is called. The 10 s timeout is injected (short), so the test never
 // waits 10 s in real time.
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +21,7 @@ import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
 import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 
+import '../test/fakes/fake_bus_arrival_repository.dart';
 import '../test/fakes/fake_environment_repository.dart';
 import '../test/fakes/fake_location_service.dart';
 import '../test/fakes/test_app.dart';
@@ -31,7 +35,11 @@ void main() {
     final location = FakeLocationService(access: LocationAccess.denied);
     final env = FakeEnvironmentRepository()
       ..failPsi = const NetworkUnavailable();
-    await tester.pumpWidget(buildTestApp(location: location, environment: env));
+    final arrivals = FakeBusArrivalRepository()
+      ..failure = const NetworkUnavailable();
+    await tester.pumpWidget(
+      buildTestApp(location: location, environment: env, busArrivals: arrivals),
+    );
 
     // Manual prompt immediately; no position was ever requested.
     await pumpUntilFound(tester, find.text(OriginCard.fallbackPrompt));
@@ -115,6 +123,60 @@ void main() {
     await pumpUntilFound(tester, inTile('tile-psi', '24-hr PSI 61 (Moderate)'));
     expect(inTile('tile-psi', 'East region'), findsOneWidget);
     expect(env.calls['psi'], 2);
+
+    // M4: no bus option was shown yet, so no arrivals were requested.
+    expect(arrivals.totalCalls, 0);
+
+    // A new origin with a direct bus: Bishan → ION Orchard, F30 from BSH1.
+    await scrollToTop(tester);
+    await scrollToAndTap(tester, find.byKey(const Key('change-origin')));
+    await searchAndPick(
+      tester,
+      field: const Key('manual-origin-field'),
+      query: 'Bishan MRT',
+      result: 'BISHAN MRT STATION (NS17)',
+    );
+    final suggested = find.byKey(const Key('journey-suggested'));
+    await pumpUntilFound(tester, suggested);
+
+    // Arrivals fail: the route stays, arrivals are unavailable with Retry.
+    final f30 = find.byKey(const Key('arrivals-BSH1-F30'));
+    final unavailable = find.descendant(
+      of: f30,
+      matching: find.text(
+        'Live arrivals: ${const NetworkUnavailable().message}',
+      ),
+    );
+    await pumpUntilFound(tester, unavailable);
+    await tester.ensureVisible(suggested);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.text('Take Bus F30 toward VivoCity (fake)'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.text('Alight at ION1 — Orchard Stn (fake)'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Next buses'), findsNothing);
+
+    // The provider recovers; Retry shows the ETA.
+    arrivals.failure = null;
+    await scrollToAndTap(
+      tester,
+      find.descendant(of: f30, matching: find.text('Retry')),
+    );
+    await pumpUntilFound(
+      tester,
+      find.descendant(of: f30, matching: find.text('Next buses: 2 min')),
+    );
+    expect(arrivals.calls['BSH1'], 2);
   });
 
   testWidgets('fix outside Singapore → manual origin', (tester) async {
