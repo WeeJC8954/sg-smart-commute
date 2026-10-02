@@ -3,6 +3,7 @@
 // (test/fakes/). No arrival times are shown anywhere in M3.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
@@ -50,6 +51,10 @@ Finder inCard(String text) => find.descendant(
 Finder inKey(String key, String text) =>
     find.descendant(of: find.byKey(Key(key)), matching: find.text(text));
 
+/// The text of a keyed [Text] (the key sits on the Text itself).
+String textOf(WidgetTester tester, String key) =>
+    tester.widget<Text>(find.byKey(Key(key))).data!;
+
 String walk(LatLng a, LatLng b) => WalkEstimate.between(a, b).label;
 
 void main() {
@@ -62,17 +67,21 @@ void main() {
     places = FakePlaceSearchRepository();
   });
 
-  Widget gpsApp({FakeBusNetworkRepository? network, bool mrtFails = false}) =>
-      buildTestApp(
-        location: FakeLocationService(
-          access: LocationAccess.granted,
-          position: bishan,
-        ),
-        environment: FakeEnvironmentRepository(),
-        places: places,
-        busNetwork: network ?? bus,
-        mrt: fakeMrtRepository(fail: mrtFails),
-      );
+  Widget gpsApp({
+    FakeBusNetworkRepository? network,
+    bool mrtFails = false,
+    double? mrtMaxDistanceMeters,
+  }) => buildTestApp(
+    location: FakeLocationService(
+      access: LocationAccess.granted,
+      position: bishan,
+    ),
+    environment: FakeEnvironmentRepository(),
+    places: places,
+    busNetwork: network ?? bus,
+    mrt: fakeMrtRepository(fail: mrtFails),
+    mrtMaxDistanceMeters: mrtMaxDistanceMeters,
+  );
 
   Widget deniedApp() => buildTestApp(
     location: FakeLocationService(access: LocationAccess.denied),
@@ -340,5 +349,85 @@ void main() {
       inCard('No bus stop within 800 m of your destination.'),
       findsOneWidget,
     );
+  });
+
+  group('MRT "none within …" text follows the configured maximum', () {
+    void addUbin() => places.results['pulau ubin'] = [
+      fakePlace(
+        'PULAU UBIN JETTY',
+        lat: 1.4040,
+        lng: 103.9600,
+        type: PlaceType.poi,
+      ),
+    ];
+
+    // Pulau Ubin Jetty is ~5.4 km from the nearest fake exit (Tampines).
+    for (final (meters, shown) in [
+      (null, '1.5 km'), // the default, JourneyConfig.mrtMaxDistanceMeters
+      (2500.0, '2.5 km'),
+      (800.0, '800 m'),
+    ]) {
+      testWidgets('maximum ${meters ?? 'default'} → "$shown"', (tester) async {
+        expect(JourneyConfig.mrtMaxDistanceMeters, 1500);
+        addUbin();
+        await pumpApp(tester, gpsApp(mrtMaxDistanceMeters: meters));
+        await searchAndPick(
+          tester,
+          destinationField,
+          'Pulau Ubin',
+          'PULAU UBIN JETTY',
+        );
+        expect(
+          textOf(tester, 'journey-mrt-destination'),
+          'Near your destination: none within about $shown',
+        );
+        if (meters != null) {
+          expect(find.textContaining('1.5 km'), findsNothing);
+        }
+      });
+    }
+
+    testWidgets('the lookup and the text use the same maximum', (tester) async {
+      // The GPS origin is ~31 m from the fake Bishan exit, so a 20 m maximum
+      // must hide it as well as change the text.
+      await pumpApp(tester, gpsApp(mrtMaxDistanceMeters: 20));
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      expect(
+        textOf(tester, 'journey-mrt-origin'),
+        'Nearest MRT: none within about 20 m',
+      );
+      expect(find.textContaining('BISHAN MRT STATION'), findsNothing);
+    });
+  });
+
+  testWidgets('a failed bus data load is held: changing the destination does '
+      'not reload it; only Retry does', (tester) async {
+    bus.failure = const StaticDataUnavailable('busrouter');
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    expect(inCard('Bus data is unavailable right now.'), findsOneWidget);
+    expect(bus.loads, 1);
+
+    bus.failure = null;
+    await tester.tap(find.byKey(const Key('change-destination')));
+    await tester.pump();
+    await searchAndPick(tester, destinationField, 'ION Orchard', 'ION ORCHARD');
+    expect(inCard('Bus data is unavailable right now.'), findsOneWidget);
+    expect(bus.loads, 1);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('journey-card')),
+        matching: find.text('Retry'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(inCard('Bus data is unavailable right now.'), findsNothing);
+    expect(
+      inKey('journey-suggested', 'Take Bus F30 toward VivoCity (fake)'),
+      findsOneWidget,
+    );
+    expect(bus.loads, 2);
   });
 }

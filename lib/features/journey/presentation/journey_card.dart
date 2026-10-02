@@ -7,6 +7,7 @@ import '../../origin/domain/origin_controller.dart';
 import '../domain/direct_bus_planner.dart';
 import '../domain/mrt.dart';
 import '../journey_providers.dart';
+import 'distance_text.dart';
 
 /// The journey result (guide v2.1 §5.6, §9): one "Suggested" direct bus plus
 /// up to two alternatives, or a clear "no direct bus" / walk / unavailable
@@ -58,6 +59,7 @@ class JourneyCard extends ConsumerWidget {
             const Divider(height: 24),
             _Mrt(
               mrt: mrt,
+              maxMeters: ref.watch(mrtMaxDistanceMetersProvider),
               onRetry: () => ref.invalidate(mrtSuggestionProvider),
             ),
             const SizedBox(height: 8),
@@ -156,11 +158,18 @@ class _Option extends StatelessWidget {
 }
 
 class _Mrt extends StatelessWidget {
-  const _Mrt({required this.mrt, required this.onRetry});
+  const _Mrt({
+    required this.mrt,
+    required this.maxMeters,
+    required this.onRetry,
+  });
   final AsyncValue<
     ({MrtSuggestion? nearOrigin, MrtSuggestion? nearDestination})?
   >
   mrt;
+
+  /// The radius the lookup used, for the "none within …" text.
+  final double maxMeters;
   final VoidCallback onRetry;
 
   @override
@@ -197,8 +206,8 @@ class _Mrt extends StatelessWidget {
     );
   }
 
-  static String _line(String label, MrtSuggestion? s) => s == null
-      ? '$label: none within about 1.5 km'
+  String _line(String label, MrtSuggestion? s) => s == null
+      ? '$label: none within about ${distanceText(maxMeters)}'
       : '$label: ${s.station.name} — ${s.walk.label}';
 }
 

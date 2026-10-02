@@ -97,7 +97,7 @@ Key flows that span several files:
 - Test seams overridden via providers: `locationServiceProvider`, `environmentRepositoryProvider`,
   `locationTimeoutProvider`, `clockProvider`, `placeSearchRepositoryProvider` (plus
   `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
-  `mrtRepositoryProvider`. `test/fakes/test_app.dart`
+  `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`. `test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
   `integration_test/`.
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual
