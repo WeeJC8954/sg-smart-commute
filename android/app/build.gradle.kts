@@ -69,17 +69,27 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (hasReleaseSigning) {
-                signingConfigs.getByName("release")
-            } else {
-                // Local smoke builds only: such an APK cannot go to Play and
-                // cannot update an install signed with the release key.
-                logger.warn(
-                    "WARNING: no release signing configured (android/key.properties); " +
-                        "the release build is signed with the DEBUG key. Do not distribute it.",
-                )
-                signingConfigs.getByName("debug")
-            }
+            // Without a release key: local smoke builds only. Such an APK
+            // cannot go to Play and cannot update an install signed with the
+            // release key.
+            signingConfig =
+                if (hasReleaseSigning) {
+                    signingConfigs.getByName("release")
+                } else {
+                    signingConfigs.getByName("debug")
+                }
+        }
+    }
+}
+
+// Warn only when a release variant is actually being built.
+if (!hasReleaseSigning) {
+    gradle.taskGraph.whenReady {
+        if (allTasks.any { it.name.contains("Release") }) {
+            logger.warn(
+                "WARNING: no release signing configured (android/key.properties); " +
+                    "the release build is signed with the DEBUG key. Do not distribute it.",
+            )
         }
     }
 }

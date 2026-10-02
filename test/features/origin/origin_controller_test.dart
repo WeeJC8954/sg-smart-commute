@@ -528,6 +528,30 @@ void main() {
       });
     });
 
+    test('a prompt answered after the timeout resumes and reports its own '
+        'outcome', () {
+      fakeAsync((async) {
+        final c = manualAfterDenial(async);
+        async.elapse(const Duration(seconds: 10));
+        expect(
+          c.read(originControllerProvider).backgroundFailure,
+          isA<LocationPermissionUnanswered>(),
+        );
+        location.grant();
+        async.flushMicrotasks();
+        var s = c.read(originControllerProvider);
+        expect(s.locatingInBackground, isTrue);
+        expect(s.backgroundFailure, isNull);
+
+        async.elapse(const Duration(seconds: 10)); // no fix
+        s = c.read(originControllerProvider);
+        expectTampinesKept(s);
+        expect(s.locatingInBackground, isFalse);
+        expect(s.backgroundFailure, isA<LocationTimeout>());
+        c.dispose();
+      });
+    });
+
     test('an out-of-Singapore fix is reported, never offered', () {
       fakeAsync((async) {
         final c = manualAfterDenial(async);

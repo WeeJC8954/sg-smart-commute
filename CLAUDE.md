@@ -108,7 +108,8 @@ Key flows that span several files:
   `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`, `busArrivalRepositoryProvider`,
   `busArrivalCacheTtlProvider`. `test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
-  `integration_test/`.
+  `integration_test/`. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
+  with fake time (`tester.pump(AppTimings.uiTick)`).
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual
   smoke tests and probes in `docs/testing.md`.
 - NEA parser tests use real payloads captured once in `test/fixtures/*.json`.

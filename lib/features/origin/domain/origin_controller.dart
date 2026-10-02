@@ -57,7 +57,8 @@ class OriginController extends Notifier<OriginState> {
 
   LocationService get _service => ref.read(locationServiceProvider);
 
-  Future<void> _start() async {
+  /// [background]: "Try location again" behind a manual origin.
+  Future<void> _start({bool background = false}) async {
     final attempt = ++_attempt;
     _timeout?.cancel();
 
@@ -94,6 +95,13 @@ class OriginController extends Notifier<OriginState> {
       state = state.copyWith(
         phase: OriginPhase.acquiring,
         clearFallbackReason: true,
+      );
+    } else if (background && _hasManualOrigin && !state.locatingInBackground) {
+      // A background attempt whose prompt was answered after its timeout:
+      // it is running again, and its own outcome replaces that note.
+      state = state.copyWith(
+        locatingInBackground: true,
+        clearBackgroundFailure: true,
       );
     }
     _timeout = Timer(ref.read(locationTimeoutProvider), () {
@@ -251,7 +259,7 @@ class OriginController extends Notifier<OriginState> {
         locatingInBackground: true,
         clearBackgroundFailure: true,
       );
-      _start();
+      _start(background: true);
       return;
     }
     state = OriginState(
