@@ -1,7 +1,6 @@
 /// Typed failures carried in `AsyncValue.error` (guide v2.1 §13).
 ///
-/// Only the failures Milestones 1–3 can produce are defined here. The rest of
-/// the §13 list (bus arrival) arrives with that feature. An empty
+/// Only the failures Milestones 1–4 can produce are defined here. An empty
 /// place search is an empty result list, not a failure.
 sealed class AppFailure implements Exception {
   const AppFailure();
@@ -117,4 +116,15 @@ final class StaticDataUnavailable extends AppFailure {
   String get message => dataset == 'MRT stations'
       ? 'MRT station data is unavailable.'
       : 'Bus data is unavailable right now.';
+}
+
+// --- Bus arrival ------------------------------------------------------------
+
+/// The live-arrival provider answered with an error instead of arrivals
+/// (ArriveLah reports upstream failures as HTTP 200 with an `error` field).
+final class BusArrivalUnavailable extends AppFailure {
+  const BusArrivalUnavailable([this.detail]);
+  final String? detail;
+  @override
+  String get message => 'Live arrival times are unavailable right now.';
 }
