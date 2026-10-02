@@ -526,4 +526,26 @@ void main() {
     await tester.pump();
     await tester.pump();
   });
+  testWidgets('the conditions refresh sits beside the Conditions heading', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      buildTestApp(
+        location: FakeLocationService(access: LocationAccess.denied),
+        environment: FakeEnvironmentRepository(),
+      ),
+    );
+    await tester.pump();
+    final button = find.byKey(const Key('refresh-conditions'));
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: button),
+      findsNothing,
+    );
+    final heading = tester.getRect(find.text('Conditions'));
+    final rect = tester.getRect(button);
+    expect((rect.center.dy - heading.center.dy).abs(), lessThan(24));
+    // The heading fills its Expanded, so it ends where the button starts.
+    expect(rect.left, greaterThanOrEqualTo(heading.right));
+  });
 }
