@@ -211,7 +211,9 @@ typedef _Hit = ({double along, int k, double t, double offset});
 /// Matches [stops] (the leading stops, then the ride's) in order and slices
 /// the line from the stop at [boardAt]. A chain longer than [maxSpan] (the
 /// undoubled line's length) would go round a loop more than once, joining
-/// incompatible passes, so it is rejected.
+/// incompatible passes, so it is rejected. The comparison allows the stop
+/// tolerance as slack: a terminus-to-terminus ride spans the line's length
+/// up to float rounding, and a genuine second round is a whole lap more.
 List<LatLng>? _matchAndSlice(
   List<LatLng> stops,
   int boardAt,
@@ -251,7 +253,7 @@ List<LatLng>? _matchAndSlice(
           continue;
         }
         final sum = before + hop;
-        if (sum > maxSpan) continue; // more than once round the loop
+        if (sum > maxSpan + c.toleranceMeters) continue; // over one round
         if (next[b] == null || sum < next[b]!) {
           next[b] = sum;
           prev[b] = a;

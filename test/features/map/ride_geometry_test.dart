@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
@@ -274,8 +275,10 @@ void main() {
         leadingStopCount(['X', 'C', 'A', 'B', 'Y', 'C', 'A', 'B'], 6, 7),
         2,
       );
-      // Never unique with a boarding index above 0: returns boardIndex.
+      // [B] and [A,B] each occur twice and nothing more precedes: never
+      // unique, so the result is boardIndex (1).
       expect(leadingStopCount(['A', 'B', 'A', 'B'], 1, 1), 1);
+      // [A,B] occurs twice but [B,A,B] once: unique at m = 1.
       expect(leadingStopCount(['A', 'B', 'A', 'B'], 2, 3), 1);
     });
 
@@ -461,5 +464,95 @@ void main() {
         expect(v, isNot(base()));
       }
     });
+  });
+
+  group('terminus to terminus', () {
+    // A wiggly open line of 40 points (about 8.7 km) from a seeded generator.
+    // The ride's end stops lie just beyond each end of the line (so they
+    // project to t = 0 and t = 1), with five stops on the line between: the
+    // chain spans the whole line, equal to its length up to float rounding.
+    List<LatLng> wiggly(int seed) {
+      final rnd = math.Random(seed);
+      return [
+        for (var i = 0; i < 40; i++)
+          LatLng(
+            1.3 + 0.0003 * rnd.nextDouble(),
+            103.80 + 0.002 * i + 0.0004 * rnd.nextDouble(),
+          ),
+      ];
+    }
+
+    String encode(List<LatLng> points) {
+      final out = StringBuffer();
+      void put(int v) {
+        var z = v < 0 ? -2 * v - 1 : 2 * v;
+        while (z >= 32) {
+          out.writeCharCode((32 | (z & 31)) + 63);
+          z >>= 5;
+        }
+        out.writeCharCode(z + 63);
+      }
+
+      var lat = 0, lng = 0;
+      for (final p in points) {
+        final a = (p.latitude * 1e5).round(), b = (p.longitude * 1e5).round();
+        put(a - lat);
+        put(b - lng);
+        lat = a;
+        lng = b;
+      }
+      return out.toString();
+    }
+
+    for (final stored in ['as stored', 'stored backwards']) {
+      test('end stops beyond both ends, line $stored: drawn, whole line', () {
+        var drawnCount = 0;
+        for (var seed = 0; seed < 40; seed++) {
+          final points = wiggly(seed);
+          final encoded = encode(
+            stored == 'as stored' ? points : points.reversed.toList(),
+          );
+          final line = decodePolyline(
+            encoded,
+          ); // the line as the matcher sees it
+          final ordered = stored == 'as stored' ? line : line.reversed.toList();
+          // A tenth of a segment (about 22 m) beyond each end, along it.
+          final f0 = ordered[0], f1 = ordered[1];
+          final l0 = ordered[ordered.length - 1];
+          final l1 = ordered[ordered.length - 2];
+          final stops = [
+            LatLng(
+              f0.latitude - 0.1 * (f1.latitude - f0.latitude),
+              f0.longitude - 0.1 * (f1.longitude - f0.longitude),
+            ),
+            for (final i in [7, 14, 21, 28, 35]) ordered[i],
+            LatLng(
+              l0.latitude + 0.1 * (l0.latitude - l1.latitude),
+              l0.longitude + 0.1 * (l0.longitude - l1.longitude),
+            ),
+          ];
+          final r = MapRide(
+            service: 'W',
+            sourceDirection: 0,
+            boardIndex: 0,
+            stops: stops,
+          );
+          final result = matchRide(
+            r,
+            RouteGeometry({
+              'W': [encoded],
+            }),
+          );
+          expect(result, isA<RideLineDrawn>(), reason: 'seed $seed');
+          expect(
+            lengthOf((result as RideLineDrawn).points),
+            closeTo(lengthOf(line), 1),
+            reason: 'seed $seed',
+          );
+          drawnCount++;
+        }
+        expect(drawnCount, 40);
+      });
+    }
   });
 }
