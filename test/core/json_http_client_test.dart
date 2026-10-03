@@ -458,6 +458,62 @@ void main() {
       });
     }
 
+    group('wall-clock jumps (the hold uses the device clock)', () {
+      test('backwards: the hold never outlasts the cap from now on', () async {
+        final c = held({'retry-after': '10'});
+        await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+
+        now = now.subtract(const Duration(hours: 1)); // e.g. a time-zone fix
+        await expectLater(
+          c.getJson(uri),
+          throwsA(
+            isA<ApiRateLimited>().having(
+              (e) => e.retryAfter,
+              'retryAfter',
+              AppTimings.maxRetryAfter,
+            ),
+          ),
+          reason: 'never "retry in 60 minutes"',
+        );
+        now = now.add(AppTimings.maxRetryAfter - const Duration(seconds: 1));
+        await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+        now = now.add(const Duration(seconds: 1));
+        expect(await c.getJson(uri), {'ok': 1});
+        expect(calls[uri.host], 2, reason: 'one send after the hold, no flood');
+      });
+
+      test('forwards: the hold ends early; one request goes out', () async {
+        final c = held({'retry-after': '10'});
+        await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+
+        now = now.add(const Duration(hours: 1));
+        expect(await c.getJson(uri), {'ok': 1});
+        expect(calls[uri.host], 2);
+      });
+
+      test(
+        'forwards into a fresh 429: a new hold, not a request flood',
+        () async {
+          var sends = 0;
+          final c = JsonHttpClient(
+            MockClient((_) async {
+              sends++;
+              return http.Response('', 429, headers: {'retry-after': '10'});
+            }),
+            delay: (d) async => delays.add(d),
+            clock: () => now,
+          );
+          await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+          now = now.add(const Duration(hours: 1)); // hold ended early
+          await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+          for (var i = 0; i < 5; i++) {
+            await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+          }
+          expect(sends, 2, reason: 'the early send set a new hold');
+        },
+      );
+    });
+
     test('5xx retries are unchanged and set no hold', () async {
       var sends = 0;
       final c = JsonHttpClient(
