@@ -3,7 +3,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../domain/bus_network.dart';
 
-const String _dataset = 'busrouter';
+const StaticDataset _dataset = StaticDataset.busRoutes;
 
 /// Parses busrouter `stops.min.json`: `{code: [lng, lat, name, road]}`
 /// (guide v2.1 §9.1). **Longitude comes first**: it is converted to a
@@ -39,13 +39,7 @@ BusStop? _stop(String code, Object? value) {
     return null;
   }
   final p = LatLng(lat.toDouble(), lng.toDouble());
-  if (!p.isFinite ||
-      p.latitude < TransportDataBounds.minLatitude ||
-      p.latitude > TransportDataBounds.maxLatitude ||
-      p.longitude < TransportDataBounds.minLongitude ||
-      p.longitude > TransportDataBounds.maxLongitude) {
-    return null;
-  }
+  if (!isWithinTransportBounds(p)) return null;
   return BusStop(code: code, position: p, name: name, road: road);
 }
 

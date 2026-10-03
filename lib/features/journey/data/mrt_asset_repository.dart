@@ -35,13 +35,16 @@ class MrtAssetRepository {
     try {
       text = await _load();
     } catch (e) {
-      throw StaticDataUnavailable('MRT stations', 'asset not loaded: $e');
+      throw StaticDataUnavailable(
+        StaticDataset.mrtStations,
+        'asset not loaded: $e',
+      );
     }
     final Object? json;
     try {
       json = jsonDecode(text);
     } on FormatException {
-      throw const StaticDataUnavailable('MRT stations', 'not JSON');
+      throw const StaticDataUnavailable(StaticDataset.mrtStations, 'not JSON');
     }
     return parseMrtAsset(json);
   }

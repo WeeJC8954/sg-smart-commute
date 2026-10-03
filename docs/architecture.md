@@ -103,7 +103,8 @@ lib/
 - OneMap calls go through the generic `JsonHttpClient` (timeout, retry, 401/403, 429) with a shared `OneMapRateLimit`
   limiter (1 request per 1 s, FIFO, retries included), on top of the debounce and the bounded cache. Photon / Nominatim / bundled fallbacks are not built (guide §0.1 item 6).
 - `ProviderScope(retry: noAutomaticRetry)`: Riverpod 3's automatic retry is off (rate limits; explicit Retry).
-- Dependencies added: `flutter_riverpod` 3.4.3, `geolocator` 14.1.1, `fake_async` (dev).
+- Dependencies added: `flutter_riverpod` 3.4.3, `geolocator` 14.1.1, `clock` 1.1.3 (the fake-time `clock.now()` in
+  `http/rate_limiter.dart`), `fake_async` (dev).
 
 ## Milestone 3 (direct bus + MRT alternative)
 

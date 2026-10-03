@@ -77,18 +77,11 @@ final fakeForecast = ForecastSnapshot(
     ),
   ],
   updatedAt: _observed.add(const Duration(minutes: 5)),
-  validFrom: _observed,
-  validTo: _observed.add(const Duration(hours: 2)),
   validText: '12.00 pm to 2.00 pm',
   fetchedAt: fakeNow,
 );
 
-final fakeUv = UvSnapshot(
-  value: 7,
-  observedAt: _observed,
-  updatedAt: _observed.add(const Duration(minutes: 10)),
-  fetchedAt: fakeNow,
-);
+final fakeUv = UvSnapshot(value: 7, observedAt: _observed, fetchedAt: fakeNow);
 
 const _regions = {
   'north': LatLng(1.41803, 103.82),
@@ -109,7 +102,6 @@ final fakePm25 = RegionalSnapshot(
     'central': 18,
   },
   observedAt: _observed,
-  updatedAt: _observed,
   fetchedAt: fakeNow,
 );
 
@@ -124,6 +116,5 @@ final fakePsi = RegionalSnapshot(
     'central': 54,
   },
   observedAt: _observed,
-  updatedAt: _observed,
   fetchedAt: fakeNow,
 );

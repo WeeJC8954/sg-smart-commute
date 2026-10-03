@@ -6,6 +6,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../../../core/time/clock.dart';
 import '../../../core/ui/status_rows.dart';
+import '../../origin/domain/origin.dart';
 import '../../origin/domain/origin_controller.dart';
 import '../domain/environment_locator.dart';
 import '../domain/environment_models.dart';
@@ -220,9 +221,23 @@ class _SnapshotTile<T> extends ConsumerWidget {
       body = ErrorRetryRow(
         message: failureMessage(value.error),
         onRetry: retry,
+        retryLabel: 'Retry $title',
       );
     } else if (needsPosition && position == null) {
-      body = const Text('Waiting for your location');
+      // "Waiting" only while the app waits for a fix (checking permission,
+      // acquiring). At needsManual it has stopped waiting and asks for a
+      // place, so say what the user can do. After a denial, location off, an
+      // error or a fix outside SG nothing is pending; after an unanswered
+      // prompt or a timeout a late fix may still fill the origin (late-fix
+      // rule), and the tile then shows the reading.
+      final needsManual = ref.watch(
+        originControllerProvider.select(
+          (s) => s.phase == OriginPhase.needsManual,
+        ),
+      );
+      body = Text(
+        needsManual ? ReadingText.needsOrigin : ReadingText.waitingForLocation,
+      );
     } else if (refreshFailed) {
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,6 +247,7 @@ class _SnapshotTile<T> extends ConsumerWidget {
             key: const Key('refresh-failed'),
             message: "Couldn't refresh: ${failureMessage(value.error)}",
             onRetry: retry,
+            retryLabel: 'Retry $title',
           ),
         ],
       );

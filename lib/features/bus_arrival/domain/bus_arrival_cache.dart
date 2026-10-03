@@ -1,4 +1,5 @@
 import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/failure_guard.dart';
 import '../../../core/time/clock.dart';
 import 'bus_arrival.dart';
 import 'bus_arrival_repository.dart';
@@ -38,14 +39,10 @@ class BusArrivalCache {
   }
 
   Future<StopArrivals> _load(String busStopCode) async {
-    final StopArrivals arrivals;
-    try {
-      arrivals = await _repository.arrivalsAt(busStopCode);
-    } on AppFailure {
-      rethrow;
-    } catch (e) {
-      throw InvalidApiResponse('$e');
-    }
+    final arrivals = await guardAppFailure(
+      () => _repository.arrivalsAt(busStopCode),
+      context: 'bus arrivals',
+    );
     _fresh[busStopCode] = (arrivals: arrivals, at: _clock());
     return arrivals;
   }

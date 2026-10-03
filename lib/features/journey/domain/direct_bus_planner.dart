@@ -40,7 +40,9 @@ final class DirectBusOptions extends JourneyPlan {
   const DirectBusOptions(this.options, {required this.radiusMeters});
   final List<BusOption> options;
 
-  /// The candidate radius that produced these options (400 or 800 m).
+  /// The candidate radius that produced these options
+  /// ([PlannerConfig.stopRadiusMeters] or
+  /// [PlannerConfig.widenedStopRadiusMeters]).
   final double radiusMeters;
 }
 
@@ -106,9 +108,10 @@ typedef _Candidate = ({BusStop stop, WalkEstimate walk});
 /// and pure: no I/O and no live data.
 ///
 /// 1. Within [PlannerConfig.walkOnlyMaxMeters] → [WalkOnly].
-/// 2. Candidate stops within 400 m of each end (haversine). If that yields
-///    no direct match (no candidates on a side, or no connecting service),
-///    retry once at 800 m on both sides.
+/// 2. Candidate stops within [PlannerConfig.stopRadiusMeters] of each end
+///    (haversine). If that yields no direct match (no candidates on a side,
+///    or no connecting service), retry once at
+///    [PlannerConfig.widenedStopRadiusMeters] on both sides.
 /// 3. For each service and direction, each origin-candidate occurrence `i` is
 ///    paired with the first occurrence `j > i` of each destination candidate
 ///    (`index(o) < index(d)`; never `d` before `o`; never `o == d`). Over all

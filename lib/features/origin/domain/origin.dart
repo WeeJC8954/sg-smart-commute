@@ -76,7 +76,6 @@ class OriginState {
     LocationFailure? fallbackReason,
     bool clearFallbackReason = false,
     LatLng? offeredGpsFix,
-    bool clearOfferedGpsFix = false,
     bool? manualEntryInProgress,
     bool? locatingInBackground,
     LocationFailure? backgroundFailure,
@@ -87,9 +86,7 @@ class OriginState {
     fallbackReason: clearFallbackReason
         ? null
         : (fallbackReason ?? this.fallbackReason),
-    offeredGpsFix: clearOfferedGpsFix
-        ? null
-        : (offeredGpsFix ?? this.offeredGpsFix),
+    offeredGpsFix: offeredGpsFix ?? this.offeredGpsFix,
     manualEntryInProgress: manualEntryInProgress ?? this.manualEntryInProgress,
     locatingInBackground: locatingInBackground ?? this.locatingInBackground,
     backgroundFailure: clearBackgroundFailure

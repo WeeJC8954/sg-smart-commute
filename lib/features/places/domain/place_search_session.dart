@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/failure_guard.dart';
 import 'place.dart';
 import 'place_query.dart';
 
@@ -111,12 +112,13 @@ class PlaceSearchSession {
     try {
       next = PlaceSearchResults(
         query,
-        await _repository.search(query, mode: mode),
+        await guardAppFailure(
+          () => _repository.search(query, mode: mode),
+          context: 'place search',
+        ),
       );
     } on AppFailure catch (failure) {
       next = PlaceSearchFailed(query, failure);
-    } catch (e) {
-      next = PlaceSearchFailed(query, InvalidApiResponse('$e'));
     }
     // Obsolete: the text changed (or was cleared) while this was in flight.
     if (sequence != _sequence) return;

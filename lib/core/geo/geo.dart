@@ -33,6 +33,16 @@ bool isWithinSingapore(LatLng p) =>
     p.longitude >= SgBounds.minLongitude &&
     p.longitude <= SgBounds.maxLongitude;
 
+/// Plausibility check for static transport coordinates (busrouter stops, the
+/// MRT asset): inside [TransportDataBounds], inclusive, and finite. Wider than
+/// [SgBounds]; it exists to catch swapped lat/lng and garbage values.
+bool isWithinTransportBounds(LatLng p) =>
+    p.isFinite &&
+    p.latitude >= TransportDataBounds.minLatitude &&
+    p.latitude <= TransportDataBounds.maxLatitude &&
+    p.longitude >= TransportDataBounds.minLongitude &&
+    p.longitude <= TransportDataBounds.maxLongitude;
+
 const double _earthRadiusMeters = 6371000;
 
 /// Great-circle distance in metres.

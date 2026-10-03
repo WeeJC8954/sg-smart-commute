@@ -44,7 +44,7 @@ StopArrivals parseArriveLah(Object? json, String busStopCode) {
   if (services.isNotEmpty && parsed.isEmpty) {
     throw const InvalidApiResponse('ArriveLah: no valid service entries');
   }
-  return StopArrivals(busStopCode: busStopCode, services: parsed);
+  return StopArrivals(services: parsed);
 }
 
 ServiceArrivals? _service(Object? entry, String busStopCode) {

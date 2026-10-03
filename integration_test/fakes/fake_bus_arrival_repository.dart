@@ -38,7 +38,6 @@ BusArrival fakeArrival(
 ///         (F10 and F30 board at the same stop: one request serves both)
 Map<String, StopArrivals> fakeStopArrivals({DateTime? from}) => {
   'BSH2': StopArrivals(
-    busStopCode: 'BSH2',
     services: [
       ServiceArrivals(
         serviceNo: 'F20',
@@ -57,7 +56,6 @@ Map<String, StopArrivals> fakeStopArrivals({DateTime? from}) => {
     ],
   ),
   'BSH1': StopArrivals(
-    busStopCode: 'BSH1',
     services: [
       ServiceArrivals(
         serviceNo: 'F10',
@@ -116,7 +114,6 @@ class FakeBusArrivalRepository implements BusArrivalRepository {
     if (gate != null) await gate.future;
     final f = failures[busStopCode] ?? failure;
     if (f != null) throw f;
-    return stops[busStopCode] ??
-        StopArrivals(busStopCode: busStopCode, services: const []);
+    return stops[busStopCode] ?? const StopArrivals(services: []);
   }
 }
