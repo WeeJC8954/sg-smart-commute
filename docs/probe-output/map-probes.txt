@@ -1,4 +1,4 @@
-# probe run: 2026-10-02T18:01:17Z
+# probe run: 2026-10-03T02:10:17Z
 
 ## Raster basemaps
 === OneMap Default
@@ -59,9 +59,9 @@ body:
 GET https://tile.openstreetmap.org/16/51673/32534.png
 HTTP/1.1 200 OK
 access-control-allow-origin: *
-cache-control: max-age=1212, stale-while-revalidate=604800, stale-if-error=604800
+cache-control: max-age=18232, stale-while-revalidate=604800, stale-if-error=604800
 content-type: image/png
-bytes: 30929
+bytes: 30924
 body: <binary>
 
 === CARTO light_all

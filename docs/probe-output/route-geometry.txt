@@ -1,4 +1,4 @@
-busrouter routes.min.json geometry check (2026-10-02T17:58:52.214276Z)
+busrouter routes.min.json geometry check (2026-10-03T02:10:49.857324Z)
 services 602, directions 798
 directions with every stop matched in order: 600 (75.2%)
 polyline orientation used: {as given: 688, doubled: 104, reversed: 4, reversed+doubled: 2}

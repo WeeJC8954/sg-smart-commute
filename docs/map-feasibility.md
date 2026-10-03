@@ -7,8 +7,9 @@ Research and design only. P2-M0 adds **no app dependency and changes no app beha
   `tool/route_geometry_probe.dart` → `docs/probe-output/route-geometry.txt`);
 - screenshots in `docs/probe-output/map-spike/`.
 
-Observed 2026-10-02/03 (UTC 17:26–18:01 on 2026-10-02). Toolchain: Flutter 3.47.2 / Dart 3.13.2, Chrome
-154.0.8037.95, Pixel_8_Pro AVD.
+Observed 2026-10-02/03 (UTC 17:26–18:01 on 2026-10-02). OneMap's terms, basemap docs and attribution snippet
+were re-read on 2026-10-03 (02:06–02:08 UTC) for the basemap decision (§4.2). Toolchain: Flutter 3.47.2 /
+Dart 3.13.2, Chrome 154.0.8037.95, Pixel_8_Pro AVD.
 
 Constraints this design keeps (guide §2, §14, §17, ADR-001):
 - Android + Web;
@@ -23,15 +24,20 @@ Constraints this design keeps (guide §2, §14, §17, ADR-001):
 | Decision | Recommendation | Why (evidence) |
 |---|---|---|
 | Renderer | **flutter_map 8.x** (raster tiles), with `latlong2` | Pure Dart. Runs on Android and Web: proven on both in the spike (§3). No JS library, so no extra `script-src` or `worker-src`. BSD-3, actively released (8.3.2 on 2026-08-27). |
-| Basemap | **OneMap** `Default` (light) and `Night` (dark) raster tiles, z11–19 | Keyless, `Access-Control-Allow-Origin: *`, official Singapore map. The host `www.onemap.gov.sg` is **already in `connect-src`**, so the basemap needs **no CSP change**. |
+| Basemap | **OneMap** `Default` (light) and `Night` (dark) raster tiles, z11–19. **Decision: accepted** (§4.2) | Keyless, `Access-Control-Allow-Origin: *`, official Singapore map. The host `www.onemap.gov.sg` is **already in `connect-src`**, so the basemap needs **no CSP change**. The terms license use but give no service-level agreement and publish no volume limit, so the project sets its own reasonable-use rules (§4.2). |
 | Fallback basemap | None automatically. Keep OSM standard tiles as a documented config switch | A second provider adds a host, a policy and an attribution for a rare failure. When tiles fail, the map shows a degraded state; the journey card, which is the real answer, is unaffected. |
 | Bus ride geometry | Slice busrouter `routes.min.json`, already an allowed host, between the boarding and alighting stops | 98.5% of stop-to-stop hops and 88% of random rides can be drawn exactly. The rest fall back to straight hop connectors, drawn and labelled as approximate (§5). |
-| Walking geometry | **Keep straight-line "est." connectors** (guide §17). No live router by default | No keyless router has a policy that clearly allows app traffic (§6). An opt-in FOSSGIS `routed-foot` experiment is possible later, only on your decision. |
+| Walking geometry | **Keep straight-line "est." connectors** (guide §17). No live router by default | None of the keyless routers we tested (§6) had a usage policy we could confidently adopt for app traffic. An opt-in FOSSGIS `routed-foot` experiment is possible later, only on your decision. |
 | Architecture | A new `features/map/` that only *reads* the plan; flutter_map imported in one widget | The planner and domain never import map code (guide §17), and the map stays removable (§8). |
 
-**Main open risk:** OneMap's terms do not state a limit or approval for tile traffic from third-party apps
-(§4.1). The tiles are publicly documented for embedding, and the attribution rules are explicit. The terms
-are silent on volume, not prohibitive. This needs your acceptance before P2-M1.
+**Basemap decision: OneMap is accepted** (§4.2). This comes with three conditions:
+- the OneMap logo and attribution are always shown;
+- the project keeps its own reasonable-use rules, because OneMap publishes no volume limit;
+- the map degrades on its own if tiles are refused.
+
+OneMap gives **no service-level agreement**. Its terms provide the data "as is" and "as available", and SLA (the Singapore Land
+Authority) may suspend, restrict, block or start charging at any time. The decision therefore does not
+assume that OneMap guarantees any level of third-party app traffic, limited or unlimited.
 
 ## 2. Renderer options
 
@@ -89,10 +95,10 @@ All probed with `curl` and `Origin: https://example.com` (`docs/probe-output/map
 
 | Source | URL template | Key | CORS | Light/dark | Zoom | Policy for app traffic | Attribution | Verdict |
 |---|---|---|---|---|---|---|---|---|
-| **OneMap** (SLA) | `https://www.onemap.gov.sg/maps/tiles/{Default\|Night\|Grey\|GreyLite\|Original}/{z}/{x}/{y}.png` | None | `*` | Default and Original light, Grey and GreyLite muted, **Night dark** | 11–19 per docs (z10 also served; z20 and tiles outside SG return an empty 200) | Documented for embedding. Terms give no rate limit and no explicit approval for third-party app volume (§4.1). `Cache-Control: max-age=14400` | **Must** show the OneMap logo and "OneMap © contributors \| Singapore Land Authority", linking to onemap.gov.sg and sla.gov.sg | **Primary** |
-| OSM standard (OSMF) | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | None | `*` | Light only | 0–19 | Tile Usage Policy: clear UA (impossible to set on Web; Referer is used), cache ≥ 7 days, no bulk or offline use, no SLA, may be blocked. flutter_map docs warn that its apps were the largest UA in 2025 | "© OpenStreetMap contributors", always visible | Contingency only |
+| **OneMap** (Singapore Land Authority) | `https://www.onemap.gov.sg/maps/tiles/{Default\|Night\|Grey\|GreyLite\|Original}/{z}/{x}/{y}.png` | None | `*` | Default and Original light, Grey and GreyLite muted, **Night dark** | 11–19 per docs (z10 also served; z20 and tiles outside SG return an empty 200) | Documented for embedding. Terms give no rate limit and no explicit approval for third-party app volume (§4.1). `Cache-Control: max-age=14400` | **Must** show the OneMap logo and "OneMap © contributors \| Singapore Land Authority", linking to onemap.gov.sg and sla.gov.sg | **Primary** |
+| OSM standard (OSMF) | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | None | `*` | Light only | 0–19 | Tile Usage Policy: clear UA (impossible to set on Web; Referer is used), cache ≥ 7 days, no bulk or offline use, no service-level agreement, may be blocked. flutter_map docs warn that its apps were the largest UA in 2025 | "© OpenStreetMap contributors", always visible | Contingency only |
 | CARTO basemaps | `https://{a-d}.basemaps.cartocdn.com/{light_all\|dark_all}/{z}/{x}/{y}{r}.png` | **Now required** (terms effective 2026-09-29) | `*` | Positron / Dark Matter | 0–20 | Keyless requests return HTTP 200 with a watermark tile | "© OpenStreetMap contributors © CARTO" | Rejected (key) |
-| OpenFreeMap | `https://tiles.openfreemap.org/styles/{liberty\|positron\|bright\|dark}` (vector) | None | `*` | Yes (dark style) | Vector to z14, overzoomed | "No limits"; donation-funded, single operator, no SLA | "OpenFreeMap © OpenMapTiles Data from OpenStreetMap" | Rejected for now: vector only, so it needs MapLibre (§2) |
+| OpenFreeMap | `https://tiles.openfreemap.org/styles/{liberty\|positron\|bright\|dark}` (vector) | None | `*` | Yes (dark style) | Vector to z14, overzoomed | "No limits"; donation-funded, single operator, no service-level agreement | "OpenFreeMap © OpenMapTiles Data from OpenStreetMap" | Rejected for now: vector only, so it needs MapLibre (§2) |
 | Stadia, MapTiler, Thunderforest, Esri | various | Key or domain auth (Stadia on Web) | — | — | — | Free tiers non-commercial; native apps need a key in the bundle | — | Rejected (credential) |
 
 ### 4.1 OneMap terms and attribution
@@ -103,23 +109,92 @@ All probed with `curl` and `Origin: https://example.com` (`docs/probe-output/map
 - **TileJSON** (`…/maps/json/raster/tilejson/2.2.0/Default.json`) gives z11–19 and points at the `Default_HD`
   tiles. On 2026-10-02 the `*_HD` tiles were also 256 px and were served as `Content-Type: image/undefined`.
   The spike used the non-HD styles (`image/png`). Revisit HD in P2-M4.
-- **Attribution** (the docs' `code-attr.txt`): a 20 × 20 OneMap logo, then "OneMap © contributors |
-  Singapore Land Authority". The logo is at `https://www.onemap.gov.sg/web-assets/images/logo/om_logo.png`
-  (CORS `*`, same allowed host).
-  - The attribution must stay visible.
-  - flutter_map's `RichAttributionWidget` collapses to an "i" button by default. That is fine for the
-    secondary credits, but the OneMap line and logo must be shown persistently.
-- **Terms** (`https://www.onemap.gov.sg/legal/termsofuse.html`): logos and copyright notices must not be
-  removed, and storing or reproducing SLA data beyond the licence is restricted.
-  - No rate limit or caching rule is published.
-  - Implications: no prefetching or offline bulk caching. Rely on the HTTP cache: the browser cache on Web,
-    flutter_map's built-in cache on Android, which follows `max-age`.
+- **Attribution.** The basemap docs say: "Under our Terms of Use, by using our base map services, you MUST
+  include the OneMap logo and attribution". The snippet they provide
+  (`https://www.onemap.gov.sg/docs/maps/resources/code-attr.txt`, re-read 2026-10-03; the older
+  `docs/maps/code-attr.txt` now returns a "We have moved!" page) is:
+  - a 20 × 20 OneMap logo, `https://www.onemap.gov.sg/web-assets/images/logo/om_logo.png` (CORS `*`, same
+    allowed host);
+  - then "OneMap © contributors | Singapore Land Authority";
+  - "OneMap" links to `https://www.onemap.gov.sg/` and "Singapore Land Authority" to
+    `https://www.sla.gov.sg/`.
+
+  It must stay visible. flutter_map's `RichAttributionWidget` collapses to an "i" button by default. That
+  is fine for the secondary credits, but the OneMap line and logo must be shown persistently.
+- **Terms** (`https://www.onemap.gov.sg/legal/termsofuse.html`, re-read 2026-10-03):
+  - **Licence.** Clause 3(a) grants a "non-transferable, non-exclusive, royalty-free, revocable licence to
+    access, view, download, print or otherwise use the SLA Data and the SLA Material for any usage", subject
+    to the terms. Clause 3(b) forbids storing, archiving, reproducing, redistributing and similar uses
+    "except as expressly permitted in Clause 3(a)". It also forbids removing or obscuring SLA's copyright
+    notices and logos.
+  - **No service commitment.** Clause 2 lets SLA:
+    - suspend the site or any data "for any period of time without any prior notice";
+    - restrict parts of it "to Registered Developers only";
+    - deny or restrict access, or block an internet address, without notice.
+
+    The data is provided "as is" and "as available", with no warranty that it will be "available without
+    interruption or delay". No charge is made today, but SLA may introduce one.
+  - **No published volume limit.** Neither the terms nor the basemap docs give a rate limit, quota,
+    reasonable-use figure or caching rule for tiles. This was searched on 2026-10-03.
+  - **Implications:**
+    - Don't prefetch tiles or cache them in bulk for offline use; rely on the HTTP cache (the browser cache
+      on Web, flutter_map's built-in cache on Android, which follows `max-age`).
+    - Never hide the logo or attribution.
+    - Treat the service as best-effort.
 - **Shared-host check.** OneMap search returns 429 after 2–3 calls in about 1.5 s. Tiles come from the same
   host, so one map view's worth of tiles (8 × 5 at z16) was sent in parallel, followed by a search:
   - all 40 tile requests returned 200;
   - the search right afterwards returned 200.
   - Tile traffic at one-view scale did not trip the search limit. The app's search pacing
     (`OneMapRateLimit`) applies only to search, and tiles go through flutter_map's own client.
+
+### 4.2 Decision: OneMap raster tiles are the project basemap
+
+**Accepted.** OneMap `Default` (light) and `Night` (dark) raster tiles, z11–19, are the basemap for P2-M1
+onwards. The reasons:
+- the terms license viewing and use (§4.1);
+- the tiles are documented for embedding;
+- they need no key or token;
+- they add no CSP origin;
+- OneMap is the official national map.
+
+**What the acceptance does not assume:**
+- **No service-level agreement, and no traffic guarantee.** OneMap gives no availability commitment, and SLA may suspend,
+  restrict, block or charge without notice (§4.1).
+- **No unlimited volume.** OneMap publishes no volume limit, and we read that only as "no limit was
+  published", never as permission for unlimited third-party app traffic. The project caps its own load
+  (below).
+
+**Attribution (required).**
+- Show the OneMap logo (20 × 20) and "OneMap © contributors | Singapore Land Authority" whenever tiles are
+  on screen, in both light and dark mode.
+- Link "OneMap" to `https://www.onemap.gov.sg/` and "Singapore Land Authority" to `https://www.sla.gov.sg/`.
+- Never collapse, cover or remove it.
+- P2-M1 adds a widget test that asserts this (risk M2).
+
+**Project reasonable-use rules.** These are binding on P2-M1 to P2-M4. Their values go into `MapConfig` and
+`docs/assumptions.md` when implemented.
+1. **Tiles only for a map the user can see.** No tile is requested before the map is shown, and nothing is
+   requested in the background.
+2. **Bounded area and zoom.** The camera is constrained to the docs' bounds, SW (1.144, 103.535) to
+   NE (1.494, 104.502), and to z11–19, so no tiles outside Singapore and no deep zoom.
+3. **No prefetching or bulk download.** No offline packs, warming, tile scraping or redistribution.
+4. **Cache what has been fetched.** Use the HTTP cache with OneMap's `max-age`. Cap the Android cache
+   (`MapConfig`), and check in P2-M4 that it honours `max-age=14400`.
+5. **No automatic refresh, polling or retry loops.** The camera is fitted once per journey, without
+   animation. A failed tile shows the "Map tiles unavailable" overlay; there is no app-level retry loop.
+6. **Honest identity.** No credentials, proxy or spoofed client. On Android, flutter_map sends its
+   package-name `User-Agent`; on Web the browser's own headers go out.
+7. **Re-check the terms** at each map milestone (P2-M1 to P2-M4), and record the date and any change in
+   `docs/testing.md`.
+
+**If OneMap refuses tiles** (a token requirement, a published limit we would exceed, 429s or a block):
+- the map shows its degraded state;
+- planning, the journey card and arrivals are unaffected;
+- tiles are not retried automatically.
+
+Switching to the documented OSM contingency, or dropping the basemap, is then a new reviewed decision, with
+its own CSP host and the OSM tile policy. It is never an automatic fallback, and never a proxy.
 
 ## 5. Bus ride geometry from existing busrouter data
 
@@ -171,6 +246,16 @@ when implemented:
 | BRouter `brouter.de` | None | `*` | Hiking/trekking profiles | No published usage policy | Excluded |
 | openrouteservice, GraphHopper, Mapbox | Key | — | Yes | — | Excluded (credential) |
 | On-device routing (e.g. `geo_route_finder` 1.5.0, pure Dart, reads `.osm.pbf`) | None | n/a | Yes | n/a | Not realistic: uses `dart:io` (no Web), needs a bundled or downloaded SG extract, no adoption |
+
+**Conclusion.** None of the keyless candidates we tested (the OSRM demo, FOSSGIS `routed-foot`, FOSSGIS
+Valhalla, BRouter) had a usage policy we could confidently adopt for app traffic:
+- the OSRM demo's foot profile returned a car route;
+- Valhalla's server policy restricts it to development and testing;
+- BRouter publishes no policy;
+- `routed-foot`, the closest fit, allows only light use (≤ 1 request per second, no heavy use) and logs
+  requests.
+
+This is a finding about these candidates, not a claim about every possible keyless router.
 
 **Recommendation:** keep the current straight-line "est." walking connectors on the map, drawn dashed, as
 guide §17 already specifies. FOSSGIS `routed-foot` could be an opt-in experiment in P2-M4, with these
@@ -251,7 +336,7 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
 
 | # | Risk | Impact | Mitigation / fallback |
 |---|---|---|---|
-| M1 | OneMap tile terms silent on app volume; tokens could be introduced (as for search) | No basemap | Map is optional; degraded overlay; documented OSM switch (adds one CSP host and the OSM policy); no proxy, ever |
+| M1 | OneMap publishes no volume limit and gives no service-level agreement; it may suspend, restrict, block, charge or introduce tokens (as for search) | No basemap | Project reasonable-use rules (§4.2); map is optional; degraded overlay, no automatic retry; switching to the documented OSM contingency is a new reviewed decision (adds one CSP host and the OSM policy); no proxy, ever |
 | M2 | OneMap attribution non-compliance (logo collapsed or hidden) | Terms breach | Persistent attribution row with the logo; widget test asserts it is visible in light and dark |
 | M3 | busrouter geometry stale or mismatched for some services | Wrong or partial line | Matching with a 60 m tolerance and 3× detour cap; straight connectors marked approximate; markers only if the data is unusable |
 | M4 | dart2js bitwise semantics (found in the spike) and other VM/Web differences | Garbage geometry on Web only | Web-safe decoder; decoder tests also run with `--platform chrome`; Web integration test draws a known ride |
@@ -270,6 +355,8 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    - Add `features/map` with `JourneyMap` showing origin and destination markers only, OneMap Default/Night
      by theme, and the persistent OneMap attribution with its logo.
    - Camera fitted to both points and constrained to SG.
+   - The §4.2 reasonable-use rules: tiles only while the map is shown, bounds and z11–19, no prefetch, no
+     retry loop. Record them in `docs/assumptions.md`, and re-check the OneMap terms.
    - Collapsible card under the journey; tile-failure overlay.
    - Tests: fake tile provider seam, light/dark attribution test, CSP test update.
    - Remove `tool/map_spike/` and its `analysis_options.yaml` exclude.
@@ -297,10 +384,11 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    - Optional, **only if approved**: the FOSSGIS `routed-foot` experiment behind a config flag, with the
      §6 conditions and its own CSP host.
 
-## 11. Decisions needed before P2-M1
+## 11. Decisions before P2-M1
 
-1. Accept OneMap tiles as the sole basemap under its current, silent-on-volume terms (with the attribution
-   in §4.1)?
+1. **Basemap: decided in P2-M0.** OneMap raster tiles are accepted, with the required attribution, the
+   project reasonable-use rules and the refusal handling in §4.2. They come with no service-level agreement and no assumption of
+   unlimited traffic.
 2. Ride lines: accept straight dashed connectors for unmatched hops, labelled approximate (§5 rule 2), or
    show markers only for those rides?
 3. Walking: confirm straight-line "est." connectors. Should the FOSSGIS `routed-foot` experiment stay off
