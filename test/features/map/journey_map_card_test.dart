@@ -548,6 +548,89 @@ void main() {
       expect(points.last.latitude, closeTo(ion.latitude, 1e-4));
     });
 
+    testWidgets(
+      'a failure held from a bus journey is not retried by "Show map" '
+      'on a walk-only journey',
+      (tester) async {
+        geometry.failure = const StaticDataUnavailable(
+          StaticDataset.busRouteGeometry,
+        );
+        await pumpApp(tester, app());
+        await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+        await openMap(tester);
+        expect(geometry.loads, 1);
+        await tester.tap(find.byKey(hideMap));
+        await tester.pump();
+
+        await tester.tap(find.byKey(const Key('change-destination')));
+        await tester.pump();
+        await pickDestination(
+          tester,
+          'Bishan MRT',
+          'BISHAN MRT STATION (NS17)',
+        );
+        expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
+        await openMap(tester);
+        await tester.pump(const Duration(seconds: 5));
+        expect(find.byType(FlutterMap), findsOneWidget);
+        expect(geometry.loads, 1, reason: 'nothing is requested for walk-only');
+      },
+    );
+
+    testWidgets('"Show map" during a retry that is still loading does not '
+        'start another', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(geometry.loads, 1);
+
+      geometry.failure = null;
+      geometry.hold();
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2);
+      // No note while the retry is pending, although the last result failed.
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2, reason: 'the retry is already under way');
+
+      geometry.release();
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      expect(geometry.loads, 2);
+    });
+
+    testWidgets('a retry in progress shows no unavailable note: absent '
+        'while it loads', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+
+      geometry.hold(); // the retry fails again, but only after the gate opens
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      geometry.release();
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+    });
+
     testWidgets('a line worked out for another ride is never drawn', (
       tester,
     ) async {
@@ -594,6 +677,44 @@ void main() {
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byKey(const Key('map-ride-line')), findsNothing);
       expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      // The same holds for a gap worked out for another ride: no note.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mapTileProviderFactoryProvider.overrideWithValue(() => tiles),
+            rideLineProvider.overrideWithValue(
+              const AsyncData(
+                RideLineUnavailable(rideB, RideLineGap.notMatched),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: JourneyMap(scene: scene)),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      // ...while a gap for this very ride does show the note.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mapTileProviderFactoryProvider.overrideWithValue(() => tiles),
+            rideLineProvider.overrideWithValue(
+              const AsyncData(
+                RideLineUnavailable(rideA, RideLineGap.notMatched),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: JourneyMap(scene: scene)),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
     });
   });
 }

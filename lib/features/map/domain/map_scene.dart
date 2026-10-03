@@ -32,9 +32,9 @@ class MapMarker {
 }
 
 /// What the journey map draws: markers, and the bus ride when there is one,
-/// read from the journey that the planner already produced. Pure Dart: no Flutter or map-package import, so
-/// it is testable on its own and the map widget stays replaceable (guide
-/// §17).
+/// read from the journey that the planner already produced. Pure Dart: no
+/// Flutter or map-package import, so it is testable on its own and the map
+/// widget stays replaceable (guide §17).
 class MapScene {
   const MapScene(this.markers, {this.serviceNumber, this.ride});
 

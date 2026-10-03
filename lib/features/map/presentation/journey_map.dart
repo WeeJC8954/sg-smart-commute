@@ -121,9 +121,15 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
       final RideLineDrawn line when line.ride == widget.scene.ride => line,
       _ => null,
     };
+    // A failed load is a note only once it is not being retried, and a worked
+    // out gap only for the ride this scene shows (as for the drawn line).
     final rideUnavailable =
         widget.scene.ride != null &&
-        (rideLine?.hasError == true || rideLine?.value is RideLineUnavailable);
+        ((rideLine != null && rideLine.hasError && !rideLine.isLoading) ||
+            switch (rideLine?.value) {
+              final RideLineUnavailable gap => gap.ride == widget.scene.ride,
+              _ => false,
+            });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -57,7 +57,10 @@ final routeGeometryProvider = FutureProvider<RouteGeometry>(
 /// The current scene's ride line; null when the scene has no ride. Watched
 /// only by the open map, so nothing is fetched before "Show map". Derived
 /// from the current scene, so it can never belong to an earlier journey.
-final rideLineProvider = Provider<AsyncValue<RideLine>?>((ref) {
+/// Auto-disposed: once the map is hidden it stops watching
+/// [routeGeometryProvider] (which stays alive for the session), so a hidden
+/// map never rebuilds this and never starts a load.
+final rideLineProvider = Provider.autoDispose<AsyncValue<RideLine>?>((ref) {
   final ride = ref.watch(mapSceneProvider.select((s) => s?.ride));
   if (ride == null) return null;
   return ref
@@ -80,10 +83,14 @@ class MapExpanded extends Notifier<bool> {
   void show() {
     // Reopening the map is the user's retry for a failed route-line load.
     // Only a provider that already exists is looked at: reading it here would
-    // start the load itself, even for a walk-only journey.
-    if (ref.exists(routeGeometryProvider) &&
-        ref.read(routeGeometryProvider).hasError) {
-      ref.invalidate(routeGeometryProvider);
+    // start the load itself, even for a walk-only journey. A retry already
+    // under way (error while loading) is not restarted. The invalidated load
+    // starts only if the open map watches it, i.e. for a direct-bus journey.
+    if (ref.exists(routeGeometryProvider)) {
+      final geometry = ref.read(routeGeometryProvider);
+      if (geometry.hasError && !geometry.isLoading) {
+        ref.invalidate(routeGeometryProvider);
+      }
     }
     state = true;
   }

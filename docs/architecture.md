@@ -252,15 +252,19 @@ never plans and never changes the service, direction, boarding or alighting stop
   `rideLineProvider` runs the pure `matchRide(ride, geometry)` → `RideLine` → the open map draws a
   `RideLineDrawn` only when its `ride` equals the scene's ride, so an earlier journey's line is never drawn.
   `rideLineProvider` is derived from the current scene and is watched only by the open map, so `routes.min.json`
-  is not requested before "Show map" with a direct-bus journey. `MapExpanded.show` retries a failed load (guarded
-  with `ref.exists`, so showing the map never starts a load by itself).
+  is not requested before "Show map" with a direct-bus journey. `rideLineProvider` is auto-disposed (the open map
+  is its only listener) while `routeGeometryProvider` is kept for the session. `MapExpanded.show` invalidates a
+  held, settled failure (guarded with `ref.exists` and `hasError && !isLoading`); the reload then starts only if
+  the open map watches it, i.e. for a direct-bus journey. Nothing is requested for a walk-only or no-bus journey.
 - **D3, `BusOption.boardIndex`**: `planDirectBus` already knew the boarding occurrence; `BusOption` now keeps it.
   One constructor call, no behaviour change (the ranking does not read it). The map therefore never re-derives
   the occurrence, which on a loop could be another one.
 - **D4, `BusService.sourceDirectionOf`**: `parseBusrouterServices` drops a direction with fewer than 2 known stops,
   which would shift `BusService.directions` against `routes.min.json`. The parser sets `sourceDirections` only when
   it drops something, and `sourceDirectionOf(d)` maps back to busrouter's index. No behaviour change today
-  (live data: 0 dropped directions); it keeps a wrong polyline from ever being drawn.
+  (live data: 0 dropped directions); this index mapping is what keeps the opposite direction's polyline from being
+  drawn. The matcher does not detect a swapped direction (its reversed variant may accept it), so
+  `test/features/map/map_scene_test.dart` pins the mapping.
 - **Matcher** (all-or-nothing, least along-line length, closed-only doubling, loop span guard): the rules are the
   "Bus ride line" row of `docs/assumptions.md`. A failure to match is markers plus a note, never a straight
   stand-in and never a routing failure.

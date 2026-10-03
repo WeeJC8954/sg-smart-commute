@@ -395,7 +395,8 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
        2, replaced), otherwise markers and a note;
      - D3: `BusOption.boardIndex` exposes the planner's boarding occurrence, so the map never re-derives it;
      - D4: `BusService.sourceDirectionOf` keeps busrouter's direction index if the parser ever drops a
-       direction, so a wrong polyline is never drawn;
+       direction; this index mapping is what prevents the opposite direction's line, because the matcher does not
+       detect a swapped direction (its reversed variant may accept it);
      - D5: the camera is fitted to the ride's stops as well as the four markers, still once per journey and
        before the first frame (no refit when the line arrives);
      - the loop additions of §5: the boarding occurrence is pinned with `leadingStops`, and a chain may not

@@ -37,7 +37,7 @@ void main() {
     ('truncated (continuation bit at the end)', '_p~iF~ps|U_'),
     ('a latitude without a longitude', '_p~iF'),
     ('a character below "?"', '_p~iF~ps|U '),
-    ('a value longer than 32 bits', '~~~~~~~~~~'),
+    ('a value longer than 30 bits', '~~~~~~~~~~'),
   ]) {
     test('malformed: $why → FormatException', () {
       expect(() => decodePolyline(s), throwsFormatException);

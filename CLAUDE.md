@@ -106,7 +106,8 @@ Key flows that span several files:
   rows of `docs/assumptions.md`. **Ride line** (P2-M2): the scene carries the suggested option's `MapRide`
   (from `BusOption.boardIndex` and `BusService.sourceDirectionOf`); `routeGeometryProvider` loads busrouter
   `routes.min.json` lazily, once per session (nothing before "Show map" with a direct-bus journey; a failure is held
-  with no automatic retry and `MapExpanded.show` retries it, guarded with `ref.exists` so it never starts a load);
+  with no automatic retry and `MapExpanded.show` retries only a held failure, guarded with `ref.exists`, so nothing is
+  requested for a walk-only or no-bus journey);
   the pure `matchRide` draws the line only if **every** ride stop matches in order (all-or-nothing, doubling only
   closed lines), else markers and a note, never a straight stand-in. The camera bounds include the ride's stops.
   Rules: the "Bus ride line" and "Route geometry load" rows of `docs/assumptions.md`.

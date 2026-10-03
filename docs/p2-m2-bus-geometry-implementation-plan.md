@@ -189,8 +189,8 @@ Fix:
 
 - `BusService` gains an optional `sourceDirections` list, set by the parser **only** when it drops something.
 - `sourceDirectionOf(d)` returns `sourceDirections?[d] ?? d`.
-- The matcher also checks that the decoded geometry fits the ride, so a wrong polyline fails to match rather
-  than drawing.
+- The index mapping is what prevents the wrong direction's line. The matcher does not detect a swapped
+  direction (its reversed variant may accept it), so the mapping is pinned by a scene test.
 
 ### D5. Fit the camera to the ride's stops as well
 

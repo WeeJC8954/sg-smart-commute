@@ -218,6 +218,47 @@ void main() {
       expect(b.northEast.longitude, 103.9000);
     });
 
+    test('the ride carries the busrouter direction index, not the kept '
+        'direction position', () {
+      // The parser dropped busrouter direction 0, so the one kept direction
+      // (index 0 in `directions`) is busrouter's direction 1. The matcher
+      // cannot tell the two directions apart reliably, so this mapping is
+      // what keeps the line of the opposite direction from being drawn.
+      BusStop s(String code, double lat, double lng) => BusStop(
+        code: code,
+        position: LatLng(lat, lng),
+        name: code,
+        road: 'Fake Rd',
+      );
+      final dropped = BusNetwork(
+        stops: {
+          'A': s('A', 1.3510, 103.8490),
+          'B': s('B', 1.3000, 103.8400),
+          'C': s('C', 1.2645, 103.8226),
+        },
+        services: const {
+          'R3': BusService(
+            number: 'R3',
+            name: 'R3',
+            directions: [
+              ['A', 'B', 'C'],
+            ],
+            sourceDirections: [1],
+          ),
+        },
+      );
+      final plan = planDirectBus(dropped, bishan, vivoCity.position);
+      expect(plan, isA<DirectBusOptions>());
+      expect((plan as DirectBusOptions).options.first.direction, 0);
+      final scene = sceneTo(
+        vivoCity.position,
+        plan: plan,
+        stops: dropped.stops,
+      );
+      expect(scene.ride, isNotNull);
+      expect(scene.ride!.sourceDirection, 1);
+    });
+
     test('two scenes that differ only in the ride are not equal', () {
       const markers = [
         MapMarker(MapMarkerKind.origin, bishan, 'a'),
