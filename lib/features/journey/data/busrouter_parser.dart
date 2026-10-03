@@ -78,16 +78,26 @@ BusService? _service(String number, Object? value, Map<String, BusStop> stops) {
   if (routes.length > 2) return null;
 
   final directions = <List<String>>[];
-  for (final route in routes) {
+  final source = <int>[];
+  for (var d = 0; d < routes.length; d++) {
+    final route = routes[d];
     if (route is! List || route.any((c) => c is! String)) return null;
     final known = [
       for (final code in route.cast<String>())
         if (stops.containsKey(code)) code,
     ];
-    if (known.length >= 2) directions.add(known);
+    if (known.length >= 2) {
+      directions.add(known);
+      source.add(d);
+    }
   }
   if (directions.isEmpty) return null;
-  return BusService(number: number, name: name, directions: directions);
+  return BusService(
+    number: number,
+    name: name,
+    directions: directions,
+    sourceDirections: source.length == routes.length ? null : source,
+  );
 }
 
 void _checkShare(String what, int invalid, int total, bool nothingValid) {

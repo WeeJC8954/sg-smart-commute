@@ -1,0 +1,1712 @@
+{
+ "02111": [
+  103.85453,
+  1.29096,
+  "Esplanade Bridge",
+  "Esplanade Dr"
+ ],
+ "02119": [
+  103.85531,
+  1.29192,
+  "Opp War Memorial Pk",
+  "Nicoll Highway"
+ ],
+ "03011": [
+  103.85342,
+  1.28562,
+  "Fullerton Sq",
+  "Fullerton Rd"
+ ],
+ "03019": [
+  103.85311,
+  1.28425,
+  "OUE Bayfront",
+  "Collyer Quay"
+ ],
+ "03031": [
+  103.85086,
+  1.28207,
+  "Raffles Pl Stn Exit F",
+  "Robinson Rd"
+ ],
+ "03059": [
+  103.85146,
+  1.28111,
+  "One Raffles Quay",
+  "Raffles Quay"
+ ],
+ "03071": [
+  103.8494,
+  1.27991,
+  "80 Robinson Rd",
+  "Robinson Rd"
+ ],
+ "03111": [
+  103.8481,
+  1.27783,
+  "Aft Capital Twr",
+  "Robinson Rd"
+ ],
+ "03129": [
+  103.84957,
+  1.27807,
+  "UIC Bldg",
+  "Shenton Way"
+ ],
+ "03217": [
+  103.84794,
+  1.27552,
+  "Aft Straits Blvd",
+  "Shenton Way"
+ ],
+ "03222": [
+  103.8449,
+  1.27398,
+  "Hub Synergy Pt",
+  "Anson Rd"
+ ],
+ "05641": [
+  103.84135,
+  1.27261,
+  "Bef Cantonment Rd",
+  "Keppel Rd"
+ ],
+ "05649": [
+  103.84094,
+  1.27238,
+  "Aft Cantonment Rd",
+  "Keppel Rd"
+ ],
+ "14061": [
+  103.83862,
+  1.27231,
+  "Opp Cantonment Stn Exit 4",
+  "Keppel Rd"
+ ],
+ "14069": [
+  103.83708,
+  1.2725,
+  "Cantonment Stn Exit 4",
+  "Keppel Rd"
+ ],
+ "14071": [
+  103.8339,
+  1.2722,
+  "Keppel Workshop",
+  "Keppel Rd"
+ ],
+ "14081": [
+  103.83089,
+  1.2709,
+  "Keppel Stn Exit 3",
+  "Keppel Rd"
+ ],
+ "14089": [
+  103.82979,
+  1.27046,
+  "Keppel Stn Exit 2",
+  "Keppel Rd"
+ ],
+ "14101": [
+  103.82826,
+  1.26838,
+  "Opp Keppel DP Blk 517",
+  "Keppel Rd"
+ ],
+ "14109": [
+  103.82722,
+  1.26805,
+  "Keppel DP Blk 517",
+  "Keppel Rd"
+ ],
+ "14119": [
+  103.82228,
+  1.26592,
+  "Opp VivoCity",
+  "Telok Blangah Rd"
+ ],
+ "14121": [
+  103.81926,
+  1.26591,
+  "Opp HarbourFront Int",
+  "Telok Blangah Rd"
+ ],
+ "14129": [
+  103.81978,
+  1.26608,
+  "HarbourFront Stn Exit A",
+  "Telok Blangah Rd"
+ ],
+ "14131": [
+  103.81675,
+  1.2674,
+  "Caribbean at Keppel Bay",
+  "Telok Blangah Rd"
+ ],
+ "14139": [
+  103.81547,
+  1.26864,
+  "Bef Seah Im Rd",
+  "Telok Blangah Rd"
+ ],
+ "14141": [
+  103.82211,
+  1.26552,
+  "HarbourFront Stn/Vivocity",
+  "Telok Blangah Rd"
+ ],
+ "14151": [
+  103.81294,
+  1.26965,
+  "Opp Hotel Faber Pk",
+  "Telok Blangah Rd"
+ ],
+ "14159": [
+  103.81315,
+  1.26994,
+  "Hotel Faber Pk",
+  "Telok Blangah Rd"
+ ],
+ "14161": [
+  103.8101,
+  1.27076,
+  "Telok Blangah Stn",
+  "Telok Blangah Rd"
+ ],
+ "14169": [
+  103.80942,
+  1.27119,
+  "Opp Telok Blangah Stn",
+  "Telok Blangah Rd"
+ ],
+ "14171": [
+  103.80655,
+  1.27146,
+  "Opp Yeo's Bldg",
+  "Telok Blangah Rd"
+ ],
+ "14179": [
+  103.8063,
+  1.27188,
+  "Yeo's Bldg",
+  "Telok Blangah Rd"
+ ],
+ "14189": [
+  103.80398,
+  1.27269,
+  "Aft Alexandra Rd",
+  "Telok Blangah Rd"
+ ],
+ "15141": [
+  103.80096,
+  1.27276,
+  "Labrador Pk Stn",
+  "Pasir Panjang Rd"
+ ],
+ "15149": [
+  103.80056,
+  1.27342,
+  "Opp Labrador Pk Stn",
+  "Pasir Panjang Rd"
+ ],
+ "15151": [
+  103.79822,
+  1.27389,
+  "Opp Mapletree Biz City",
+  "Pasir Panjang Rd"
+ ],
+ "15159": [
+  103.79839,
+  1.27426,
+  "Mapletree Business City",
+  "Pasir Panjang Rd"
+ ],
+ "15161": [
+  103.79666,
+  1.27444,
+  "Opp HarbourSide Bldg 2",
+  "Pasir Panjang Rd"
+ ],
+ "15169": [
+  103.79674,
+  1.27481,
+  "HarbourSide Bldg 2",
+  "Pasir Panjang Rd"
+ ],
+ "15191": [
+  103.79264,
+  1.27581,
+  "Pasir Panjang Stn/FC",
+  "Pasir Panjang Rd"
+ ],
+ "15199": [
+  103.79318,
+  1.27604,
+  "Opp Currency Hse",
+  "Pasir Panjang Rd"
+ ],
+ "15201": [
+  103.78971,
+  1.27681,
+  "Aft Pasir Panjang Stn",
+  "Pasir Panjang Rd"
+ ],
+ "15209": [
+  103.79023,
+  1.27707,
+  "Bef Pasir Panjang Stn",
+  "Pasir Panjang Rd"
+ ],
+ "15219": [
+  103.78701,
+  1.27818,
+  "Pasir View Pk",
+  "Pasir Panjang Rd"
+ ],
+ "15221": [
+  103.78549,
+  1.2795,
+  "Aft Sth Buona Vista Rd",
+  "Pasir Panjang Rd"
+ ],
+ "15229": [
+  103.78573,
+  1.27938,
+  "Bef Sth Buona Vista Rd",
+  "Pasir Panjang Rd"
+ ],
+ "16009": [
+  103.76988,
+  1.29425,
+  "Kent Ridge Ter",
+  "Clementi Rd"
+ ],
+ "16011": [
+  103.78187,
+  1.28278,
+  "Opp Haw Par Villa Stn",
+  "Pasir Panjang Rd"
+ ],
+ "16019": [
+  103.78218,
+  1.28278,
+  "Haw Par Villa Stn",
+  "Pasir Panjang Rd"
+ ],
+ "16021": [
+  103.77981,
+  1.28626,
+  "Opp Gloria Mansion",
+  "Pasir Panjang Rd"
+ ],
+ "16029": [
+  103.78022,
+  1.28608,
+  "Gloria Mansion",
+  "Pasir Panjang Rd"
+ ],
+ "16031": [
+  103.77846,
+  1.28801,
+  "Opp S'pore Science Pk II",
+  "Pasir Panjang Rd"
+ ],
+ "16039": [
+  103.77872,
+  1.28799,
+  "S'pore Science Pk II",
+  "Pasir Panjang Rd"
+ ],
+ "16041": [
+  103.7766,
+  1.28931,
+  "Opp Luxe Ville",
+  "Pasir Panjang Rd"
+ ],
+ "16049": [
+  103.77739,
+  1.28911,
+  "Whitehaven",
+  "Pasir Panjang Rd"
+ ],
+ "16051": [
+  103.77426,
+  1.29015,
+  "The Crystal Tabernacle Ch",
+  "Pasir Panjang Rd"
+ ],
+ "16059": [
+  103.77593,
+  1.28967,
+  "Jamiyah Halfway Hse",
+  "Pasir Panjang Rd"
+ ],
+ "16061": [
+  103.77356,
+  1.29046,
+  "Opp Heng Mui Keng Terr",
+  "Pasir Panjang Rd"
+ ],
+ "16069": [
+  103.7737,
+  1.29065,
+  "Heng Mui Keng Terr",
+  "Pasir Panjang Rd"
+ ],
+ "16071": [
+  103.77117,
+  1.2913,
+  "Opp Pasir Panjang PO",
+  "Pasir Panjang Rd"
+ ],
+ "16079": [
+  103.7713,
+  1.29141,
+  "Bef Pasir Panjang PO",
+  "Pasir Panjang Rd"
+ ],
+ "16081": [
+  103.76866,
+  1.29196,
+  "Aft Palm Green Condo",
+  "Pasir Panjang Rd"
+ ],
+ "16089": [
+  103.76908,
+  1.29201,
+  "Aft Clementi Rd",
+  "Pasir Panjang Rd"
+ ],
+ "16201": [
+  103.78411,
+  1.2813,
+  "Barossa Gdns",
+  "Pasir Panjang Rd"
+ ],
+ "16209": [
+  103.78401,
+  1.28159,
+  "Horizon Residences",
+  "Pasir Panjang Rd"
+ ],
+ "63039": [
+  103.8852,
+  1.36004,
+  "Kovan Stn Exit C",
+  "Upp S'goon Rd"
+ ],
+ "63049": [
+  103.88752,
+  1.36219,
+  "Glad Tidings Ch",
+  "Upp S'goon Rd"
+ ],
+ "63059": [
+  103.88984,
+  1.36438,
+  "Blk 22",
+  "Upp S'goon Rd"
+ ],
+ "63079": [
+  103.89296,
+  1.35979,
+  "Blk 248",
+  "Hougang Ave 3"
+ ],
+ "63089": [
+  103.89213,
+  1.35653,
+  "Blk 241",
+  "Hougang Ave 3"
+ ],
+ "63099": [
+  103.89097,
+  1.35358,
+  "Blk 106",
+  "Hougang Ave 3"
+ ],
+ "63221": [
+  103.88551,
+  1.35799,
+  "Kovan Hub",
+  "Hougang St 21"
+ ],
+ "63231": [
+  103.88763,
+  1.35901,
+  "Bet Blks 210/211",
+  "Hougang St 21"
+ ],
+ "63241": [
+  103.89214,
+  1.3641,
+  "Blk 21",
+  "Hougang Ave 3"
+ ],
+ "63261": [
+  103.88914,
+  1.35896,
+  "Opp Blk 232",
+  "Hougang Ave 1"
+ ],
+ "63271": [
+  103.88998,
+  1.3564,
+  "Blk 239",
+  "Hougang Ave 1"
+ ],
+ "63281": [
+  103.88979,
+  1.35415,
+  "Blk 105 Mkt/FC",
+  "Hougang Ave 1"
+ ],
+ "74941": [
+  103.93619,
+  1.34026,
+  "Opp Blk 961A",
+  "Bedok Reservoir Rd"
+ ],
+ "74949": [
+  103.93635,
+  1.34028,
+  "Blk 961A",
+  "Bedok Reservoir Rd"
+ ],
+ "75009": [
+  103.94339,
+  1.35408,
+  "Tampines Int",
+  "Tampines Ctrl 1"
+ ],
+ "75061": [
+  103.93724,
+  1.34204,
+  "Blk 954D",
+  "Bedok Reservoir Rd"
+ ],
+ "75069": [
+  103.93732,
+  1.34167,
+  "Blk 970A",
+  "Bedok Reservoir Rd"
+ ],
+ "75071": [
+  103.93654,
+  1.34893,
+  "Opp Blk 819",
+  "Tampines Ave 3"
+ ],
+ "75079": [
+  103.93701,
+  1.34858,
+  "Blk 819",
+  "Tampines Ave 3"
+ ],
+ "75081": [
+  103.93427,
+  1.34987,
+  "Blk 831",
+  "Tampines Ave 3"
+ ],
+ "75089": [
+  103.93405,
+  1.34977,
+  "Blk 827",
+  "Tampines Ave 3"
+ ],
+ "75131": [
+  103.9371,
+  1.35595,
+  "Bet Blks 701/702",
+  "Tampines Ave 5"
+ ],
+ "75139": [
+  103.93613,
+  1.35564,
+  "Blk 863",
+  "Tampines Ave 5"
+ ],
+ "75161": [
+  103.93456,
+  1.35325,
+  "Blk 855",
+  "Tampines St 83"
+ ],
+ "75169": [
+  103.93441,
+  1.35328,
+  "Opp Blk 853",
+  "Tampines St 83"
+ ],
+ "75201": [
+  103.93353,
+  1.35079,
+  "Blk 833",
+  "Tampines St 83"
+ ],
+ "75209": [
+  103.93361,
+  1.35145,
+  "Blk 882A",
+  "Tampines St 83"
+ ],
+ "75261": [
+  103.93797,
+  1.35802,
+  "Blk 709",
+  "Tampines Ave 6"
+ ],
+ "75269": [
+  103.93815,
+  1.3586,
+  "Blk 522 CP",
+  "Tampines Ave 6"
+ ],
+ "75341": [
+  103.93386,
+  1.33832,
+  "Opp The Clearwater Condo",
+  "Bedok Reservoir Rd"
+ ],
+ "75349": [
+  103.93396,
+  1.33812,
+  "The Clearwater Condo",
+  "Bedok Reservoir Rd"
+ ],
+ "75471": [
+  103.93794,
+  1.3616,
+  "Blk 602B",
+  "Tampines Ave 6"
+ ],
+ "75479": [
+  103.93819,
+  1.36178,
+  "Blk 619A",
+  "Tampines Ave 6"
+ ],
+ "75481": [
+  103.93794,
+  1.3638,
+  "Blk 609D",
+  "Tampines Ave 6"
+ ],
+ "75489": [
+  103.93817,
+  1.36394,
+  "Opp Blk 609D",
+  "Tampines Ave 6"
+ ],
+ "75561": [
+  103.94133,
+  1.36651,
+  "Blk 648C",
+  "Tampines Nth Dr 2"
+ ],
+ "75569": [
+  103.94172,
+  1.36587,
+  "Blk 636C",
+  "Tampines Nth Dr 2"
+ ],
+ "75571": [
+  103.9433,
+  1.36378,
+  "Blk 637B",
+  "Tampines Nth Dr 2"
+ ],
+ "75579": [
+  103.94323,
+  1.3636,
+  "Blk 630B",
+  "Tampines Nth Dr 2"
+ ],
+ "75581": [
+  103.94455,
+  1.36348,
+  "Blk 637 CP",
+  "Tampines Ave 12"
+ ],
+ "76051": [
+  103.94126,
+  1.35314,
+  "Our Tampines Hub",
+  "Tampines Ave 5"
+ ],
+ "76059": [
+  103.94165,
+  1.35296,
+  "Opp Our Tampines Hub",
+  "Tampines Ave 5"
+ ],
+ "76061": [
+  103.9419,
+  1.3482,
+  "Blk 938",
+  "Tampines Ave 5"
+ ],
+ "76069": [
+  103.94208,
+  1.34868,
+  "Blk 147",
+  "Tampines Ave 5"
+ ],
+ "76191": [
+  103.94477,
+  1.35694,
+  "Blk 401",
+  "Tampines Ave 7"
+ ],
+ "76199": [
+  103.94535,
+  1.3566,
+  "Blk 503",
+  "Tampines Ave 7"
+ ],
+ "76201": [
+  103.94797,
+  1.35687,
+  "Blk 423",
+  "Tampines Ave 7"
+ ],
+ "76209": [
+  103.94767,
+  1.3566,
+  "Blk 233",
+  "Tampines Ave 7"
+ ],
+ "76211": [
+  103.951,
+  1.35675,
+  "Blk 449",
+  "Tampines Ave 7"
+ ],
+ "76219": [
+  103.95114,
+  1.35644,
+  "Blk 230E",
+  "Tampines Ave 7"
+ ],
+ "76221": [
+  103.9539,
+  1.35639,
+  "Tampines East Stn Exit A",
+  "Tampines Ave 7"
+ ],
+ "76229": [
+  103.95354,
+  1.35614,
+  "Opp Tampines East Stn",
+  "Tampines Ave 7"
+ ],
+ "76231": [
+  103.95736,
+  1.35667,
+  "Opp Blk 390",
+  "Tampines Ave 7"
+ ],
+ "76239": [
+  103.95755,
+  1.35649,
+  "Blk 390",
+  "Tampines Ave 7"
+ ],
+ "76241": [
+  103.95917,
+  1.35846,
+  "Blk 497D",
+  "Tampines Ave 7"
+ ],
+ "76249": [
+  103.95947,
+  1.35837,
+  "Blk 370",
+  "Tampines Ave 7"
+ ],
+ "76281": [
+  103.93849,
+  1.34758,
+  "Junyuan Pr Sch",
+  "Tampines Ave 4"
+ ],
+ "76289": [
+  103.93821,
+  1.34715,
+  "Blk 801",
+  "Tampines Ave 4"
+ ],
+ "77009": [
+  103.94845,
+  1.3737,
+  "Pasir Ris Int",
+  "Pasir Ris Dr 3"
+ ],
+ "77321": [
+  103.94803,
+  1.37313,
+  "Pasir Ris Int/Polyclinic",
+  "Pasir Ris Dr 8"
+ ],
+ "77329": [
+  103.94766,
+  1.37283,
+  "Opp Pasir Ris Int/Polyclinic",
+  "Pasir Ris Dr 8"
+ ],
+ "77379": [
+  103.94803,
+  1.37468,
+  "Blk 586",
+  "Pasir Ris Dr 8"
+ ],
+ "77381": [
+  103.94712,
+  1.37082,
+  "Blk 524B",
+  "Pasir Ris Dr 8"
+ ],
+ "77389": [
+  103.94672,
+  1.3696,
+  "Opp Blk 525B",
+  "Pasir Ris Dr 8"
+ ],
+ "80009": [
+  103.87216,
+  1.31116,
+  "Lor 1 Geylang Ter",
+  "Lor 1 Geylang"
+ ],
+ "80049": [
+  103.87364,
+  1.31078,
+  "Aft Sims Way",
+  "Geylang Rd"
+ ],
+ "80051": [
+  103.87326,
+  1.31251,
+  "Aft Lor 1 Geylang",
+  "Sims Ave"
+ ],
+ "80111": [
+  103.87551,
+  1.30987,
+  "Bef Geylang Rd",
+  "Sims Way"
+ ],
+ "80119": [
+  103.876,
+  1.30992,
+  "Aft Geylang Rd",
+  "Sims Way"
+ ],
+ "80141": [
+  103.87989,
+  1.30712,
+  "Opp S.A. Deaf",
+  "Mountbatten Rd"
+ ],
+ "80149": [
+  103.87966,
+  1.30755,
+  "S.A. Deaf",
+  "Mountbatten Rd"
+ ],
+ "80151": [
+  103.85767,
+  1.29627,
+  "Opp Suntec City",
+  "Nicoll Highway"
+ ],
+ "80159": [
+  103.85716,
+  1.29492,
+  "Suntec City",
+  "Nicoll Highway"
+ ],
+ "80161": [
+  103.86245,
+  1.30033,
+  "Opp Nicoll Highway Stn",
+  "Nicoll Highway"
+ ],
+ "80169": [
+  103.86336,
+  1.30071,
+  "Nicoll Highway Stn",
+  "Nicoll Highway"
+ ],
+ "80171": [
+  103.87715,
+  1.30084,
+  "CP F",
+  "Stadium Walk"
+ ],
+ "80179": [
+  103.87713,
+  1.30059,
+  "Opp CP F",
+  "Stadium Cres"
+ ],
+ "80181": [
+  103.8797,
+  1.30508,
+  "Kallang Squash Ctr",
+  "Stadium Blvd"
+ ],
+ "80189": [
+  103.88108,
+  1.30504,
+  "Opp Kallang Squash Ctr",
+  "Stadium Blvd"
+ ],
+ "80191": [
+  103.87541,
+  1.30161,
+  "Opp S'pore Indoor Stadium",
+  "Stadium Walk"
+ ],
+ "80199": [
+  103.87514,
+  1.30156,
+  "Stadium Stn",
+  "Stadium Cres"
+ ],
+ "80211": [
+  103.87548,
+  1.30713,
+  "Opp Natl Stadium",
+  "Nicoll Highway"
+ ],
+ "80219": [
+  103.87526,
+  1.30674,
+  "Natl Stadium",
+  "Nicoll Highway"
+ ],
+ "81171": [
+  103.88501,
+  1.30752,
+  "Blk 39",
+  "Old Airport Rd"
+ ],
+ "81179": [
+  103.88491,
+  1.30726,
+  "Blk 22",
+  "Old Airport Rd"
+ ],
+ "81181": [
+  103.88847,
+  1.30846,
+  "Dakota Stn Exit A/Blk 99",
+  "Old Airport Rd"
+ ],
+ "81189": [
+  103.88851,
+  1.30834,
+  "Dakota Stn Exit B/Blk 60",
+  "Old Airport Rd"
+ ],
+ "81191": [
+  103.8918,
+  1.30913,
+  "Aft Old Airport Rd",
+  "Dunman Rd"
+ ],
+ "81199": [
+  103.89023,
+  1.30868,
+  "Bef Old Airport Rd",
+  "Dunman Rd"
+ ],
+ "82071": [
+  103.89545,
+  1.30726,
+  "Opp Tg Katong Girls' Sch",
+  "Tg Katong Rd"
+ ],
+ "82079": [
+  103.8952,
+  1.30801,
+  "Tg Katong Girls' Sch",
+  "Tg Katong Rd"
+ ],
+ "84039": [
+  103.92886,
+  1.32354,
+  "Bedok Stn Exit A",
+  "New Upp Changi Rd"
+ ],
+ "84049": [
+  103.93471,
+  1.32433,
+  "Blk 27",
+  "New Upp Changi Rd"
+ ],
+ "84059": [
+  103.93953,
+  1.32494,
+  "Blk 65",
+  "New Upp Changi Rd"
+ ],
+ "84061": [
+  103.94194,
+  1.32577,
+  "The Tanamera Condo",
+  "New Upp Changi Rd"
+ ],
+ "84069": [
+  103.94219,
+  1.32549,
+  "Blk 55",
+  "New Upp Changi Rd"
+ ],
+ "84101": [
+  103.94422,
+  1.32298,
+  "ECO Condo",
+  "Bedok Sth Ave 3"
+ ],
+ "84109": [
+  103.94412,
+  1.32351,
+  "Bef Bedok View Sec Sch",
+  "Bedok Sth Ave 3"
+ ],
+ "84201": [
+  103.93316,
+  1.33658,
+  "Bedok Resvr Stn Exit A",
+  "Bedok Nth Ave 3"
+ ],
+ "84209": [
+  103.93334,
+  1.33703,
+  "Bedok Resvr Stn Exit B",
+  "Bedok Nth Ave 3"
+ ],
+ "84221": [
+  103.93513,
+  1.33186,
+  "Blk 109",
+  "Bedok Nth Rd"
+ ],
+ "84229": [
+  103.93531,
+  1.3316,
+  "Blk 111",
+  "Bedok Nth Rd"
+ ],
+ "84231": [
+  103.93855,
+  1.33174,
+  "Blk 85",
+  "Bedok Nth Rd"
+ ],
+ "84239": [
+  103.93836,
+  1.33152,
+  "Opp Blk 85",
+  "Bedok Nth Rd"
+ ],
+ "84241": [
+  103.94005,
+  1.32861,
+  "Blk 81",
+  "Bedok Nth Rd"
+ ],
+ "84249": [
+  103.93961,
+  1.32942,
+  "Blk 124",
+  "Bedok Nth Rd"
+ ],
+ "84281": [
+  103.9404,
+  1.32658,
+  "Blk 180",
+  "Bedok Nth Rd"
+ ],
+ "84289": [
+  103.94017,
+  1.32663,
+  "Opp Blk 180",
+  "Bedok Nth Rd"
+ ],
+ "84521": [
+  103.93394,
+  1.33231,
+  "Blk 506",
+  "Bedok Nth Ave 3"
+ ],
+ "84529": [
+  103.93431,
+  1.33213,
+  "Blk 109",
+  "Bedok Nth Ave 3"
+ ],
+ "84661": [
+  103.94439,
+  1.31993,
+  "Blk 168",
+  "Bedok Sth Ave 3"
+ ],
+ "84669": [
+  103.94418,
+  1.31994,
+  "Blk 73",
+  "Bedok Sth Ave 3"
+ ],
+ "84671": [
+  103.9451,
+  1.31759,
+  "Aft Blk 156",
+  "Bedok Sth Ave 3"
+ ],
+ "84679": [
+  103.94477,
+  1.31804,
+  "Opp Blk 156",
+  "Bedok Sth Ave 3"
+ ],
+ "85019": [
+  103.95534,
+  1.32129,
+  "Eastwood Ctr",
+  "Bedok Rd"
+ ],
+ "85021": [
+  103.95468,
+  1.3219,
+  "Country Pk",
+  "Bedok Rd"
+ ],
+ "85029": [
+  103.9543,
+  1.32262,
+  "Aft Bedok Meth Ch",
+  "Bedok Rd"
+ ],
+ "85031": [
+  103.95232,
+  1.32501,
+  "Excelsior Gdns",
+  "Bedok Rd"
+ ],
+ "85039": [
+  103.95299,
+  1.32442,
+  "Opp Excelsior Gdns",
+  "Bedok Rd"
+ ],
+ "85041": [
+  103.95116,
+  1.32646,
+  "Man Fatt Lam Tp",
+  "Bedok Rd"
+ ],
+ "85049": [
+  103.95125,
+  1.32672,
+  "Opp Man Fatt Lam Tp",
+  "Bedok Rd"
+ ],
+ "85051": [
+  103.9488,
+  1.32957,
+  "Aft Jln Chempaka Kuning",
+  "Bedok Rd"
+ ],
+ "85059": [
+  103.94907,
+  1.3295,
+  "Bef Jln Chempaka Kuning",
+  "Bedok Rd"
+ ],
+ "85061": [
+  103.94739,
+  1.33146,
+  "Opp Bedok Mkt Pl",
+  "Bedok Rd"
+ ],
+ "85069": [
+  103.94738,
+  1.3318,
+  "Bedok Mkt Pl",
+  "Bedok Rd"
+ ],
+ "85071": [
+  103.94985,
+  1.33408,
+  "Bef Changi Fire Stn",
+  "Upp Changi Rd"
+ ],
+ "85079": [
+  103.95015,
+  1.33395,
+  "Flextronic",
+  "Upp Changi Rd"
+ ],
+ "85081": [
+  103.9472,
+  1.33292,
+  "Bef Jln Pari Burong",
+  "Upp Changi Rd"
+ ],
+ "85089": [
+  103.9488,
+  1.33338,
+  "Aft Sungei Bedok",
+  "Upp Changi Rd"
+ ],
+ "85099": [
+  103.94646,
+  1.32684,
+  "Tanah Merah Stn Exit 1",
+  "New Upp Changi Rd"
+ ],
+ "90011": [
+  103.86925,
+  1.29711,
+  "Bef Tg Rhu View",
+  "Tg Rhu Rd"
+ ],
+ "90019": [
+  103.86961,
+  1.29697,
+  "Pk Shore Condo",
+  "Tg Rhu Rd"
+ ],
+ "90021": [
+  103.87129,
+  1.29718,
+  "Pebble Bay",
+  "Tg Rhu Rd"
+ ],
+ "90029": [
+  103.8708,
+  1.29709,
+  "Opp Pebble Bay",
+  "Tg Rhu Rd"
+ ],
+ "90031": [
+  103.87501,
+  1.29656,
+  "Camelot By-The-Water",
+  "Tg Rhu Rd"
+ ],
+ "90039": [
+  103.87539,
+  1.29663,
+  "Opp Camelot By-The-Water",
+  "Tg Rhu Rd"
+ ],
+ "90041": [
+  103.87369,
+  1.2972,
+  "Tanjong Rhu Stn Exit 2",
+  "Tg Rhu Rd"
+ ],
+ "90049": [
+  103.87356,
+  1.29712,
+  "Tanjong Rhu Stn Exit 1",
+  "Tg Rhu Rd"
+ ],
+ "90079": [
+  103.86733,
+  1.29761,
+  "Opp Costa Rhu Condo",
+  "Rhu Cross"
+ ],
+ "92091": [
+  103.89931,
+  1.3027,
+  "Opp One Amber",
+  "Mountbatten Rd"
+ ],
+ "92099": [
+  103.899,
+  1.30238,
+  "One Amber",
+  "Mountbatten Rd"
+ ],
+ "92101": [
+  103.90129,
+  1.3037,
+  "Katong Shop Ctr",
+  "Mountbatten Rd"
+ ],
+ "92109": [
+  103.90146,
+  1.30357,
+  "Opp Katong Shop Ctr",
+  "Mountbatten Rd"
+ ],
+ "92111": [
+  103.90293,
+  1.30478,
+  "Opp Roxy Sq",
+  "East Coast Rd"
+ ],
+ "92119": [
+  103.90277,
+  1.30445,
+  "Roxy Sq",
+  "East Coast Rd"
+ ],
+ "92121": [
+  103.90678,
+  1.3072,
+  "Opp The Holy Family Ch",
+  "East Coast Rd"
+ ],
+ "92129": [
+  103.90651,
+  1.30687,
+  "The Holy Family Ch",
+  "East Coast Rd"
+ ],
+ "92131": [
+  103.91089,
+  1.30878,
+  "Caltex Stn",
+  "East Coast Rd"
+ ],
+ "92139": [
+  103.91063,
+  1.30854,
+  "Opp Caltex Stn",
+  "East Coast Rd"
+ ],
+ "92141": [
+  103.91429,
+  1.3094,
+  "KiddiWinkie S/H @ East Coast",
+  "East Coast Rd"
+ ],
+ "92149": [
+  103.91435,
+  1.30928,
+  "St. Patrick's Green",
+  "East Coast Rd"
+ ],
+ "92151": [
+  103.91602,
+  1.3098,
+  "Christ Meth Ch",
+  "East Coast Rd"
+ ],
+ "92159": [
+  103.91663,
+  1.30975,
+  "St. Patrick's Sch",
+  "East Coast Rd"
+ ],
+ "92161": [
+  103.89657,
+  1.3038,
+  "Aft Katong PO",
+  "Tg Katong Rd"
+ ],
+ "92169": [
+  103.89677,
+  1.30378,
+  "Bef Katong PO",
+  "Tg Katong Rd"
+ ],
+ "93051": [
+  103.91867,
+  1.31065,
+  "Aft Dunbar Wk",
+  "East Coast Rd"
+ ],
+ "93059": [
+  103.91931,
+  1.31076,
+  "Aft Jln Buloh Perindu",
+  "East Coast Rd"
+ ],
+ "93061": [
+  103.92261,
+  1.312,
+  "Bef Siglap Rd",
+  "East Coast Rd"
+ ],
+ "93069": [
+  103.9224,
+  1.31169,
+  "Aft Siglap Rd",
+  "East Coast Rd"
+ ],
+ "93071": [
+  103.92635,
+  1.31293,
+  "Crescendo Bldg",
+  "Upp East Coast Rd"
+ ],
+ "93079": [
+  103.92502,
+  1.31251,
+  "Opp Springvale",
+  "East Coast Rd"
+ ],
+ "93081": [
+  103.92903,
+  1.31343,
+  "Opp Chiang Ct",
+  "Upp East Coast Rd"
+ ],
+ "93089": [
+  103.92791,
+  1.31296,
+  "Opp Goodwill Ct",
+  "Upp East Coast Rd"
+ ],
+ "93091": [
+  103.93157,
+  1.31399,
+  "Opp Siglap Sth CC",
+  "Upp East Coast Rd"
+ ],
+ "93099": [
+  103.93171,
+  1.3139,
+  "Siglap Sth CC",
+  "Upp East Coast Rd"
+ ],
+ "94009": [
+  103.95257,
+  1.31796,
+  "Upp East Coast Ter",
+  "Upp East Coast Rd"
+ ],
+ "94011": [
+  103.93511,
+  1.31438,
+  "Evergreen Gdn",
+  "Upp East Coast Rd"
+ ],
+ "94019": [
+  103.93575,
+  1.31429,
+  "Opp Evergreen Ave",
+  "Upp East Coast Rd"
+ ],
+ "94021": [
+  103.93835,
+  1.31475,
+  "Bef Sennett Rd",
+  "Upp East Coast Rd"
+ ],
+ "94029": [
+  103.9375,
+  1.31453,
+  "Aft Sennett Rd",
+  "Upp East Coast Rd"
+ ],
+ "94031": [
+  103.9409,
+  1.31505,
+  "Opp Bayshore Stn Exit 3",
+  "Upp East Coast Rd"
+ ],
+ "94039": [
+  103.94066,
+  1.31485,
+  "Bef Bayshore Stn Exit 3",
+  "Upp East Coast Rd"
+ ],
+ "94041": [
+  103.94431,
+  1.31619,
+  "Aft Parbury Ave",
+  "Upp East Coast Rd"
+ ],
+ "94049": [
+  103.94483,
+  1.31623,
+  "Aft Bedok Sth Ave 3",
+  "Upp East Coast Rd"
+ ],
+ "94051": [
+  103.94738,
+  1.3171,
+  "Opp Temasek Sec Sch",
+  "Upp East Coast Rd"
+ ],
+ "94059": [
+  103.94798,
+  1.31707,
+  "Temasek Sec Sch",
+  "Upp East Coast Rd"
+ ],
+ "94061": [
+  103.9506,
+  1.31804,
+  "Kew Green Condo",
+  "Upp East Coast Rd"
+ ],
+ "94069": [
+  103.95087,
+  1.31787,
+  "Opp Kew Green Condo",
+  "Upp East Coast Rd"
+ ],
+ "94071": [
+  103.95509,
+  1.31984,
+  "Opp Bedok Camp 2",
+  "Upp East Coast Rd"
+ ],
+ "94079": [
+  103.95523,
+  1.31947,
+  "Bedok Camp 2",
+  "Upp East Coast Rd"
+ ],
+ "94089": [
+  103.94294,
+  1.31536,
+  "Calvary Ably of God Ch",
+  "Upp East Coast Rd"
+ ],
+ "95909": [
+  103.9605,
+  1.33849,
+  "Aft Somapah Rd",
+  "Upp Changi Rd East"
+ ],
+ "96049": [
+  103.96143,
+  1.34087,
+  "Upp Changi Stn/SUTD",
+  "Upp Changi Rd East"
+ ],
+ "96059": [
+  103.96218,
+  1.34351,
+  "Changi Ct",
+  "Upp Changi Rd East"
+ ],
+ "96069": [
+  103.96311,
+  1.34665,
+  "Mera Terr P/G",
+  "Upp Changi Rd East"
+ ],
+ "96079": [
+  103.95354,
+  1.33542,
+  "ITE Coll East Tec Blk",
+  "Upp Changi Rd"
+ ],
+ "96089": [
+  103.95595,
+  1.33647,
+  "Opp Grace Independent Ch",
+  "Upp Changi Rd"
+ ],
+ "96099": [
+  103.95786,
+  1.33667,
+  "Aft Upp Changi Rd East",
+  "Upp Changi Link"
+ ],
+ "96101": [
+  103.95106,
+  1.33639,
+  "Blk 3012",
+  "Simei Ave"
+ ],
+ "96109": [
+  103.95067,
+  1.33737,
+  "Opp Blk 3012",
+  "Simei Ave"
+ ],
+ "96281": [
+  103.94825,
+  1.33971,
+  "Opp Changi General Hosp",
+  "Simei Ave"
+ ],
+ "96289": [
+  103.94836,
+  1.34004,
+  "Changi General Hosp",
+  "Simei Ave"
+ ],
+ "97019": [
+  103.96544,
+  1.35292,
+  "Opp Salvation Army",
+  "Upp Changi Rd Nth"
+ ],
+ "97039": [
+  103.96894,
+  1.35535,
+  "Bef Jln Bena",
+  "Upp Changi Rd Nth"
+ ],
+ "97049": [
+  103.96974,
+  1.35818,
+  "Changi Prison",
+  "Upp Changi Rd Nth"
+ ],
+ "97059": [
+  103.97097,
+  1.36075,
+  "Changi Women's Prison",
+  "Upp Changi Rd Nth"
+ ],
+ "97069": [
+  103.97529,
+  1.36516,
+  "Lloyd Leas Work Rel Camp",
+  "Upp Changi Rd Nth"
+ ],
+ "97079": [
+  103.97758,
+  1.36811,
+  "Opp St. John's Cres",
+  "Upp Changi Rd Nth"
+ ],
+ "97089": [
+  103.98008,
+  1.37082,
+  "Opp Selarang Pk Drug Reh.",
+  "Loyang Way"
+ ],
+ "97099": [
+  103.97644,
+  1.37318,
+  "Aft Loyang Ave",
+  "Loyang Way"
+ ],
+ "97141": [
+  103.96794,
+  1.35231,
+  "Aft Upp Changi Rd Nth",
+  "Changi Nth St 1"
+ ],
+ "97209": [
+  103.97332,
+  1.36229,
+  "Changi Chapel Museum",
+  "Upp Changi Rd Nth"
+ ],
+ "97301": [
+  103.9698,
+  1.35182,
+  "Aft Changi Nth St 1",
+  "Changi Nth Way"
+ ],
+ "97311": [
+  103.9729,
+  1.35256,
+  "Zuellig Pharma",
+  "Changi Nth Way"
+ ],
+ "97321": [
+  103.97464,
+  1.3606,
+  "Aft Compass Green",
+  "Tanah Merah Besar Rd"
+ ],
+ "97331": [
+  103.9751,
+  1.35564,
+  "Bef Changi Prison Cplx",
+  "Changi Nth Way"
+ ],
+ "98069": [
+  103.97678,
+  1.37571,
+  "Aft Engine Test Facility",
+  "Loyang Ave"
+ ],
+ "98079": [
+  103.9787,
+  1.37859,
+  "Opp Loyang Way 4/Soxal",
+  "Loyang Ave"
+ ],
+ "98281": [
+  103.9666,
+  1.35957,
+  "Estella Gdns",
+  "Flora Rd"
+ ],
+ "98289": [
+  103.96613,
+  1.35959,
+  "Opp Estella Gdns",
+  "Flora Rd"
+ ],
+ "98301": [
+  103.9644,
+  1.36013,
+  "Avila Gdns",
+  "Flora Rd"
+ ],
+ "98309": [
+  103.96444,
+  1.36004,
+  "Carissa Pk",
+  "Flora Rd"
+ ],
+ "98311": [
+  103.9686,
+  1.35925,
+  "Bef Mariam Wk",
+  "Mariam Way"
+ ],
+ "98319": [
+  103.9684,
+  1.35921,
+  "Aft Ballota Pk",
+  "Flora Rd"
+ ],
+ "99009": [
+  103.98763,
+  1.3897,
+  "Changi Village Ter",
+  "Changi Village Rd"
+ ],
+ "99019": [
+  103.97845,
+  1.38371,
+  "Aft Hendon Camp",
+  "Loyang Ave"
+ ],
+ "99029": [
+  103.97959,
+  1.38664,
+  "Aft Cranwell Rd",
+  "Loyang Ave"
+ ],
+ "99039": [
+  103.98202,
+  1.38769,
+  "St. George Chapel",
+  "Loyang Ave"
+ ],
+ "99049": [
+  103.98573,
+  1.3875,
+  "Changi Golf Course",
+  "Loyang Ave"
+ ],
+ "99131": [
+  103.98734,
+  1.38894,
+  "Blk 4",
+  "Changi Village Rd"
+ ]
+}

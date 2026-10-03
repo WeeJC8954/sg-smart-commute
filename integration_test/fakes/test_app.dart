@@ -11,6 +11,8 @@ import 'package:sg_smart_commute/features/environment/environment_providers.dart
 import 'package:sg_smart_commute/features/journey/data/mrt_asset_repository.dart';
 import 'package:sg_smart_commute/features/journey/domain/bus_network_repository.dart';
 import 'package:sg_smart_commute/features/journey/journey_providers.dart';
+import 'package:sg_smart_commute/features/map/domain/route_geometry.dart';
+import 'package:sg_smart_commute/features/map/map_providers.dart';
 import 'package:sg_smart_commute/features/map/presentation/basemap.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
@@ -22,10 +24,11 @@ import 'fake_bus_network.dart';
 import 'fake_environment_repository.dart';
 import 'fake_map.dart';
 import 'fake_place_search_repository.dart';
+import 'fake_route_geometry.dart';
 
 /// The real app with every external provider replaced by a fake (§18). The
-/// map's tiles, logo and links are fakes too: no test fetches a tile or opens
-/// a browser.
+/// map's tiles, logo, links and bus route geometry are fakes too: no test
+/// fetches a tile or routes.min.json, or opens a browser.
 Widget buildTestApp({
   required LocationService location,
   required EnvironmentRepository environment,
@@ -43,6 +46,7 @@ Widget buildTestApp({
   Duration motionDuration = Duration.zero,
   TileProvider Function()? mapTiles,
   Future<bool> Function(Uri)? openLink,
+  RouteGeometryRepository? routeGeometry,
 }) {
   return ProviderScope(
     retry: noAutomaticRetry,
@@ -64,6 +68,9 @@ Widget buildTestApp({
       mrtRepositoryProvider.overrideWithValue(mrt ?? fakeMrtRepository()),
       busArrivalRepositoryProvider.overrideWithValue(
         busArrivals ?? FakeBusArrivalRepository(),
+      ),
+      routeGeometryRepositoryProvider.overrideWithValue(
+        routeGeometry ?? FakeRouteGeometryRepository(),
       ),
       mapTileProviderFactoryProvider.overrideWithValue(
         mapTiles ?? FakeTileProvider.new,

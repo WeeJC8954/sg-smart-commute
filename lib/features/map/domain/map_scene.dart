@@ -1,6 +1,7 @@
 import '../../../core/geo/geo.dart';
 import '../../journey/domain/bus_network.dart';
 import '../../journey/domain/direct_bus_planner.dart';
+import 'ride_geometry.dart';
 
 /// What a map marker stands for.
 enum MapMarkerKind { origin, boarding, alighting, destination }
@@ -30,12 +31,12 @@ class MapMarker {
   String toString() => 'MapMarker(${kind.name}, $label)';
 }
 
-/// What the journey map draws: markers only, read from the journey that the
-/// planner already produced. Pure Dart: no Flutter or map-package import, so
-/// it is testable on its own and the map widget stays replaceable (guide
-/// §17).
+/// What the journey map draws: markers, and the bus ride when there is one,
+/// read from the journey that the planner already produced. Pure Dart: no
+/// Flutter or map-package import, so it is testable on its own and the map
+/// widget stays replaceable (guide §17).
 class MapScene {
-  const MapScene(this.markers, {this.serviceNumber});
+  const MapScene(this.markers, {this.serviceNumber, this.ride});
 
   /// In journey order: origin, boarding stop, alighting stop, destination.
   /// The two stops are present only when a direct bus was suggested.
@@ -44,12 +45,16 @@ class MapScene {
   /// The suggested option's bus, when there is one.
   final String? serviceNumber;
 
-  /// Smallest box holding every marker.
+  /// The suggested bus ride, whose line is drawn on the road once the route
+  /// geometry is known. Null when there is no ride, or when the plan and the
+  /// bus network do not agree on it.
+  final MapRide? ride;
+
+  /// Smallest box holding every marker and every ride stop.
   ({LatLng southWest, LatLng northEast}) get bounds {
     var south = double.infinity, west = double.infinity;
     var north = -double.infinity, east = -double.infinity;
-    for (final m in markers) {
-      final p = m.position;
+    for (final p in [...markers.map((m) => m.position), ...?ride?.stops]) {
       if (p.latitude < south) south = p.latitude;
       if (p.latitude > north) north = p.latitude;
       if (p.longitude < west) west = p.longitude;
@@ -78,10 +83,11 @@ class MapScene {
   bool operator ==(Object other) =>
       other is MapScene &&
       other.serviceNumber == serviceNumber &&
+      other.ride == ride &&
       _listEquals(other.markers, markers);
 
   @override
-  int get hashCode => Object.hash(serviceNumber, Object.hashAll(markers));
+  int get hashCode => Object.hash(serviceNumber, ride, Object.hashAll(markers));
 
   static bool _listEquals(List<MapMarker> a, List<MapMarker> b) {
     if (a.length != b.length) return false;
@@ -95,33 +101,71 @@ class MapScene {
 /// The scene for a journey from [origin] to [destination]. [plan] is the
 /// planner's current answer (null while it is being found or has failed):
 /// only a [DirectBusOptions] adds stops, from its first (suggested) option.
-/// Every other answer shows the two ends only. Never plans anything itself.
+/// Every other answer shows the two ends only. [stops] is the bus network's
+/// stop table: with it, that suggested option also yields the [MapScene.ride].
+/// Never plans anything itself.
 MapScene buildMapScene({
   required LatLng origin,
   required String originLabel,
   required LatLng destination,
   required String destinationLabel,
   JourneyPlan? plan,
+  Map<String, BusStop>? stops,
 }) {
   final suggested = switch (plan) {
     DirectBusOptions(:final options) when options.isNotEmpty => options.first,
     _ => null,
   };
+  final ride = suggested == null || stops == null
+      ? null
+      : _rideOf(suggested, stops);
   String stopLabel(BusStop stop) => '${stop.name} (${stop.code})';
-  return MapScene([
-    MapMarker(MapMarkerKind.origin, origin, originLabel),
-    if (suggested != null) ...[
-      MapMarker(
-        MapMarkerKind.boarding,
-        suggested.board.position,
-        stopLabel(suggested.board),
-      ),
-      MapMarker(
-        MapMarkerKind.alighting,
-        suggested.alight.position,
-        stopLabel(suggested.alight),
-      ),
+  return MapScene(
+    [
+      MapMarker(MapMarkerKind.origin, origin, originLabel),
+      if (suggested != null) ...[
+        MapMarker(
+          MapMarkerKind.boarding,
+          suggested.board.position,
+          stopLabel(suggested.board),
+        ),
+        MapMarker(
+          MapMarkerKind.alighting,
+          suggested.alight.position,
+          stopLabel(suggested.alight),
+        ),
+      ],
+      MapMarker(MapMarkerKind.destination, destination, destinationLabel),
     ],
-    MapMarker(MapMarkerKind.destination, destination, destinationLabel),
-  ], serviceNumber: suggested?.service.number);
+    serviceNumber: suggested?.service.number,
+    ride: ride,
+  );
+}
+
+/// [option]'s ride as the stop positions along its direction, boarding to
+/// alighting. Null when the network does not hold the option's stops where the
+/// plan says (a plan/network mismatch draws no line and changes nothing else).
+MapRide? _rideOf(BusOption option, Map<String, BusStop> stops) {
+  final codes = option.service.directions[option.direction];
+  final from = option.boardIndex, to = from + option.stops;
+  if (to >= codes.length ||
+      codes[from] != option.board.code ||
+      codes[to] != option.alight.code) {
+    return null;
+  }
+  List<LatLng> positions(Iterable<String> run) => [
+    for (final c in run) ?stops[c]?.position,
+  ];
+  final ride = positions(codes.sublist(from, to + 1));
+  if (ride.length < 2) return null;
+  // The stops just before boarding that make the ride unique on a line that
+  // passes the same stops twice (see leadingStopCount).
+  final leading = leadingStopCount(codes, from, to);
+  return MapRide(
+    service: option.service.number,
+    sourceDirection: option.service.sourceDirectionOf(option.direction),
+    boardIndex: from,
+    stops: ride,
+    leadingStops: positions(codes.sublist(from - leading, from)),
+  );
 }

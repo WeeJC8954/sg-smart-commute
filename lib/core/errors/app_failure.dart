@@ -157,6 +157,8 @@ final class StaticDataUnavailable extends AppFailure {
   String get message => switch (dataset) {
     StaticDataset.busRoutes => 'Bus data is unavailable right now.',
     StaticDataset.mrtStations => 'MRT station data is unavailable.',
+    StaticDataset.busRouteGeometry =>
+      'The bus route line is unavailable right now.',
   };
 }
 
@@ -167,6 +169,9 @@ enum StaticDataset {
 
   /// The bundled MRT station asset.
   mrtStations,
+
+  /// busrouter route lines (the map).
+  busRouteGeometry,
 }
 
 // --- Bus arrival ------------------------------------------------------------

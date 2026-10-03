@@ -284,6 +284,31 @@ void main() {
         expect(best.stops, 1);
       },
     );
+
+    test('boardIndex is the occurrence the planner rode from', () {
+      // Loop visiting A twice; the shortest ride to D boards at the second A.
+      final net = network(
+        [
+          stop('A', 0, 0),
+          stop('B', 500, 0),
+          stop('C', 1000, 0),
+          stop('D', 2000, 0),
+        ],
+        [
+          service('L1', [
+            ['A', 'B', 'C', 'A', 'D'],
+          ]),
+        ],
+      );
+      final options = optionsOf(planDirectBus(net, origin, destination));
+      expect(options, hasLength(1));
+      for (final option in options) {
+        final route = option.service.directions[option.direction];
+        expect(option.boardIndex, 3);
+        expect(route[option.boardIndex], option.board.code);
+        expect(route[option.boardIndex + option.stops], option.alight.code);
+      }
+    });
   });
 
   group('candidate sets', () {

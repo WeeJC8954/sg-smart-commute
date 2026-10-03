@@ -92,8 +92,8 @@ These inputs are the most likely to bite a real user. Each one has a test in the
    again. Markers and the journey card are unaffected throughout. **Task 6**: a fail → hide → show → succeed
    test.
 4. **busrouter drops or reorders a direction**, so the planner's direction index no longer matches the routes
-   file's index. A wrong polyline must not be drawn. **Task 3** keeps the source direction index. **Task 4**
-   tests the failure.
+   file's index. A wrong polyline must not be drawn. **Task 3** keeps the source direction index. This
+   index mapping is the safeguard (the matcher does not detect a swapped direction); a scene test pins it.
 5. **A walk-only, no-bus or no-nearby-stop journey with the map open** must not request `routes.min.json`.
    **Task 6**: load count stays 0.
 
@@ -189,8 +189,8 @@ Fix:
 
 - `BusService` gains an optional `sourceDirections` list, set by the parser **only** when it drops something.
 - `sourceDirectionOf(d)` returns `sourceDirections?[d] ?? d`.
-- The matcher also checks that the decoded geometry fits the ride, so a wrong polyline fails to match rather
-  than drawing.
+- The index mapping is what prevents the wrong direction's line. The matcher does not detect a swapped
+  direction (its reversed variant may accept it), so the mapping is pinned by a scene test.
 
 ### D5. Fit the camera to the ride's stops as well
 

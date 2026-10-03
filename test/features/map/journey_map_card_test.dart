@@ -3,10 +3,17 @@
 // (integration_test/fakes/), so no tile is fetched and no browser opened.
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
+import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/features/map/domain/map_scene.dart';
+import 'package:sg_smart_commute/features/map/domain/ride_geometry.dart';
+import 'package:sg_smart_commute/features/map/domain/route_geometry.dart';
+import 'package:sg_smart_commute/features/map/map_providers.dart';
+import 'package:sg_smart_commute/features/map/presentation/basemap.dart';
 import 'package:sg_smart_commute/features/map/presentation/journey_map.dart';
 
 import '../../../integration_test/fakes/fake_bus_arrival_repository.dart';
@@ -15,6 +22,7 @@ import '../../../integration_test/fakes/fake_environment_repository.dart';
 import '../../../integration_test/fakes/fake_location_service.dart';
 import '../../../integration_test/fakes/fake_map.dart';
 import '../../../integration_test/fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/fake_route_geometry.dart';
 import '../../../integration_test/fakes/test_app.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
@@ -53,11 +61,13 @@ Finder marker(String kind) => find.byKey(Key('map-marker-$kind'));
 
 void main() {
   late FakeBusNetworkRepository bus;
+  late FakeRouteGeometryRepository geometry;
   late FakeTileProvider tiles;
   late FakeLinkOpener links;
 
   setUp(() {
     bus = FakeBusNetworkRepository();
+    geometry = FakeRouteGeometryRepository();
     tiles = FakeTileProvider();
     links = FakeLinkOpener();
   });
@@ -72,6 +82,7 @@ void main() {
     busNetwork: bus,
     mrt: fakeMrtRepository(),
     busArrivals: FakeBusArrivalRepository(),
+    routeGeometry: geometry,
     mapTiles: () => tileProvider ?? tiles,
     openLink: links.call,
   );
@@ -348,5 +359,434 @@ void main() {
       findsOneWidget,
     );
     handle.dispose();
+  });
+
+  group('route geometry (P2-M2)', () {
+    testWidgets('no routes.min.json request before "Show map"', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await tester.pump(const Duration(seconds: 5));
+      expect(geometry.loads, 0);
+      await openMap(tester);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('a walk-only journey never requests it, even with the map '
+        'open', (tester) async {
+      await pumpApp(tester, app());
+      // Bishan MRT (NS17) is about 30 m from the fake fix: walk-only.
+      await pickDestination(tester, 'Bishan MRT', 'BISHAN MRT STATION (NS17)');
+      expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
+      await openMap(tester);
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(geometry.loads, 0);
+      expect(bus.loads, 0, reason: 'walk-only never touches bus data');
+    });
+
+    testWidgets('one load per session: hide, reopen, change journey', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD');
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('a failed load is not retried until the user opens the map '
+        'again', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump(const Duration(minutes: 2));
+      expect(geometry.loads, 1, reason: 'no automatic retry');
+      expect(marker('boarding'), findsOneWidget);
+
+      geometry.failure = null;
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2);
+    });
+
+    testWidgets('reopening after a successful load does not load again', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('the line is drawn once the geometry has loaded', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+    });
+
+    testWidgets('a failed load shows the unavailable note, then the line '
+        'after the user retries', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+      expect(find.text(JourneyMap.rideLineUnavailable), findsOneWidget);
+      geometry.failure = null;
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+    });
+
+    testWidgets('the suggested ride is drawn on the road, under the markers', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      final layer = tester.widget<PolylineLayer>(
+        find.byKey(const Key('map-ride-line')),
+      );
+      final points = layer.polylines.single.points;
+      final stops = fakeBusNetwork().stops; // F20: BSH2 -> MID1 -> VIV1
+      expect(
+        points.first.latitude,
+        closeTo(stops['BSH2']!.position.latitude, 1e-4),
+      );
+      expect(
+        points.last.latitude,
+        closeTo(stops['VIV1']!.position.latitude, 1e-4),
+      );
+      // Drawn before the markers, so the pins stay on top.
+      final children = tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .children;
+      expect(
+        children.indexWhere((w) => w is PolylineLayer),
+        lessThan(children.indexWhere((w) => w is MarkerLayer)),
+      );
+    });
+
+    testWidgets('geometry that cannot be matched: markers, a note, no line, '
+        'journey card unchanged', (tester) async {
+      geometry.geometry = RouteGeometry({
+        'F20': [
+          encodePolyline(const [LatLng(1.40, 103.70), LatLng(1.41, 103.71)]),
+        ],
+      }); // nowhere near the ride
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+      for (final k in ['origin', 'boarding', 'alighting', 'destination']) {
+        expect(marker(k), findsOneWidget, reason: k);
+      }
+      expect(find.text('Take Bus F20 toward VivoCity (fake)'), findsOneWidget);
+    });
+
+    testWidgets('a malformed line fails only its own ride: markers and a '
+        'note, journey unchanged; another service is still drawn', (
+      tester,
+    ) async {
+      final network = fakeBusNetwork();
+      geometry.geometry = RouteGeometry({
+        for (final s in network.services.values)
+          s.number: [
+            for (final codes in s.directions)
+              encodePolyline([
+                for (final c in codes) network.stops[c]!.position,
+              ]),
+          ],
+        'F20': ['_p~iF'], // a latitude without its longitude
+      });
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+      for (final k in ['origin', 'boarding', 'alighting', 'destination']) {
+        expect(marker(k), findsOneWidget, reason: k);
+      }
+      expect(find.text('Take Bus F20 toward VivoCity (fake)'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD'); // F30
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+      expect(geometry.loads, 1, reason: 'the same loaded file serves both');
+    });
+
+    testWidgets('no note while the line loads, and none for a walk-only '
+        'journey', (tester) async {
+      geometry.hold();
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      geometry.release();
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'Bishan MRT', 'BISHAN MRT STATION (NS17)');
+      expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+    });
+
+    testWidgets('changing journey while the line loads never shows the old '
+        'line', (tester) async {
+      geometry.hold();
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD'); // F30
+      geometry.release();
+      await tester.pump();
+      await tester.pump();
+      final points = tester
+          .widget<PolylineLayer>(find.byKey(const Key('map-ride-line')))
+          .polylines
+          .single
+          .points;
+      final ion = fakeBusNetwork().stops['ION1']!.position;
+      expect(points.last.latitude, closeTo(ion.latitude, 1e-4));
+    });
+
+    testWidgets(
+      'a failure held from a bus journey is not retried by "Show map" '
+      'on a walk-only journey',
+      (tester) async {
+        geometry.failure = const StaticDataUnavailable(
+          StaticDataset.busRouteGeometry,
+        );
+        await pumpApp(tester, app());
+        await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+        await openMap(tester);
+        expect(geometry.loads, 1);
+        await tester.tap(find.byKey(hideMap));
+        await tester.pump();
+
+        await tester.tap(find.byKey(const Key('change-destination')));
+        await tester.pump();
+        await pickDestination(
+          tester,
+          'Bishan MRT',
+          'BISHAN MRT STATION (NS17)',
+        );
+        expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
+        await openMap(tester);
+        await tester.pump(const Duration(seconds: 5));
+        expect(find.byType(FlutterMap), findsOneWidget);
+        expect(geometry.loads, 1, reason: 'nothing is requested for walk-only');
+      },
+    );
+
+    testWidgets('a held failure is not flushed by repeated "Show map" on a '
+        'walk-only journey; a later bus journey retries on "Show map"', (
+      tester,
+    ) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(geometry.loads, 1);
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'Bishan MRT', 'BISHAN MRT STATION (NS17)');
+      expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
+
+      for (var i = 0; i < 2; i++) {
+        await openMap(tester);
+        await tester.pump(const Duration(seconds: 5));
+        await tester.tap(find.byKey(hideMap));
+        await tester.pump();
+      }
+      expect(geometry.loads, 1, reason: 'walk-only: nothing is requested');
+
+      // Back to a bus journey: the user's next "Show map" is the retry.
+      geometry.failure = null;
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      expect(geometry.loads, 1, reason: 'a closed map requests nothing');
+      await openMap(tester);
+      expect(geometry.loads, 2);
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+    });
+
+    testWidgets('"Show map" during a retry that is still loading does not '
+        'start another', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(geometry.loads, 1);
+
+      geometry.failure = null;
+      geometry.hold();
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2);
+      // No note while the retry is pending, although the last result failed.
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2, reason: 'the retry is already under way');
+
+      geometry.release();
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      expect(geometry.loads, 2);
+    });
+
+    testWidgets('a retry in progress shows no unavailable note: absent '
+        'while it loads', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+
+      geometry.hold(); // the retry fails again, but only after the gate opens
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      geometry.release();
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+    });
+
+    testWidgets('a line worked out for another ride is never drawn', (
+      tester,
+    ) async {
+      const a = LatLng(1.35, 103.85), b = LatLng(1.36, 103.86);
+      const rideA = MapRide(
+        service: 'F20',
+        sourceDirection: 0,
+        boardIndex: 0,
+        stops: [a, b],
+      );
+      const rideB = MapRide(
+        service: 'F30',
+        sourceDirection: 0,
+        boardIndex: 0,
+        stops: [a, b],
+      );
+      const scene = MapScene(
+        [
+          MapMarker(MapMarkerKind.origin, a, 'Start'),
+          MapMarker(MapMarkerKind.boarding, a, 'Stop A'),
+          MapMarker(MapMarkerKind.alighting, b, 'Stop B'),
+          MapMarker(MapMarkerKind.destination, b, 'End'),
+        ],
+        serviceNumber: 'F20',
+        ride: rideA,
+      );
+      tester.view.physicalSize = const Size(1080, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mapTileProviderFactoryProvider.overrideWithValue(() => tiles),
+            rideLineProvider.overrideWithValue(
+              const AsyncData(RideLineDrawn(rideB, [a, b])),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: JourneyMap(scene: scene)),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      // The same holds for a gap worked out for another ride: no note.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mapTileProviderFactoryProvider.overrideWithValue(() => tiles),
+            rideLineProvider.overrideWithValue(
+              const AsyncData(
+                RideLineUnavailable(rideB, RideLineGap.notMatched),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: JourneyMap(scene: scene)),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+
+      // ...while a gap for this very ride does show the note.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mapTileProviderFactoryProvider.overrideWithValue(() => tiles),
+            rideLineProvider.overrideWithValue(
+              const AsyncData(
+                RideLineUnavailable(rideA, RideLineGap.notMatched),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: JourneyMap(scene: scene)),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+    });
   });
 }
