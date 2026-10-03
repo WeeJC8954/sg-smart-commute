@@ -12,6 +12,7 @@ class MapRide {
     required this.sourceDirection,
     required this.boardIndex,
     required this.stops,
+    this.leadingStops = const [],
   });
 
   final String service;
@@ -25,13 +26,20 @@ class MapRide {
   /// Boarding … alighting stop positions, in ride order (at least 2).
   final List<LatLng> stops;
 
+  /// Positions of the stops just before the boarding occurrence that make the
+  /// ride's stop sequence unique in its direction (see [leadingStopCount]);
+  /// empty when it is already unique. They pin the boarding occurrence on a
+  /// line that passes the same stops twice.
+  final List<LatLng> leadingStops;
+
   @override
   bool operator ==(Object other) =>
       other is MapRide &&
       other.service == service &&
       other.sourceDirection == sourceDirection &&
       other.boardIndex == boardIndex &&
-      _samePoints(other.stops, stops);
+      _samePoints(other.stops, stops) &&
+      _samePoints(other.leadingStops, leadingStops);
 
   @override
   int get hashCode => Object.hash(
@@ -40,6 +48,9 @@ class MapRide {
     boardIndex,
     Object.hashAll([
       for (final p in stops) Object.hash(p.latitude, p.longitude),
+    ]),
+    Object.hashAll([
+      for (final p in leadingStops) Object.hash(p.latitude, p.longitude),
     ]),
   );
 }
@@ -52,6 +63,38 @@ bool _samePoints(List<LatLng> a, List<LatLng> b) {
     }
   }
   return true;
+}
+
+/// How many stops before [boardIndex] a ride needs so that its stop sequence
+/// is unique in [directionCodes] (one direction's stop codes, in order): the
+/// smallest m >= 0 (m <= [boardIndex]) for which the contiguous run
+/// `directionCodes[boardIndex - m .. alightIndex]` occurs exactly once. When
+/// no such run is unique, [boardIndex] (the longest possible context).
+int leadingStopCount(
+  List<String> directionCodes,
+  int boardIndex,
+  int alightIndex,
+) {
+  for (var m = 0; m <= boardIndex; m++) {
+    if (_occurrences(directionCodes, boardIndex - m, alightIndex) == 1) {
+      return m;
+    }
+  }
+  return boardIndex;
+}
+
+/// How many times the run `codes[from..to]` occurs in [codes].
+int _occurrences(List<String> codes, int from, int to) {
+  final length = to - from + 1;
+  var count = 0;
+  for (var i = 0; i + length <= codes.length; i++) {
+    var same = true;
+    for (var j = 0; j < length && same; j++) {
+      same = codes[i + j] == codes[from + j];
+    }
+    if (same) count++;
+  }
+  return count;
 }
 
 /// Why a ride has no line. Each is a degraded map, never a routing failure.
@@ -114,6 +157,7 @@ RideLine matchRide(
   // a straight segment from its end back to its start, and a stop matched
   // there would be drawn as a straight stand-in (never drawn, D1).
   final reversed = line.reversed.toList();
+  final lineLength = _planeLength(line);
   final closed =
       haversineMeters(line.first, line.last) <= config.toleranceMeters;
   for (final variant in [
@@ -124,7 +168,13 @@ RideLine matchRide(
       [...reversed, ...reversed],
     ],
   ]) {
-    final points = _matchAndSlice(ride.stops, variant, config);
+    final points = _matchAndSlice(
+      [...ride.leadingStops, ...ride.stops],
+      ride.leadingStops.length,
+      variant,
+      lineLength,
+      config,
+    );
     if (points != null) return RideLineDrawn(ride, points);
   }
   return RideLineUnavailable(ride, RideLineGap.notMatched);
@@ -145,13 +195,28 @@ class _P {
       math.sqrt(math.pow(x - o.x, 2) + math.pow(y - o.y, 2));
 }
 
+/// The line's length in metres on the local plane.
+double _planeLength(List<LatLng> line) {
+  var m = 0.0;
+  for (var k = 0; k + 1 < line.length; k++) {
+    m += _P.of(line[k]).distanceTo(_P.of(line[k + 1]));
+  }
+  return m;
+}
+
 /// One pass of the line near a stop: metres [along] the line, the segment
 /// [k] and the fraction [t] along it, and the [offset] from the stop.
 typedef _Hit = ({double along, int k, double t, double offset});
 
+/// Matches [stops] (the leading stops, then the ride's) in order and slices
+/// the line from the stop at [boardAt]. A chain longer than [maxSpan] (the
+/// undoubled line's length) would go round a loop more than once, joining
+/// incompatible passes, so it is rejected.
 List<LatLng>? _matchAndSlice(
   List<LatLng> stops,
+  int boardAt,
   List<LatLng> line,
+  double maxSpan,
   RideMatchConfig c,
 ) {
   final pts = [for (final p in line) _P.of(p)];
@@ -186,6 +251,7 @@ List<LatLng>? _matchAndSlice(
           continue;
         }
         final sum = before + hop;
+        if (sum > maxSpan) continue; // more than once round the loop
         if (next[b] == null || sum < next[b]!) {
           next[b] = sum;
           prev[b] = a;
@@ -201,11 +267,11 @@ List<LatLng>? _matchAndSlice(
   for (var b = 0; b < total.length; b++) {
     if (total[b] != null && (end < 0 || total[b]! < total[end]!)) end = b;
   }
-  var start = end;
+  final chosen = List<int>.filled(hits.length, end);
   for (var i = hits.length - 1; i > 0; i--) {
-    start = from[i][start];
+    chosen[i - 1] = from[i][chosen[i]];
   }
-  return _slice(line, hits.first[start], hits.last[end]);
+  return _slice(line, hits[boardAt][chosen[boardAt]], hits.last[end]);
 }
 
 List<_Hit> _hitsNear(

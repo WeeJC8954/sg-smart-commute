@@ -260,4 +260,206 @@ void main() {
       }
     });
   });
+
+  group('boarding occurrence (leadingStops)', () {
+    test('leadingStopCount: the shortest unique context before boarding', () {
+      // ['C','A','B'] is the shortest unique run ending at B (board 3).
+      expect(leadingStopCount(['A', 'B', 'C', 'A', 'B'], 3, 4), 1);
+      // ['A','B'] occurs twice and nothing precedes it: never unique.
+      expect(leadingStopCount(['A', 'B', 'C', 'A', 'B'], 0, 1), 0);
+      // Already unique.
+      expect(leadingStopCount(['A', 'B', 'C', 'D'], 2, 3), 0);
+      // Needs two leading stops: [A,B] and [C,A,B] occur twice.
+      expect(
+        leadingStopCount(['X', 'C', 'A', 'B', 'Y', 'C', 'A', 'B'], 6, 7),
+        2,
+      );
+      // Never unique with a boarding index above 0: returns boardIndex.
+      expect(leadingStopCount(['A', 'B', 'A', 'B'], 1, 1), 1);
+      expect(leadingStopCount(['A', 'B', 'A', 'B'], 2, 3), 1);
+    });
+
+    // An open line that passes A then B twice: pass 1 along latitude 1.3,
+    // north to C, back west and south, then pass 2 along latitude 1.30036
+    // (about 40 m north, inside the tolerance): (1.3, 103.80) → (1.3, 103.81)
+    // → (1.31, 103.81) → (1.31, 103.80) → (1.30036, 103.80) →
+    // (1.30036, 103.81).
+    const twoPasses = '_||F_mpxR?o}@o}@??n}@f{@??o}@';
+    final g = RouteGeometry({
+      'T': [twoPasses],
+    });
+    const a = LatLng(1.3, 103.80), b = LatLng(1.3, 103.81);
+    const c = LatLng(1.31, 103.81);
+    const codes = ['A', 'B', 'C', 'A', 'B'];
+
+    test('the two-pass literal decodes to its points', () {
+      expectDecodesTo(twoPasses, const [
+        LatLng(1.3, 103.80),
+        LatLng(1.3, 103.81),
+        LatLng(1.31, 103.81),
+        LatLng(1.31, 103.80),
+        LatLng(1.30036, 103.80),
+        LatLng(1.30036, 103.81),
+      ]);
+    });
+
+    test('the later occurrence is drawn on its own pass', () {
+      final m = leadingStopCount(codes, 3, 4);
+      expect(m, 1);
+      final r = MapRide(
+        service: 'T',
+        sourceDirection: 0,
+        boardIndex: 3,
+        stops: const [a, b],
+        leadingStops: const [c],
+      );
+      final drawn = matchRide(r, g) as RideLineDrawn;
+      for (final p in drawn.points) {
+        expect(p.latitude, closeTo(1.30036, 1e-5));
+      }
+      expect(lengthOf(drawn.points), closeTo(1112, 5));
+    });
+
+    test('without leadingStops the same ride is drawn on pass 1', () {
+      final r = MapRide(
+        service: 'T',
+        sourceDirection: 0,
+        boardIndex: 3,
+        stops: const [a, b],
+      );
+      final drawn = matchRide(r, g) as RideLineDrawn;
+      for (final p in drawn.points) {
+        expect(p.latitude, closeTo(1.3, 1e-5));
+      }
+    });
+
+    test('the first occurrence (no unique context) is drawn on pass 1', () {
+      expect(leadingStopCount(codes, 0, 1), 0);
+      final r = MapRide(
+        service: 'T',
+        sourceDirection: 0,
+        boardIndex: 0,
+        stops: const [a, b],
+      );
+      final drawn = matchRide(r, g) as RideLineDrawn;
+      for (final p in drawn.points) {
+        expect(p.latitude, closeTo(1.3, 1e-5));
+      }
+    });
+
+    test('a leading stop that is not on the line → notMatched', () {
+      // 220 m off both lanes: all or nothing, so no ride line at all.
+      final r = MapRide(
+        service: 'T',
+        sourceDirection: 0,
+        boardIndex: 3,
+        stops: const [a, b],
+        leadingStops: const [LatLng(1.302, 103.805)],
+      );
+      expect(
+        (matchRide(r, g) as RideLineUnavailable).gap,
+        RideLineGap.notMatched,
+      );
+    });
+
+    test('the detour cap applies to the hop from a leading stop', () {
+      // The U line of the synthetic group. The ride alone (top lane, west)
+      // is fine; with a leading stop at the far end of the line, 565 m away
+      // in a straight line but 3.4 km along it, the hop is capped.
+      const u = '_||F_mpxR?_|BsD??~{B';
+      final ug = RouteGeometry({
+        'U': [u],
+      });
+      const stops = [LatLng(1.3009, 103.805), LatLng(1.3009, 103.80)];
+      MapRide withLeading(List<LatLng> leading) => MapRide(
+        service: 'U',
+        sourceDirection: 0,
+        boardIndex: 1,
+        stops: stops,
+        leadingStops: leading,
+      );
+      expect(matchRide(withLeading(const []), ug), isA<RideLineDrawn>());
+      expect(
+        (matchRide(
+          withLeading(const [LatLng(1.3, 103.80)]),
+          ug,
+        ) as RideLineUnavailable).gap,
+        RideLineGap.notMatched,
+      );
+    });
+  });
+
+  group('loops are never gone round more than once', () {
+    // A closed square about 1 km a side (4 km round), starting at its
+    // south-west corner: (1.30, 103.80) → (1.30, 103.809) → (1.309, 103.809)
+    // → (1.309, 103.80) → (1.30, 103.80).
+    const square = '_||F_mpxR?gw@gw@??fw@fw@?';
+    final g = RouteGeometry({
+      'Q': [square],
+    });
+    const m1 = LatLng(1.30, 103.8045), m2 = LatLng(1.3045, 103.809);
+    const m3 = LatLng(1.309, 103.8045), m4 = LatLng(1.3045, 103.80);
+    MapRide on(List<LatLng> stops) =>
+        MapRide(service: 'Q', sourceDirection: 0, boardIndex: 0, stops: stops);
+
+    test('the square literal decodes to its points', () {
+      expectDecodesTo(square, const [
+        LatLng(1.30, 103.80),
+        LatLng(1.30, 103.809),
+        LatLng(1.309, 103.809),
+        LatLng(1.309, 103.80),
+        LatLng(1.30, 103.80),
+      ]);
+    });
+
+    test('once round and a quarter further → notMatched', () {
+      final r = on(const [m1, m2, m3, m4, m1, m2]);
+      expect(
+        (matchRide(r, g) as RideLineUnavailable).gap,
+        RideLineGap.notMatched,
+      );
+    });
+
+    test('less than one round, across the line start → drawn', () {
+      final r = on(const [m1, m2, m3, m4, LatLng(1.30, 103.802)]);
+      final drawn = matchRide(r, g) as RideLineDrawn;
+      expect(lengthOf(drawn.points), lessThan(4000));
+      expect(lengthOf(drawn.points), greaterThan(3000));
+    });
+  });
+
+  group('MapRide value equality', () {
+    MapRide base({
+      String service = 'S',
+      int sourceDirection = 0,
+      int boardIndex = 1,
+      List<LatLng> stops = const [LatLng(1.3, 103.80), LatLng(1.3, 103.81)],
+      List<LatLng> leadingStops = const [LatLng(1.3, 103.79)],
+    }) => MapRide(
+      service: service,
+      sourceDirection: sourceDirection,
+      boardIndex: boardIndex,
+      stops: stops,
+      leadingStops: leadingStops,
+    );
+
+    test('equal for equal fields, with equal hash codes', () {
+      expect(base(), base());
+      expect(base().hashCode, base().hashCode);
+    });
+
+    test('unequal when any field differs', () {
+      final variants = [
+        base(service: 'T'),
+        base(sourceDirection: 1),
+        base(boardIndex: 2),
+        base(stops: const [LatLng(1.3, 103.80), LatLng(1.3, 103.82)]),
+        base(leadingStops: const []),
+        base(leadingStops: const [LatLng(1.3, 103.78)]),
+      ];
+      for (final v in variants) {
+        expect(v, isNot(base()));
+      }
+    });
+  });
 }
