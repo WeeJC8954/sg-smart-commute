@@ -29,9 +29,10 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 | | |
 |---|---|
 | Owner | busrouter.sg (community project by Lim Chee Aun, `github.com/cheeaun/busrouter-sg`), derived from LTA data |
-| Endpoints | `https://data.busrouter.sg/v1/stops.min.json` (~317 KB), `services.min.json` (~255 KB); `routes.min.json` (~289 KB, one precision-5 polyline per service direction; Phase 2, not loaded yet: fit to stops measured in `docs/map-feasibility.md` §5) |
+| Endpoints | `https://data.busrouter.sg/v1/stops.min.json` (~317 KB), `services.min.json` (~255 KB); `https://data.busrouter.sg/v1/routes.min.json` (~289 KB; the ride line, P2-M2, see below) |
 | Data used (M3) | Stops `{code: [lng, lat, name, road]}` (**lng first**; converted to latitude-first once, in `busrouter_parser.dart`). Services `{number: {name, routes: [[codes], [codes]?]}}`: one list per direction, in stop order. On 2026-10-01: 5,208 stops, 602 services (406 one-direction, 222 loops with first == last stop) |
-| Auth | None. HTTP 200, CORS `*`, `Cache-Control: public,max-age=86400` |
+| Data used (P2-M2) | `routes.min.json`: `{service: [encoded polyline dir 0, dir 1?]}`, one Google-encoded polyline (precision 5) per busrouter direction, 602 services / 798 directions on 2026-10-03 (the same direction order as `services.min.json`; geometry only, no stop indices, so the app matches the ride's stops to the line: `docs/map-feasibility.md` §5). Parsed only in `features/map/data/busrouter_routes_parser.dart`; polylines are decoded only for the ride being drawn. Used **only by the map, lazily**: requested after "Show map" with a direct-bus journey, once per session. A failure (network, HTTP, 429, too large, not JSON, schema) gives markers only plus a note; planning and arrivals are unaffected |
+| Auth | None. HTTP 200, CORS `*`, `Cache-Control: public,max-age=86400` (the same for `routes.min.json`) |
 | Update cadence | Static; refreshed by the project periodically |
 | Licence / attribution | The busrouter README says the data is "© LTA", mostly scraped from lta.gov.sg (via `cheeaun/sgbusdata`); the code is MIT. The app shows "Bus data: busrouter.sg (data © LTA)". Suitable for this course project; re-check before any wider release |
 | Caching | Loaded lazily on the first journey request, once per session (see `docs/assumptions.md`) |

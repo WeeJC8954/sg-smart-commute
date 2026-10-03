@@ -27,7 +27,7 @@ Constraints this design keeps (guide §2, §14, §17, ADR-001):
 | Renderer | **flutter_map 8.x** (raster tiles), with `latlong2` | Pure Dart. Runs on Android and Web: proven on both in the spike (§3). No JS library, so no extra `script-src` or `worker-src`. BSD-3, actively released (8.3.2 on 2026-08-27). |
 | Basemap | **OneMap** `Default` (light) and `Night` (dark) raster tiles, z11–19. **Decision: accepted** (§4.2) | Keyless, `Access-Control-Allow-Origin: *`, official Singapore map. The host `www.onemap.gov.sg` is **already in `connect-src`**, so the basemap needs **no CSP change**. The terms license use but give no service-level agreement and publish no volume limit, so the project sets its own reasonable-use rules (§4.2). |
 | Fallback basemap | None automatically. Keep OSM standard tiles as a documented config switch | A second provider adds a host, a policy and an attribution for a rare failure. When tiles fail, the map shows a degraded state; the journey card, which is the real answer, is unaffected. |
-| Bus ride geometry | Slice busrouter `routes.min.json`, already an allowed host, between the boarding and alighting stops | 98.5% of stop-to-stop hops and 88% of random rides can be drawn exactly. The rest fall back to straight hop connectors, drawn and labelled as approximate (§5). |
+| Bus ride geometry | Slice busrouter `routes.min.json`, already an allowed host, between the boarding and alighting stops | 98.5% of stop-to-stop hops and 88% of random rides can be drawn exactly. A ride that cannot be fully matched shows markers only, with a note, never a straight stand-in (§5, decided in P2-M2). |
 | Walking geometry | **Keep straight-line "est." connectors** (guide §17). No live router by default | None of the keyless routers we tested (§6) had a usage policy we could confidently adopt for app traffic. An opt-in FOSSGIS `routed-foot` experiment is possible later, only on your decision. |
 | Architecture | A new `features/map/` that only *reads* the plan; flutter_map imported in one widget | The planner and domain never import map code (guide §17), and the map stays removable (§8). |
 
@@ -225,16 +225,29 @@ Failures are mostly 1–5 stops per direction:
 - a few services with stale or mismatched geometry, for example `2B` and `154B`, whose lines cover only
   part of their stop list.
 
-Rules proposed for P2-M2. These are tunables, so they go in `app_config.dart` and `docs/assumptions.md`
-when implemented:
-1. Draw the exact line for every hop that is matched in order, and where the along-line distance is at most
-   3× the straight line.
-2. Draw any other hop as a **straight dashed connector between the two real stops**, and mark the ride
-   "route shape approximate". This never invents a route: the stops and their order are real data.
-   **Your decision:** whether this partial approximation is acceptable, or whether a ride that isn't fully
-   matched should show stop markers only.
-3. When `routes.min.json` fails to load or parse, show markers only and a "route line unavailable" note.
-   Planning and arrivals are unaffected.
+Rules for P2-M2 (tunables are in `app_config.dart` `MapConfig` and `docs/assumptions.md` "Bus ride line"):
+1. Draw the exact line for a ride only when **every** stop from boarding to alighting matches the line in order,
+   within 60 m, and no hop's along-line distance exceeds 3× its straight line (when that is over 50 m).
+2. **Decided 2026-10-03: markers only, no straight stand-in.** A ride that is not fully matched shows its
+   boarding and alighting markers and a one-line note, "The bus route line isn't available for this ride. The
+   stops are shown." This replaces the P2-M0 proposal of straight dashed connectors for unmatched hops, which
+   was rejected because a straight line between two stops looks like a route. It is a degraded visualisation,
+   not a routing failure: the journey card, the plan and arrivals do not change.
+3. When `routes.min.json` fails to load or parse, show markers only and the same note. Planning and arrivals
+   are unaffected. The next "Show map" tries the load again.
+
+**The production matcher is the simplified ride matcher, not the probe** (D2 in
+`docs/p2-m2-bus-geometry-implementation-plan.md`; `matchRide` in `lib/features/map/domain/ride_geometry.dart`).
+It solves the narrower problem: only the ride's own stops, all of which must match (no skipping), the in-order
+chain with the least along-line length, over the variants given, reversed, doubled, reversed + doubled.
+**Doubling is tried only for a closed line** (its ends within 60 m): on an open line it adds a straight joining
+segment from the end back to the start, and a stop matched there would be a straight stand-in. Measured on live
+data, 2026-10-03, with the probe's random rides (seed 1): the matcher with closed-only doubling draws **7,020 /
+7,980 (88.0%)** against the probe's 7,036 (88.2%). Doubling any line would have drawn 142 more rides, all through
+the artificial joining segment. Two additions came out of review: a loop that passes the same stops twice is
+pinned to the planner's boarding occurrence (`boardIndex`, plus the minimal preceding stops, `leadingStops`),
+and a chain may not span more than one loop (the line's length plus 60 m of slack), so boarding and alighting
+are never taken from incompatible passes. The probe stays in `tool/` unchanged, as P2-M0 evidence.
 
 ## 6. Walking-route geometry (frontend only)
 
@@ -339,7 +352,7 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
 |---|---|---|---|
 | M1 | OneMap publishes no volume limit and gives no service-level agreement; it may suspend, restrict, block, charge or introduce tokens (as for search) | No basemap | Project reasonable-use rules (§4.2); map is optional; degraded overlay, no automatic retry; switching to the documented OSM contingency is a new reviewed decision (adds one CSP host and the OSM policy); no proxy, ever |
 | M2 | OneMap attribution non-compliance (logo collapsed or hidden) | Terms breach | Persistent attribution row with the logo; widget test asserts it is visible in light and dark |
-| M3 | busrouter geometry stale or mismatched for some services | Wrong or partial line | Matching with a 60 m tolerance and 3× detour cap; straight connectors marked approximate; markers only if the data is unusable |
+| M3 | busrouter geometry stale or mismatched for some services | Wrong or partial line | Matching with a 60 m tolerance and 3× detour cap; all-or-nothing, so markers only (with a note) when a ride's stops do not all match (§5 rule 2) |
 | M4 | dart2js bitwise semantics (found in the spike) and other VM/Web differences | Garbage geometry on Web only | Web-safe decoder; decoder tests also run with `--platform chrome`; Web integration test draws a known ride |
 | M5 | flutter_map cannot abort superseded tile requests on Web (noted in its source); they still download | Bandwidth, and OneMap load during the camera fit | Fit the camera once without animating; zoom 11–19; no prefetch |
 | M6 | flutter_map maintenance or breaking 9.x | Upgrade work | Pin `^8.3`; flutter_map imported in one widget only |
@@ -376,6 +389,19 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    - Draw the ride line plus boarding and alighting markers; "route shape approximate" or "unavailable"
      states.
    - Tunables go in `docs/assumptions.md`.
+   - **Done in P2-M2**, with these decisions (docs/assumptions.md "Bus ride line", "Route geometry load" and
+     "Map camera"; docs/architecture.md; plan: `docs/p2-m2-bus-geometry-implementation-plan.md`):
+     - no straight stand-in and no "approximate" state: a ride is drawn only when every stop matches (§5 rule
+       2, replaced), otherwise markers and a note;
+     - D3: `BusOption.boardIndex` exposes the planner's boarding occurrence, so the map never re-derives it;
+     - D4: `BusService.sourceDirectionOf` keeps busrouter's direction index if the parser ever drops a
+       direction, so a wrong polyline is never drawn;
+     - D5: the camera is fitted to the ride's stops as well as the four markers, still once per journey and
+       before the first frame (no refit when the line arrives);
+     - the loop additions of §5: the boarding occurrence is pinned with `leadingStops`, and a chain may not
+       span more than one loop;
+     - `routes.min.json` is loaded only after "Show map" with a direct-bus journey, once per session; a failed
+       load is held, and the next "Show map" retries.
 3. **P2-M3 — Walk connectors, MRT and option sync.**
    - Straight dashed "est." walk connectors (origin → board, alight → destination).
    - MRT suggestion markers from the existing `mrtSuggestionProvider`.
@@ -396,7 +422,7 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
 1. **Basemap: decided in P2-M0.** OneMap raster tiles are accepted, with the required attribution, the
    project reasonable-use rules and the refusal handling in §4.2. They come with no service-level agreement and no assumption of
    unlimited traffic.
-2. Ride lines: accept straight dashed connectors for unmatched hops, labelled approximate (§5 rule 2), or
-   show markers only for those rides?
+2. Ride lines: **decided in P2-M2 (2026-10-03).** Markers only for a ride that is not fully matched; no
+   straight dashed connectors and no "approximate" label (§5 rule 2).
 3. Walking: confirm straight-line "est." connectors. Should the FOSSGIS `routed-foot` experiment stay off
    the roadmap, or be considered in P2-M4?

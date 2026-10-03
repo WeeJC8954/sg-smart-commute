@@ -222,6 +222,59 @@ An optional map of the journey the planner already found (guide §17; decisions 
 - Not in P2-M1: ride polylines (`routes.min.json`), walking lines or routers, transfers, map-based planning,
   automatic OSM fallback, option sync (the map shows the suggested option).
 
+## Phase 2 Milestone 2 (bus ride line)
+
+The suggested bus ride is drawn on the road under the P2-M1 pins (decisions D1–D6 in
+`docs/p2-m2-bus-geometry-implementation-plan.md`; evidence in `docs/map-feasibility.md` §5; rules and tunables in
+`docs/assumptions.md` "Bus ride line" and "Route geometry load"). The journey planner stays authoritative: the map
+never plans and never changes the service, direction, boarding or alighting stop.
+
+- **Files and responsibilities** (`lib/features/map/`):
+  - `domain/polyline_codec.dart`: `decodePolyline`, a precision-5 Google polyline decoder. Web-safe: a negative
+    delta is `-(result >> 1) - 1`, never `~(result >> 1)`, since dart2js bitwise operators are unsigned 32-bit
+    (the P2-M0 spike hit this on Web only).
+  - `domain/route_geometry.dart`: `RouteGeometry` (service → encoded polyline per busrouter direction, kept
+    encoded) and the `RouteGeometryRepository` interface.
+  - `domain/ride_geometry.dart` (pure Dart): `MapRide` (service, `sourceDirection`, `boardIndex`, the ride's
+    `stops`, `leadingStops`), `leadingStopCount`, the sealed `RideLine` (`RideLineDrawn` with the points, or
+    `RideLineUnavailable` with a `RideLineGap`: `noGeometry`, `malformedGeometry`, `notMatched`),
+    `RideMatchConfig` (defaults from `MapConfig`) and `matchRide`.
+  - `domain/map_scene.dart`: `MapScene.ride` is built from the suggested option; the scene's bounds include the
+    ride's stops.
+  - `data/busrouter_routes_parser.dart` (`parseBusrouterRoutes`: `{service: [dir 0, dir 1?]}`, invalid entries
+    dropped, the same 5 % rule as the other busrouter files) and `data/busrouter_route_geometry_repository.dart`
+    (`JsonHttpClient`, one session-held load shared by concurrent callers, a failure not cached).
+  - `map_providers.dart`: `routeGeometryRepositoryProvider`, `routeGeometryProvider` (a `FutureProvider`, a
+    failure held) and `rideLineProvider`.
+  - `presentation/journey_map.dart`: a `PolylineLayer` (key `map-ride-line`) before the `MarkerLayer`, so the
+    pins stay on top, and the `map-ride-unavailable` note below the map.
+- **Data flow**: planner `BusOption` (with `boardIndex`) → `buildMapScene` → `MapRide` on the `MapScene` →
+  `rideLineProvider` runs the pure `matchRide(ride, geometry)` → `RideLine` → the open map draws a
+  `RideLineDrawn` only when its `ride` equals the scene's ride, so an earlier journey's line is never drawn.
+  `rideLineProvider` is derived from the current scene and is watched only by the open map, so `routes.min.json`
+  is not requested before "Show map" with a direct-bus journey. `MapExpanded.show` retries a failed load (guarded
+  with `ref.exists`, so showing the map never starts a load by itself).
+- **D3, `BusOption.boardIndex`**: `planDirectBus` already knew the boarding occurrence; `BusOption` now keeps it.
+  One constructor call, no behaviour change (the ranking does not read it). The map therefore never re-derives
+  the occurrence, which on a loop could be another one.
+- **D4, `BusService.sourceDirectionOf`**: `parseBusrouterServices` drops a direction with fewer than 2 known stops,
+  which would shift `BusService.directions` against `routes.min.json`. The parser sets `sourceDirections` only when
+  it drops something, and `sourceDirectionOf(d)` maps back to busrouter's index. No behaviour change today
+  (live data: 0 dropped directions); it keeps a wrong polyline from ever being drawn.
+- **Matcher** (all-or-nothing, least along-line length, closed-only doubling, loop span guard): the rules are the
+  "Bus ride line" row of `docs/assumptions.md`. A failure to match is markers plus a note, never a straight
+  stand-in and never a routing failure.
+- **`flutter_map` stays in `features/map/presentation/`**: the codec, geometry, matcher and scene are pure Dart
+  with no Flutter or map-package import. `features/journey` still never imports `features/map`; the dependency
+  stays one-way (the map reads journey).
+- **CSP**: no change. `data.busrouter.sg` is already in `connect-src`; `test/web/content_security_policy_test.dart`
+  gains `BusrouterEndpoints.routes` in its provider set.
+- Test seam: `routeGeometryRepositoryProvider`; `buildTestApp` fakes it with `FakeRouteGeometryRepository`
+  (`integration_test/fakes/fake_route_geometry.dart`), so no test fetches `routes.min.json`. Matcher tests use the
+  fixtures in `test/fixtures/busrouter/geometry/`, captured once by `tool/capture_route_geometry_fixtures.dart`.
+- Not in P2-M2: walking lines or routers (P2-M3 adds straight dashed "est." connectors), transfers, option sync
+  (the map shows the suggested option), live vehicles, automatic OSM fallback, map-based planning.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),

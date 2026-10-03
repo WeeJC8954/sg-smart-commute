@@ -114,6 +114,11 @@ bash tool/probe_map.sh > docs/probe-output/map-probes.txt               # tiles 
 dart run tool/route_geometry_probe.dart > docs/probe-output/route-geometry.txt   # busrouter ride geometry
 ```
 
+Phase 2 M2 (ride geometry fixtures): `dart run tool/capture_route_geometry_fixtures.dart` downloads the live
+busrouter `routes`, `services` and `stops` once and writes the small subset the matcher tests use to
+`test/fixtures/busrouter/geometry/` (with `PROVENANCE.md`: URLs, capture time, the planned test cases). It is a
+dev tool run by hand; no test calls a live API.
+
 The P2-M0 spike app (`tool/map_spike/`) was removed in P2-M1, once the production map (`lib/features/map/`)
 had reproduced its Web and Android results; its source is in git history at `f5934d1`, and its screenshots
 stay in `docs/probe-output/map-spike/`.
