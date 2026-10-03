@@ -4,7 +4,9 @@
 // selects a destination (fake place search) → a direct-bus suggestion with
 // stop, service, stops and estimated walks, plus the MRT alternative (fake
 // bus network and MRT asset, integration_test/fakes/fake_bus_network.dart) → live ETAs
-// (fake arrivals) → manual refresh updates the ETAs.
+// (fake arrivals) → manual refresh updates the ETAs → P2-M1: the optional
+// journey map, opened on request, with the journey's markers and the OneMap
+// attribution (fake tiles: no live tile is fetched).
 //
 // Every provider is a fake and the clock is injected; no live API is called.
 import 'package:flutter/widgets.dart';
@@ -16,6 +18,7 @@ import 'package:sg_smart_commute/features/destination/presentation/destination_c
 import 'fakes/fake_bus_arrival_repository.dart';
 import 'fakes/fake_environment_repository.dart';
 import 'fakes/fake_location_service.dart';
+import 'fakes/fake_map.dart';
 import 'fakes/fake_place_search_repository.dart';
 import 'fakes/test_app.dart';
 import 'support.dart';
@@ -28,6 +31,7 @@ void main() {
     final env = FakeEnvironmentRepository();
     final places = FakePlaceSearchRepository();
     final arrivals = FakeBusArrivalRepository();
+    final tiles = FakeTileProvider();
     var now = fakeNow;
     await tester.pumpWidget(
       buildTestApp(
@@ -39,6 +43,7 @@ void main() {
         places: places,
         busArrivals: arrivals,
         clock: () => now,
+        mapTiles: () => tiles,
       ),
     );
 
@@ -155,5 +160,24 @@ void main() {
       ),
       findsOneWidget,
     );
+
+    // P2-M1: the map is closed until asked for, so no tile was requested.
+    expect(find.byKey(const Key('journey-map')), findsNothing);
+    expect(tiles.requested, isEmpty);
+    await scrollToAndTap(tester, find.byKey(const Key('show-map')));
+    await pumpUntilFound(tester, find.byKey(const Key('map-marker-boarding')));
+    for (final kind in ['origin', 'alighting', 'destination']) {
+      expect(find.byKey(Key('map-marker-$kind')), findsOneWidget);
+    }
+    expect(tiles.requested, isNotEmpty);
+    final attribution = find.byKey(const Key('basemap-attribution'));
+    await tester.ensureVisible(attribution);
+    await tester.pump();
+    for (final text in ['OneMap', 'Singapore Land Authority']) {
+      expect(
+        find.descendant(of: attribution, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
   });
 }

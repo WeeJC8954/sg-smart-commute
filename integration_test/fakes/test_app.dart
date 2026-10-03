@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
@@ -10,6 +11,7 @@ import 'package:sg_smart_commute/features/environment/environment_providers.dart
 import 'package:sg_smart_commute/features/journey/data/mrt_asset_repository.dart';
 import 'package:sg_smart_commute/features/journey/domain/bus_network_repository.dart';
 import 'package:sg_smart_commute/features/journey/journey_providers.dart';
+import 'package:sg_smart_commute/features/map/presentation/basemap.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
 import 'package:sg_smart_commute/features/places/place_providers.dart';
@@ -18,9 +20,12 @@ import 'package:sg_smart_commute/main.dart';
 import 'fake_bus_arrival_repository.dart';
 import 'fake_bus_network.dart';
 import 'fake_environment_repository.dart';
+import 'fake_map.dart';
 import 'fake_place_search_repository.dart';
 
-/// The real app with every external provider replaced by a fake (§18).
+/// The real app with every external provider replaced by a fake (§18). The
+/// map's tiles, logo and links are fakes too: no test fetches a tile or opens
+/// a browser.
 Widget buildTestApp({
   required LocationService location,
   required EnvironmentRepository environment,
@@ -36,6 +41,8 @@ Widget buildTestApp({
   Duration locationPermissionTimeout = const Duration(seconds: 10),
   Clock? clock,
   Duration motionDuration = Duration.zero,
+  TileProvider Function()? mapTiles,
+  Future<bool> Function(Uri)? openLink,
 }) {
   return ProviderScope(
     retry: noAutomaticRetry,
@@ -57,6 +64,13 @@ Widget buildTestApp({
       mrtRepositoryProvider.overrideWithValue(mrt ?? fakeMrtRepository()),
       busArrivalRepositoryProvider.overrideWithValue(
         busArrivals ?? FakeBusArrivalRepository(),
+      ),
+      mapTileProviderFactoryProvider.overrideWithValue(
+        mapTiles ?? FakeTileProvider.new,
+      ),
+      mapLogoImageProvider.overrideWithValue(MemoryImage(transparentPng)),
+      mapLinkOpenerProvider.overrideWithValue(
+        openLink ?? FakeLinkOpener().call,
       ),
       if (busArrivalCacheTtl != null)
         busArrivalCacheTtlProvider.overrideWithValue(busArrivalCacheTtl),

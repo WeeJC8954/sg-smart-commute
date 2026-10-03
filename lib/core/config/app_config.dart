@@ -72,6 +72,76 @@ abstract final class OneMapRateLimit {
 const String oneMapAttribution =
     'Place search: OneMap © Singapore Land Authority';
 
+/// OneMap raster basemap (Singapore Land Authority), accepted in P2-M0
+/// (docs/map-feasibility.md §4.2): keyless, CORS `*`, no service-level
+/// agreement and no published volume limit, so [MapConfig] keeps the
+/// project's own reasonable-use bounds. Same host as search, so it adds no
+/// CSP origin.
+abstract final class BasemapEndpoints {
+  static const String host = OneMapEndpoints.host;
+
+  /// Light basemap.
+  static const String defaultTiles =
+      'https://$host/maps/tiles/Default/{z}/{x}/{y}.png';
+
+  /// Dark basemap.
+  static const String nightTiles =
+      'https://$host/maps/tiles/Night/{z}/{x}/{y}.png';
+
+  /// The OneMap logo the attribution must show (20 × 20).
+  static final Uri logo = Uri.https(
+    host,
+    '/web-assets/images/logo/om_logo.png',
+  );
+
+  /// Attribution links, from OneMap's snippet
+  /// (`docs/maps/resources/code-attr.txt`).
+  static final Uri oneMapSite = Uri.https(host, '/');
+  static final Uri slaSite = Uri.https('www.sla.gov.sg', '/');
+}
+
+/// The required basemap attribution text, shown after the OneMap logo
+/// whenever tiles are on screen; "OneMap" and "Singapore Land Authority" are
+/// links ([BasemapEndpoints.oneMapSite], [BasemapEndpoints.slaSite]).
+abstract final class BasemapAttribution {
+  static const String oneMap = 'OneMap';
+  static const String contributors = ' © contributors | ';
+  static const String sla = 'Singapore Land Authority';
+  static const String full = '$oneMap$contributors$sla';
+}
+
+/// Journey map (P2-M1; docs/map-feasibility.md §4.2 reasonable-use rules,
+/// docs/assumptions.md "Journey map").
+abstract final class MapConfig {
+  /// OneMap's documented zoom range; no tiles are requested outside it.
+  static const double minZoom = 11;
+  static const double maxZoom = 19;
+
+  /// OneMap's documented basemap bounds. The camera cannot leave them, so
+  /// no tiles outside Singapore are requested.
+  static const double boundsSouth = 1.144;
+  static const double boundsWest = 103.535;
+  static const double boundsNorth = 1.494;
+  static const double boundsEast = 104.502;
+
+  /// Fitting the camera to the markers never zooms closer than this, so two
+  /// close points keep some street context.
+  static const double fitMaxZoom = 17;
+
+  /// Space kept between the markers and the map's edges when fitting.
+  static const double fitPadding = 48;
+
+  /// Height of the map on the home screen.
+  static const double height = 280;
+
+  /// Android tile cache cap (flutter_map's built-in cache, which follows the
+  /// tiles' `Cache-Control`). The Web relies on the browser's HTTP cache.
+  static const int tileCacheMaxBytes = 50 * 1000 * 1000;
+
+  /// Sent as the tile requests' User-Agent on Android (not settable on Web).
+  static const String userAgentPackageName = 'sg.smartcommute.sg_smart_commute';
+}
+
 /// data.gov.sg anonymous limit for the v2 real-time API: 6 calls in any 10 s
 /// (docs/api-feasibility.md). It is enforced client-side by one shared
 /// rolling-window limiter, so every caller is covered.
