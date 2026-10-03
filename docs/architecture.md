@@ -189,6 +189,39 @@ lib/
   not in the foreground, or switching to `forceLocationManager`, was judged not worth the risk to the origin
   state machine or to fix quality.
 
+## Phase 2 Milestone 1 (journey map)
+
+An optional map of the journey the planner already found (guide §17; decisions and evidence in
+`docs/map-feasibility.md`, tunables in `docs/assumptions.md` "Journey map" and after).
+
+- `lib/features/map/domain/map_scene.dart`: pure Dart, no Flutter or map-package import. `buildMapScene` turns
+  origin, destination and the current `JourneyPlan` into a `MapScene` (markers in journey order, bounds, a
+  screen-reader summary). Only a `DirectBusOptions` adds stops, from its first (suggested) option. It never plans.
+- `lib/features/map/map_providers.dart`: `mapSceneProvider` watches the origin, the destination and
+  `journeyPlanProvider` (the same provider the journey card watches, so no second plan and no extra bus-data
+  load); while the plan is loading or failed it marks only the two ends. `mapExpandedProvider` is session UI state:
+  closed by default, so no tile is requested until the user opens the map.
+- `lib/features/map/presentation/`: the only files that import `flutter_map` / `latlong2`.
+  `journey_map_card.dart` ("Show map" / "Hide map"; nothing until both ends exist), `journey_map.dart`
+  (`FlutterMap` with the camera fitted before the first frame and constrained to OneMap's bounds and z11–19;
+  markers; the "tiles unavailable" note below the map), `basemap.dart` (OneMap Default/Night by brightness;
+  `OneMapTileProvider` with a plain HTTP client, so no automatic retry, and a size-capped Android cache; the
+  persistent attribution row).
+- The home screen shows `JourneyMapCard` under the journey card. Removing the map removes that one widget; the
+  planner, journey card and arrivals never import `features/map`.
+- **`url_launcher`** (Flutter team plugin) is a UI/platform dependency, not a data provider: it only opens the
+  attribution links (onemap.gov.sg, sla.gov.sg) in the external browser (`LaunchMode.externalApplication`). It
+  needs no CSP change (navigation, not a fetch) and no Android `<queries>` entry: `launchUrl` starts the activity
+  directly; only `canLaunchUrl`, which the app does not call, needs package visibility.
+- **CSP**: no change. Tiles and the logo come from `www.onemap.gov.sg`, already in `connect-src` (flutter_map and
+  the engine fetch and decode their bytes). `test/web/content_security_policy_test.dart` now includes the
+  basemap endpoints.
+- Test seams: `mapTileProviderFactoryProvider`, `mapLogoImageProvider`, `mapLinkOpenerProvider`;
+  `buildTestApp` fakes all three (`integration_test/fakes/fake_map.dart`), so no test fetches a tile or opens a
+  browser.
+- Not in P2-M1: ride polylines (`routes.min.json`), walking lines or routers, transfers, map-based planning,
+  automatic OSM fallback, option sync (the map shows the suggested option).
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),

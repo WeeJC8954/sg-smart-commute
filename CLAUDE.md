@@ -97,6 +97,13 @@ Key flows that span several files:
   not cached). Its result carries the exact plan it was fetched for, and widgets show it only against that
   plan (no stale attach). ArriveLah JSON is parsed only in `arrivelah_parser.dart`; ETAs come from `time` and
   the clock (`Arr` ≤ 1 min, else minutes rounded down), never `duration_ms`. Refresh never recomputes the plan.
+- **Map** (`features/map/`, P2-M1): `mapSceneProvider` turns origin, destination and the current
+  `journeyPlanProvider` value into a pure `MapScene` (the suggested option's stops; only the two ends while the plan
+  loads or failed); it never plans. The map is closed by default (`mapExpandedProvider`, session UI state), so no
+  tile is requested before "Show map". `flutter_map` / `latlong2` are imported only in `features/map/presentation/`.
+  OneMap Default/Night tiles, camera fitted before the first frame inside OneMap's bounds and z11–19, no automatic
+  tile retry, persistent linked attribution (`url_launcher`). Rules: `docs/map-feasibility.md` §4.2 and the map
+  rows of `docs/assumptions.md`.
 - **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no
   rolled-over fields; never plain `DateTime.parse`), store UTC, display at a fixed +08:00 offset (no `timezone`
   package).
@@ -108,7 +115,8 @@ Key flows that span several files:
   `placeSearchRepositoryProvider` (plus
   `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
   `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`, `busArrivalRepositoryProvider`,
-  `busArrivalCacheTtlProvider`, `uiMotionDurationProvider` (`buildTestApp` defaults it to zero, so layout changes
+  `busArrivalCacheTtlProvider`, `mapTileProviderFactoryProvider`, `mapLogoImageProvider`, `mapLinkOpenerProvider`
+  (faked by default in `buildTestApp`: no test fetches a tile or opens a browser), `uiMotionDurationProvider` (`buildTestApp` defaults it to zero, so layout changes
   land in one frame; `test/core/motion_test.dart` covers the animated path). `integration_test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
   `integration_test/`. Widget tests importing `integration_test/fakes/` is a deliberate test-harness
