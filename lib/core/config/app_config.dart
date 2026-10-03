@@ -271,6 +271,12 @@ abstract final class BusrouterEndpoints {
   static final Uri services = Uri.parse(
     'https://data.busrouter.sg/v1/services.min.json',
   );
+
+  /// One encoded polyline per service direction (P2-M2 ride line; loaded
+  /// only when the map is opened with a direct-bus journey).
+  static final Uri routes = Uri.parse(
+    'https://data.busrouter.sg/v1/routes.min.json',
+  );
 }
 
 /// Transport-dataset coordinate sanity range. Wider than [SgBounds], which

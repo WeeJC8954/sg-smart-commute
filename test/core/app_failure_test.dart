@@ -25,6 +25,10 @@ void main() {
         const StaticDataUnavailable(StaticDataset.busRoutes).message,
         'Bus data is unavailable right now.',
       );
+      expect(
+        const StaticDataUnavailable(StaticDataset.busRouteGeometry).message,
+        'The bus route line is unavailable right now.',
+      );
     });
 
     test('a rate limit says how long to wait when it is known', () {
