@@ -6,7 +6,8 @@
 // bus network and MRT asset, integration_test/fakes/fake_bus_network.dart) → live ETAs
 // (fake arrivals) → manual refresh updates the ETAs → P2-M1: the optional
 // journey map, opened on request, with the journey's markers and the OneMap
-// attribution (fake tiles: no live tile is fetched).
+// attribution (fake tiles: no live tile is fetched) → P2-M2: the ride line,
+// drawn from fake route geometry (no live routes.min.json request).
 //
 // Every provider is a fake and the clock is injected; no live API is called.
 import 'package:flutter/widgets.dart';
@@ -169,6 +170,9 @@ void main() {
     for (final kind in ['origin', 'alighting', 'destination']) {
       expect(find.byKey(Key('map-marker-$kind')), findsOneWidget);
     }
+    // P2-M2: the suggested ride, on the road, from the fake route geometry.
+    await pumpUntilFound(tester, find.byKey(const Key('map-ride-line')));
+    expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
     expect(tiles.requested, isNotEmpty);
     final attribution = find.byKey(const Key('basemap-attribution'));
     await tester.ensureVisible(attribution);
