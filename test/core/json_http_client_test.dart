@@ -482,6 +482,35 @@ void main() {
         expect(calls[uri.host], 2, reason: 'one send after the hold, no flood');
       });
 
+      test(
+        'backwards within the cap: only a longer wait, by the jump',
+        () async {
+          final c = held({'retry-after': '10'});
+          await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+
+          now = now.subtract(const Duration(seconds: 20));
+          await expectLater(
+            c.getJson(uri),
+            throwsA(
+              isA<ApiRateLimited>().having(
+                (e) => e.retryAfter,
+                'retryAfter',
+                const Duration(seconds: 30),
+              ),
+            ),
+          );
+          now = now.add(const Duration(seconds: 29));
+          await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+          now = now.add(const Duration(seconds: 1));
+          expect(await c.getJson(uri), {'ok': 1});
+          expect(
+            calls[uri.host],
+            2,
+            reason: 'one send after the hold, no flood',
+          );
+        },
+      );
+
       test('forwards: the hold ends early; one request goes out', () async {
         final c = held({'retry-after': '10'});
         await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
