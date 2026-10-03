@@ -10,6 +10,7 @@ import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/features/environment/presentation/reading_text.dart';
 import 'package:sg_smart_commute/features/origin/domain/origin_controller.dart';
 import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 
@@ -173,7 +174,11 @@ void main() {
       find.text('Your reported location is outside Singapore.'),
       findsOneWidget,
     );
-    expect(inTile('tile-psi', 'Waiting for your location'), findsOneWidget);
+    // Nothing is finding a fix any more: the tiles say what to do instead of
+    // "waiting" forever (#28).
+    expect(inTile('tile-psi', ReadingText.needsOrigin), findsOneWidget);
+    expect(inTile('tile-psi', ReadingText.waitingForLocation), findsNothing);
+    expect(inTile('tile-forecast', ReadingText.needsOrigin), findsOneWidget);
   });
 
   testWidgets('a searched manual origin drives the area/region tiles', (

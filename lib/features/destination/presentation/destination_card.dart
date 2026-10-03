@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ui/section_heading.dart';
 import '../../origin/domain/origin_controller.dart';
 import '../../places/presentation/place_search_field.dart';
 import '../domain/destination_controller.dart';
@@ -8,13 +9,36 @@ import '../domain/destination_controller.dart';
 /// The destination section of the route card (lib/app/route_card.dart),
 /// shown once an origin exists: "Where are you heading to today?" (guide v2.1
 /// §5.5). Uses the same search component as the manual origin.
-class DestinationCard extends ConsumerWidget {
+///
+/// Focus follows the flow as in the origin card: "Change" opens a focused
+/// field, and picking a place (or "Keep this destination") focuses "Change".
+class DestinationCard extends ConsumerStatefulWidget {
   const DestinationCard({super.key});
 
   static const String prompt = 'Where are you heading to today?';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DestinationCard> createState() => _DestinationCardState();
+}
+
+class _DestinationCardState extends ConsumerState<DestinationCard> {
+  final _changeButton = FocusNode(debugLabel: 'change-destination');
+
+  @override
+  void dispose() {
+    _changeButton.dispose();
+    super.dispose();
+  }
+
+  /// Focuses "Change" once the rebuild that shows it has run.
+  void _focusChangeAfterRebuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _changeButton.requestFocus();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final hasOrigin = ref.watch(
       originControllerProvider.select((s) => s.origin != null),
     );
@@ -50,13 +74,23 @@ class DestinationCard extends ConsumerWidget {
 
     if (place == null || state.editing) {
       children
-        ..add(Text(prompt, style: theme.textTheme.titleMedium))
+        ..add(
+          SectionHeading(
+            DestinationCard.prompt,
+            style: theme.textTheme.titleMedium,
+          ),
+        )
         ..add(const SizedBox(height: 8))
         ..add(
           PlaceSearchField(
             fieldKey: const Key('destination-field'),
             label: 'Destination',
-            onSelected: controller.select,
+            // Only after "Change"; the first prompt doesn't pop the keyboard.
+            autofocus: state.editing,
+            onSelected: (place) {
+              controller.select(place);
+              _focusChangeAfterRebuild();
+            },
           ),
         );
       if (state.editing) {
@@ -64,7 +98,10 @@ class DestinationCard extends ConsumerWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: controller.cancelChange,
+              onPressed: () {
+                controller.cancelChange();
+                _focusChangeAfterRebuild();
+              },
               child: const Text('Keep this destination'),
             ),
           ),
@@ -76,8 +113,10 @@ class DestinationCard extends ConsumerWidget {
           alignment: Alignment.centerLeft,
           child: TextButton(
             key: const Key('change-destination'),
+            focusNode: _changeButton,
             onPressed: controller.change,
-            child: const Text('Change'),
+            // The origin has a "Change" too.
+            child: const Text('Change', semanticsLabel: 'Change destination'),
           ),
         ),
       );

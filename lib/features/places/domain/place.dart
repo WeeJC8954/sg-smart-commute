@@ -39,6 +39,9 @@ class Place {
   final double latitude;
   final double longitude;
   final PlaceType type;
+
+  /// The adapter that found it (guide v2.1 §8.1 model). Only OneMap is built,
+  /// so nothing reads it yet.
   final PlaceSource source;
 
   LatLng get position => LatLng(latitude, longitude);

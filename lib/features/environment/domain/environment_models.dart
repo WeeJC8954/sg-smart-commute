@@ -6,6 +6,8 @@ import '../../../core/time/sgt_format.dart';
 enum SpatialScope { national, region, area, station }
 
 /// One reading for the user's position, with its scope and freshness (§6.2).
+/// The fields are the guide's model; [fetchedAt] and [source] are not shown
+/// yet (the attribution line names the source).
 class EnvironmentalReading<T> {
   const EnvironmentalReading({
     required this.value,
@@ -67,18 +69,17 @@ class ForecastSnapshot {
   const ForecastSnapshot({
     required this.areas,
     required this.updatedAt,
-    required this.validFrom,
-    required this.validTo,
     required this.validText,
     required this.fetchedAt,
   });
 
   final List<ForecastArea> areas;
-  final DateTime updatedAt;
-  final DateTime validFrom;
-  final DateTime validTo;
 
-  /// Source wording, e.g. "8.00 pm to 10.00 pm".
+  /// The forecast's `update_timestamp`: its "observed" time for staleness.
+  final DateTime updatedAt;
+
+  /// Source wording of `valid_period`, e.g. "8.00 pm to 10.00 pm"; empty when
+  /// the payload has none. Only shown, so it is parsed leniently.
   final String validText;
   final DateTime fetchedAt;
 }
@@ -87,7 +88,6 @@ class UvSnapshot {
   const UvSnapshot({
     required this.value,
     required this.observedAt,
-    required this.updatedAt,
     required this.fetchedAt,
   });
 
@@ -96,7 +96,6 @@ class UvSnapshot {
 
   /// The hour of that reading.
   final DateTime observedAt;
-  final DateTime updatedAt;
   final DateTime fetchedAt;
 }
 
@@ -110,7 +109,6 @@ class RegionalSnapshot {
     required this.regions,
     required this.values,
     required this.observedAt,
-    required this.updatedAt,
     required this.fetchedAt,
   });
 
@@ -122,6 +120,5 @@ class RegionalSnapshot {
   /// Region name → reading for [metric].
   final Map<String, num> values;
   final DateTime observedAt;
-  final DateTime updatedAt;
   final DateTime fetchedAt;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/errors/failure_guard.dart';
 import '../../core/geo/geo.dart';
 import '../../core/http/json_http_client.dart';
 import '../destination/domain/destination_controller.dart';
@@ -26,7 +27,10 @@ final busNetworkRepositoryProvider = Provider<BusNetworkRepository>(
 /// failure keeps showing the error (with Retry) rather than refetching the
 /// same static data on every change.
 final busNetworkProvider = FutureProvider<BusNetwork>(
-  (ref) => ref.watch(busNetworkRepositoryProvider).load(),
+  (ref) => guardAppFailure(
+    ref.watch(busNetworkRepositoryProvider).load,
+    context: 'bus network',
+  ),
 );
 
 /// The bundled MRT station asset. Overridden with a fake in tests.
@@ -79,7 +83,10 @@ final mrtSuggestionProvider =
       final destination = _destination(ref);
       if (origin == null || destination == null) return null;
       final maxMeters = ref.watch(mrtMaxDistanceMetersProvider);
-      final stations = await ref.watch(mrtRepositoryProvider).stations();
+      final stations = await guardAppFailure(
+        ref.watch(mrtRepositoryProvider).stations,
+        context: 'MRT stations',
+      );
       return (
         nearOrigin: nearestMrtStation(stations, origin, maxMeters: maxMeters),
         nearDestination: nearestMrtStation(

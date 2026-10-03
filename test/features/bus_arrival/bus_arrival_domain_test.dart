@@ -18,7 +18,7 @@ BusArrival at(String no, Duration? after, {int? visit}) => BusArrival(
 );
 
 StopArrivals stop(List<ServiceArrivals> services) =>
-    StopArrivals(busStopCode: '1', services: services);
+    StopArrivals(services: services);
 
 ServiceArrivals svc(String no, List<BusArrival> arrivals) =>
     ServiceArrivals(serviceNo: no, arrivals: arrivals);

@@ -26,8 +26,6 @@ void main() {
       expect(amk.location.longitude, 103.839);
       expect(amk.condition, 'Cloudy');
       expect(f.updatedAt, DateTime.utc(2026, 10, 1, 12, 6, 33));
-      expect(f.validFrom, DateTime.utc(2026, 10, 1, 12));
-      expect(f.validTo, DateTime.utc(2026, 10, 1, 14));
       expect(f.validText, '8.00 pm to 10.00 pm');
       expect(f.fetchedAt, fetchedAt);
     });
@@ -59,6 +57,22 @@ void main() {
       );
     });
 
+    test('a missing or odd valid_period only loses the "valid" text', () {
+      for (final valid in [
+        null,
+        'soon',
+        {'start': 'not a time'},
+      ]) {
+        final json = fixture('two-hr-forecast') as Map<String, dynamic>;
+        for (final item in json['data']['items'] as List) {
+          item['valid_period'] = valid;
+        }
+        final f = parseTwoHourForecast(json, fetchedAt: fetchedAt);
+        expect(f.areas, hasLength(47), reason: '$valid');
+        expect(f.validText, '', reason: '$valid');
+      }
+    });
+
     test('non-zero code throws ApiUnavailable', () {
       expect(
         () => parseTwoHourForecast({
@@ -76,7 +90,6 @@ void main() {
       final uv = parseUv(fixture('uv'), fetchedAt: fetchedAt);
       expect(uv.value, 0);
       expect(uv.observedAt, DateTime.utc(2026, 10, 1, 11)); // 19:00 SGT
-      expect(uv.updatedAt, DateTime.utc(2026, 10, 1, 11, 11, 17));
     });
 
     test('order-independent: reversed index still yields the latest hour', () {
@@ -110,7 +123,6 @@ void main() {
       expect(r.values['central'], 35);
       expect(r.values['north'], 18);
       expect(r.observedAt, DateTime.utc(2026, 10, 1, 12));
-      expect(r.updatedAt, DateTime.utc(2026, 10, 1, 12, 1, 33));
     });
 
     test('PSI uses psi_twenty_four_hourly, not pm25_twenty_four_hourly or a sub-index', () {
@@ -160,13 +172,10 @@ void main() {
         fetchedAt: fetchedAt,
       );
       expect(f.updatedAt, DateTime.utc(2026, 10, 1, 12, 6, 33));
-      expect(f.validFrom, DateTime.utc(2026, 10, 1, 12));
-      expect(f.validTo, DateTime.utc(2026, 10, 1, 14));
       final pm25 = parsePm25(fixture('pm25'), fetchedAt: fetchedAt);
       expect(pm25.observedAt, DateTime.utc(2026, 10, 1, 12));
-      expect(pm25.updatedAt, DateTime.utc(2026, 10, 1, 12, 1, 33));
       final uv = parseUv(fixture('uv'), fetchedAt: fetchedAt);
-      expect(uv.updatedAt, DateTime.utc(2026, 10, 1, 11, 11, 17));
+      expect(uv.observedAt.isUtc, isTrue);
     });
 
     for (final (value, why) in [
@@ -179,7 +188,9 @@ void main() {
       test('a malformed forecast time ($why) → InvalidApiResponse, never a '
           'rolled-over date', () {
         final json = fixture('two-hr-forecast') as Map<String, dynamic>;
-        (json['data']['items'] as List).first['valid_period']['end'] = value;
+        for (final item in json['data']['items'] as List) {
+          item['update_timestamp'] = value;
+        }
         expect(
           () => parseTwoHourForecast(json, fetchedAt: fetchedAt),
           throwsA(isA<InvalidApiResponse>()),
@@ -189,8 +200,9 @@ void main() {
 
     test('a malformed PM2.5 / PSI / UV time → InvalidApiResponse', () {
       final pm25 = fixture('pm25') as Map<String, dynamic>;
-      (pm25['data']['items'] as List).first['updatedTimestamp'] =
-          '2026-10-01T20:01:33';
+      for (final item in pm25['data']['items'] as List) {
+        item['timestamp'] = '2026-10-01T20:01:33';
+      }
       expect(
         () => parsePm25(pm25, fetchedAt: fetchedAt),
         throwsA(isA<InvalidApiResponse>()),
@@ -206,8 +218,11 @@ void main() {
       );
 
       final uv = fixture('uv') as Map<String, dynamic>;
-      (uv['data']['records'] as List).first['updatedTimestamp'] =
-          '2026-10-01T19:11:17+08:61';
+      for (final record in uv['data']['records'] as List) {
+        for (final entry in record['index'] as List) {
+          entry['hour'] = '2026-10-01T19:00:00+08:61';
+        }
+      }
       expect(
         () => parseUv(uv, fetchedAt: fetchedAt),
         throwsA(isA<InvalidApiResponse>()),

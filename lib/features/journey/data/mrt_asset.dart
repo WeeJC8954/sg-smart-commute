@@ -7,7 +7,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../domain/mrt.dart';
 
-const String _dataset = 'MRT stations';
+const StaticDataset _dataset = StaticDataset.mrtStations;
 
 /// Encodes stations for the asset. Coordinates are rounded to 6 decimals
 /// (~0.1 m) so output is stable.
@@ -64,11 +64,7 @@ MrtExit _exit(Object? e) {
     throw const StaticDataUnavailable(_dataset, 'exit fields');
   }
   final p = LatLng(lat.toDouble(), lng.toDouble());
-  if (!p.isFinite ||
-      p.latitude < TransportDataBounds.minLatitude ||
-      p.latitude > TransportDataBounds.maxLatitude ||
-      p.longitude < TransportDataBounds.minLongitude ||
-      p.longitude > TransportDataBounds.maxLongitude) {
+  if (!isWithinTransportBounds(p)) {
     throw const StaticDataUnavailable(_dataset, 'exit outside range');
   }
   return MrtExit(code: code, position: p);

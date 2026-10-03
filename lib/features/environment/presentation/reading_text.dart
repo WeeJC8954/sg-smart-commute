@@ -46,6 +46,16 @@ abstract final class ReadingText {
   /// Shown for a reading older than its dataset's threshold (§6.3).
   static const String staleLabel = 'Out of date';
 
+  /// A location tile while the origin is still being found.
+  static const String waitingForLocation = 'Waiting for your location';
+
+  /// A location tile once the origin needs manual entry: permission denied
+  /// or unanswered, location off, a timeout, an error, or a fix outside SG.
+  /// After an unanswered prompt or a timeout a late fix may still fill the
+  /// origin, but it is no longer awaited, so the user is asked for a place.
+  static const String needsOrigin =
+      'Set your starting point above to see this.';
+
   /// The number shown large on a tile, and its official band (null when no
   /// NEA band applies). The metric label is the tile title, shown once.
   static ReadingParts pm25Parts(EnvironmentalReading<num> r) =>

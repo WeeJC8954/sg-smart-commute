@@ -242,6 +242,36 @@ void main() {
     });
   });
 
+  test('a fix inside the wider transport bounds but outside Singapore '
+      '(Johor Bahru) is still rejected, as GPS and as a manual origin', () {
+    // Near Larkin Ter (busrouter stop 46239, latitude 1.4955): plausible
+    // transport data, but not a Singapore origin.
+    const johorBahru = LatLng(1.4955, 103.7428);
+    expect(isWithinTransportBounds(johorBahru), isTrue);
+    expect(isWithinSingapore(johorBahru), isFalse);
+
+    fakeAsync((async) {
+      final c = makeContainer();
+      location.grant();
+      async.flushMicrotasks();
+      location.fix(johorBahru);
+      async.flushMicrotasks();
+      final s = c.read(originControllerProvider);
+      expect(s.phase, OriginPhase.needsManual);
+      expect(s.fallbackReason, isA<LocationOutsideSingapore>());
+      expect(s.origin, isNull);
+      expect(s.offeredGpsFix, isNull);
+
+      final ctl = c.read(originControllerProvider.notifier);
+      expect(
+        () => ctl.selectManualOrigin('Larkin', johorBahru),
+        throwsArgumentError,
+      );
+      expect(c.read(originControllerProvider).origin, isNull);
+      c.dispose();
+    });
+  });
+
   test('non-finite fix → manual origin', () {
     fakeAsync((async) {
       final c = makeContainer();

@@ -8,8 +8,15 @@ sealed class AppFailure implements Exception {
   /// Friendly, user-facing message. No technical detail.
   String get message;
 
+  /// Technical detail for developers (e.g. which field a parser rejected).
+  /// Never shown to the user; logged in debug builds by `guardAppFailure`.
+  String? get detail => null;
+
   @override
-  String toString() => '$runtimeType: $message';
+  String toString() {
+    final d = detail;
+    return d == null ? '$runtimeType: $message' : '$runtimeType: $message ($d)';
+  }
 }
 
 /// The user-facing message for an error caught from a provider or a call.
@@ -79,11 +86,27 @@ final class NetworkUnavailable extends AppFailure {
   String get message => 'Network unavailable. Check your connection and retry.';
 }
 
+/// HTTP 429. [retryAfter] is how long the server asked us to wait (from
+/// `Retry-After`, capped); `JsonHttpClient` sends nothing more to that host
+/// until it has passed.
 final class ApiRateLimited extends AppFailure {
   const ApiRateLimited({this.retryAfter});
   final Duration? retryAfter;
   @override
-  String get message => 'The data service is busy. Please retry in a moment.';
+  String get message {
+    final wait = retryAfter;
+    if (wait == null || wait <= Duration.zero) {
+      return 'The data service is busy. Please retry in a moment.';
+    }
+    return 'The data service is busy. Please retry in ${_waitText(wait)}.';
+  }
+}
+
+/// "1 second", "45 seconds", "3 minutes": rounded up, never "0".
+String _waitText(Duration wait) {
+  final seconds = (wait.inMilliseconds / 1000).ceil();
+  if (seconds < 120) return seconds == 1 ? '1 second' : '$seconds seconds';
+  return '${(seconds / 60).ceil()} minutes';
 }
 
 final class ApiUnauthorized extends AppFailure {
@@ -94,6 +117,7 @@ final class ApiUnauthorized extends AppFailure {
 
 final class ApiUnavailable extends AppFailure {
   const ApiUnavailable([this.detail]);
+  @override
   final String? detail;
   @override
   String get message => 'The data service is unavailable right now.';
@@ -101,6 +125,7 @@ final class ApiUnavailable extends AppFailure {
 
 final class InvalidApiResponse extends AppFailure {
   const InvalidApiResponse([this.detail]);
+  @override
   final String? detail;
   @override
   String get message => 'The data service returned something unexpected.';
@@ -124,13 +149,24 @@ final class NoExactPostalMatch extends AppFailure {
 final class StaticDataUnavailable extends AppFailure {
   const StaticDataUnavailable(this.dataset, [this.detail]);
 
-  /// Which dataset failed, e.g. "busrouter" or "MRT stations".
-  final String dataset;
+  /// Which dataset failed.
+  final StaticDataset dataset;
+  @override
   final String? detail;
   @override
-  String get message => dataset == 'MRT stations'
-      ? 'MRT station data is unavailable.'
-      : 'Bus data is unavailable right now.';
+  String get message => switch (dataset) {
+    StaticDataset.busRoutes => 'Bus data is unavailable right now.',
+    StaticDataset.mrtStations => 'MRT station data is unavailable.',
+  };
+}
+
+/// The static transport datasets [StaticDataUnavailable] can be about.
+enum StaticDataset {
+  /// busrouter stops and services.
+  busRoutes,
+
+  /// The bundled MRT station asset.
+  mrtStations,
 }
 
 // --- Bus arrival ------------------------------------------------------------
@@ -139,6 +175,7 @@ final class StaticDataUnavailable extends AppFailure {
 /// (ArriveLah reports upstream failures as HTTP 200 with an `error` field).
 final class BusArrivalUnavailable extends AppFailure {
   const BusArrivalUnavailable([this.detail]);
+  @override
   final String? detail;
   @override
   String get message => 'Live arrival times are unavailable right now.';
