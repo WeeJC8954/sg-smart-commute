@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
+import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/map/presentation/journey_map.dart';
@@ -15,6 +16,7 @@ import '../../../integration_test/fakes/fake_environment_repository.dart';
 import '../../../integration_test/fakes/fake_location_service.dart';
 import '../../../integration_test/fakes/fake_map.dart';
 import '../../../integration_test/fakes/fake_place_search_repository.dart';
+import '../../../integration_test/fakes/fake_route_geometry.dart';
 import '../../../integration_test/fakes/test_app.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
@@ -53,11 +55,13 @@ Finder marker(String kind) => find.byKey(Key('map-marker-$kind'));
 
 void main() {
   late FakeBusNetworkRepository bus;
+  late FakeRouteGeometryRepository geometry;
   late FakeTileProvider tiles;
   late FakeLinkOpener links;
 
   setUp(() {
     bus = FakeBusNetworkRepository();
+    geometry = FakeRouteGeometryRepository();
     tiles = FakeTileProvider();
     links = FakeLinkOpener();
   });
@@ -72,6 +76,7 @@ void main() {
     busNetwork: bus,
     mrt: fakeMrtRepository(),
     busArrivals: FakeBusArrivalRepository(),
+    routeGeometry: geometry,
     mapTiles: () => tileProvider ?? tiles,
     openLink: links.call,
   );
@@ -348,5 +353,106 @@ void main() {
       findsOneWidget,
     );
     handle.dispose();
+  });
+
+  group('route geometry (P2-M2)', () {
+    testWidgets('no routes.min.json request before "Show map"', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await tester.pump(const Duration(seconds: 5));
+      expect(geometry.loads, 0);
+      await openMap(tester);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('a walk-only journey never requests it, even with the map '
+        'open', (tester) async {
+      await pumpApp(tester, app());
+      // Bishan MRT (NS17) is about 30 m from the fake fix: walk-only.
+      await pickDestination(tester, 'Bishan MRT', 'BISHAN MRT STATION (NS17)');
+      expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
+      await openMap(tester);
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(geometry.loads, 0);
+      expect(bus.loads, 0, reason: 'walk-only never touches bus data');
+    });
+
+    testWidgets('one load per session: hide, reopen, change journey', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD');
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('a failed load is not retried until the user opens the map '
+        'again', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump(const Duration(minutes: 2));
+      expect(geometry.loads, 1, reason: 'no automatic retry');
+      expect(marker('boarding'), findsOneWidget);
+
+      geometry.failure = null;
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 2);
+    });
+
+    testWidgets('reopening after a successful load does not load again', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets(
+      'the line is drawn once the geometry has loaded',
+      (tester) async {
+        await pumpApp(tester, app());
+        await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+        await openMap(tester);
+        expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      },
+      skip: true, // Task 7: the line and the note are built there
+    );
+
+    testWidgets(
+      'a failed load shows the unavailable note, then the line '
+      'after the user retries',
+      (tester) async {
+        geometry.failure = const StaticDataUnavailable(
+          StaticDataset.busRouteGeometry,
+        );
+        await pumpApp(tester, app());
+        await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+        await openMap(tester);
+        expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+        geometry.failure = null;
+        await tester.tap(find.byKey(hideMap));
+        await tester.pump();
+        await openMap(tester);
+        expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      },
+      skip: true, // Task 7: the line and the note are built there
+    );
   });
 }

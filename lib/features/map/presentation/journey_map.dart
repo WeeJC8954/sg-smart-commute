@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart' as ll;
 import '../../../core/config/app_config.dart';
 import '../../../core/geo/geo.dart';
 import '../domain/map_scene.dart';
+import '../map_providers.dart';
 import 'basemap.dart';
 
 /// The journey on a OneMap basemap: markers only (P2-M1). Built only while
@@ -106,6 +107,10 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
       _tilesFailed = false;
     }
     _brightness = brightness;
+
+    // Starts the one route-geometry load for a direct-bus ride (it is only
+    // ever built while the map is open). Task 7 draws the line from it.
+    ref.watch(rideLineProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
