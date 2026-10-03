@@ -195,6 +195,29 @@ void main() {
         unavailable(),
       );
     });
+
+    test('a dropped direction keeps the source index of the next one', () {
+      final stops = parseBusrouterStops({
+        '11111': [103.8, 1.30, 'One', 'Rd'],
+        '22222': [103.81, 1.31, 'Two', 'Rd'],
+      });
+      // A dropped direction does not make the service invalid, so no padding
+      // services are needed to stay under the invalid-share threshold.
+      final services = parseBusrouterServices({
+        'X': {
+          'name': 'X',
+          'routes': [
+            ['99999', '88888'],
+            ['11111', '22222'],
+          ],
+        },
+      }, stops);
+      final x = services['X']!;
+      expect(x.directions, [
+        ['11111', '22222'],
+      ]);
+      expect(x.sourceDirectionOf(0), 1);
+    });
   });
 
   group('planner on real busrouter routes (10 m radius: exact stops only)', () {

@@ -27,6 +27,7 @@ class BusService {
     required this.number,
     required this.name,
     required this.directions,
+    this.sourceDirections,
   });
 
   /// Service number as published, e.g. `65`, `100A`, `CT18`.
@@ -37,6 +38,14 @@ class BusService {
 
   /// Ordered stop codes per direction (1 or 2 lists).
   final List<List<String>> directions;
+
+  /// busrouter's direction index for each kept direction; null when none was
+  /// dropped (then the index is the same).
+  final List<int>? sourceDirections;
+
+  /// busrouter's direction index for [direction] (an index into [directions]).
+  int sourceDirectionOf(int direction) =>
+      sourceDirections?[direction] ?? direction;
 }
 
 class BusNetwork {

@@ -66,6 +66,7 @@ class BusOption {
     required this.service,
     required this.direction,
     required this.board,
+    required this.boardIndex,
     required this.alight,
     required this.stops,
     required this.walkToStop,
@@ -80,6 +81,10 @@ class BusOption {
   /// Index into [BusService.directions].
   final int direction;
   final BusStop board;
+
+  /// Index of [board] in `service.directions[direction]`: the occurrence the
+  /// ride starts from (a loop or repeated stop can appear more than once).
+  final int boardIndex;
   final BusStop alight;
 
   /// index(alight) − index(board) in that direction's ordered list.
@@ -99,7 +104,7 @@ class BusOption {
   @override
   String toString() =>
       'BusOption(${service.number} ${board.code}→${alight.code}, '
-      '$stops stops, score $score)';
+      'board index $boardIndex, $stops stops, score $score)';
 }
 
 typedef _Candidate = ({BusStop stop, WalkEstimate walk});
@@ -189,6 +194,7 @@ JourneyPlan _attempt(
             route,
             o,
             d,
+            i,
             j - i,
             network,
             config,
@@ -233,6 +239,7 @@ BusOption _option(
   List<String> route,
   _Candidate o,
   _Candidate d,
+  int boardIndex,
   int stops,
   BusNetwork network,
   PlannerConfig config,
@@ -242,6 +249,7 @@ BusOption _option(
     service: service,
     direction: direction,
     board: o.stop,
+    boardIndex: boardIndex,
     alight: d.stop,
     stops: stops,
     walkToStop: o.walk,
