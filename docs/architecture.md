@@ -253,9 +253,10 @@ never plans and never changes the service, direction, boarding or alighting stop
   `RideLineDrawn` only when its `ride` equals the scene's ride, so an earlier journey's line is never drawn.
   `rideLineProvider` is derived from the current scene and is watched only by the open map, so `routes.min.json`
   is not requested before "Show map" with a direct-bus journey. `rideLineProvider` is auto-disposed (the open map
-  is its only listener) while `routeGeometryProvider` is kept for the session. `MapExpanded.show` invalidates a
-  held, settled failure (guarded with `ref.exists` and `hasError && !isLoading`); the reload then starts only if
-  the open map watches it, i.e. for a direct-bus journey. Nothing is requested for a walk-only or no-bus journey.
+  is its only listener) while `routeGeometryProvider` is kept for the session. `MapExpanded.show` retries a held,
+  settled failure (`ref.exists` and `hasError && !isLoading`) only when the journey being shown has a bus ride
+  (`mapSceneProvider.ride != null`), so the invalidated load is watched by the opening map at once. Nothing is
+  requested for a walk-only or no-bus journey, however often "Show map" is pressed.
 - **D3, `BusOption.boardIndex`**: `planDirectBus` already knew the boarding occurrence; `BusOption` now keeps it.
   One constructor call, no behaviour change (the ranking does not read it). The map therefore never re-derives
   the occurrence, which on a loop could be another one.

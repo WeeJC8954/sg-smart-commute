@@ -92,8 +92,8 @@ These inputs are the most likely to bite a real user. Each one has a test in the
    again. Markers and the journey card are unaffected throughout. **Task 6**: a fail → hide → show → succeed
    test.
 4. **busrouter drops or reorders a direction**, so the planner's direction index no longer matches the routes
-   file's index. A wrong polyline must not be drawn. **Task 3** keeps the source direction index. **Task 4**
-   tests the failure.
+   file's index. A wrong polyline must not be drawn. **Task 3** keeps the source direction index. This
+   index mapping is the safeguard (the matcher does not detect a swapped direction); a scene test pins it.
 5. **A walk-only, no-bus or no-nearby-stop journey with the map open** must not request `routes.min.json`.
    **Task 6**: load count stays 0.
 

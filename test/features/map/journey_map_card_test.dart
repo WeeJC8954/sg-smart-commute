@@ -577,6 +577,43 @@ void main() {
       },
     );
 
+    testWidgets('a held failure is not flushed by repeated "Show map" on a '
+        'walk-only journey; a later bus journey retries on "Show map"', (
+      tester,
+    ) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(geometry.loads, 1);
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'Bishan MRT', 'BISHAN MRT STATION (NS17)');
+      expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
+
+      for (var i = 0; i < 2; i++) {
+        await openMap(tester);
+        await tester.pump(const Duration(seconds: 5));
+        await tester.tap(find.byKey(hideMap));
+        await tester.pump();
+      }
+      expect(geometry.loads, 1, reason: 'walk-only: nothing is requested');
+
+      // Back to a bus journey: the user's next "Show map" is the retry.
+      geometry.failure = null;
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      expect(geometry.loads, 1, reason: 'a closed map requests nothing');
+      await openMap(tester);
+      expect(geometry.loads, 2);
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+    });
+
     testWidgets('"Show map" during a retry that is still loading does not '
         'start another', (tester) async {
       geometry.failure = const StaticDataUnavailable(

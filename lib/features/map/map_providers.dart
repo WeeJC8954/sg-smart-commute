@@ -81,12 +81,14 @@ class MapExpanded extends Notifier<bool> {
   bool build() => false;
 
   void show() {
-    // Reopening the map is the user's retry for a failed route-line load.
-    // Only a provider that already exists is looked at: reading it here would
-    // start the load itself, even for a walk-only journey. A retry already
-    // under way (error while loading) is not restarted. The invalidated load
-    // starts only if the open map watches it, i.e. for a direct-bus journey.
-    if (ref.exists(routeGeometryProvider)) {
+    // Reopening the map is the user's retry for a failed route-line load, but
+    // only for a journey that has a bus ride: the open map then watches the
+    // load at once. For a walk-only or no-bus journey nothing watches it, and
+    // an invalidated provider would start its load on the next read, so it is
+    // left untouched. Only a provider that already exists is looked at, and a
+    // retry already under way (error while loading) is not restarted.
+    if (ref.read(mapSceneProvider)?.ride != null &&
+        ref.exists(routeGeometryProvider)) {
       final geometry = ref.read(routeGeometryProvider);
       if (geometry.hasError && !geometry.isLoading) {
         ref.invalidate(routeGeometryProvider);
