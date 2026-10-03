@@ -26,7 +26,8 @@ class JourneyMapCard extends ConsumerWidget {
       return Align(
         alignment: Alignment.centerLeft,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          // In line with the cards above (their margin).
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: OutlinedButton.icon(
             key: const Key('show-map'),
             onPressed: controls.show,

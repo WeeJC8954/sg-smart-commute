@@ -32,13 +32,19 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
   bool _ready = false;
   bool _tilesFailed = false;
   Brightness? _brightness;
+  MapCamera? _initialCamera;
 
-  static final _cameraBounds = LatLngBounds(
-    const ll.LatLng(MapConfig.boundsSouth, MapConfig.boundsWest),
-    const ll.LatLng(MapConfig.boundsNorth, MapConfig.boundsEast),
+  static final _constraint = CameraConstraint.contain(
+    bounds: LatLngBounds(
+      const ll.LatLng(MapConfig.boundsSouth, MapConfig.boundsWest),
+      const ll.LatLng(MapConfig.boundsNorth, MapConfig.boundsEast),
+    ),
   );
 
   static ll.LatLng _toMap(LatLng p) => ll.LatLng(p.latitude, p.longitude);
+
+  static bool _isEnd(MapMarkerKind kind) =>
+      kind == MapMarkerKind.origin || kind == MapMarkerKind.destination;
 
   CameraFit _fit(MapScene scene) {
     final b = scene.bounds;
@@ -47,6 +53,24 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
       padding: const EdgeInsets.all(MapConfig.fitPadding),
       maxZoom: MapConfig.fitMaxZoom,
     );
+  }
+
+  /// The camera fitted to [scene] in a map of [size], worked out before the
+  /// first frame. flutter_map applies `initialCameraFit` only after its first
+  /// layout, and that first frame requests tiles at its default camera: seen
+  /// live on Web, about 25 OneMap tiles per opening, all thrown away.
+  MapCamera _fittedCamera(MapScene scene, Size size) {
+    final start = MapCamera(
+      crs: const Epsg3857(),
+      center: _toMap(scene.bounds.southWest),
+      zoom: MapConfig.minZoom,
+      rotation: 0,
+      nonRotatedSize: size,
+      minZoom: MapConfig.minZoom,
+      maxZoom: MapConfig.maxZoom,
+    );
+    final fitted = _fit(scene).fit(start);
+    return _constraint.constrain(fitted) ?? fitted;
   }
 
   @override
@@ -90,45 +114,57 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
           label: widget.scene.summary,
           // Visual only: the journey card above is the accessible answer.
           child: ExcludeSemantics(
-            child: FlutterMap(
-              key: const Key('journey-map'),
-              mapController: _controller,
-              options: MapOptions(
-                initialCameraFit: _fit(widget.scene),
-                minZoom: MapConfig.minZoom,
-                maxZoom: MapConfig.maxZoom,
-                cameraConstraint: CameraConstraint.contain(
-                  bounds: _cameraBounds,
-                ),
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                onMapReady: () => _ready = true,
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: basemapTemplateFor(brightness),
-                  tileProvider: _tiles,
-                  userAgentPackageName: MapConfig.userAgentPackageName,
-                  minZoom: MapConfig.minZoom,
-                  maxZoom: MapConfig.maxZoom,
-                  maxNativeZoom: MapConfig.maxZoom.toInt(),
-                  errorTileCallback: _onTileError,
-                ),
-                MarkerLayer(
-                  markers: [
-                    for (final m in widget.scene.markers)
-                      Marker(
-                        key: Key('map-marker-${m.kind.name}'),
-                        point: _toMap(m.position),
-                        width: 36,
-                        height: 36,
-                        child: _MarkerPin(m),
-                      ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final initial = _initialCamera ??= _fittedCamera(
+                  widget.scene,
+                  constraints.biggest,
+                );
+                return FlutterMap(
+                  key: const Key('journey-map'),
+                  mapController: _controller,
+                  options: MapOptions(
+                    initialCenter: initial.center,
+                    initialZoom: initial.zoom,
+                    minZoom: MapConfig.minZoom,
+                    maxZoom: MapConfig.maxZoom,
+                    cameraConstraint: _constraint,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    ),
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    onMapReady: () => _ready = true,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: basemapTemplateFor(brightness),
+                      tileProvider: _tiles,
+                      userAgentPackageName: MapConfig.userAgentPackageName,
+                      minZoom: MapConfig.minZoom,
+                      maxZoom: MapConfig.maxZoom,
+                      maxNativeZoom: MapConfig.maxZoom.toInt(),
+                      errorTileCallback: _onTileError,
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        // Ends first and larger, stops on top and smaller: where
+                        // a stop is a short walk from an end, both stay visible.
+                        for (final m in [
+                          ...widget.scene.markers.where((m) => _isEnd(m.kind)),
+                          ...widget.scene.markers.where((m) => !_isEnd(m.kind)),
+                        ])
+                          Marker(
+                            key: Key('map-marker-${m.kind.name}'),
+                            point: _toMap(m.position),
+                            width: _isEnd(m.kind) ? 40 : 30,
+                            height: _isEnd(m.kind) ? 40 : 30,
+                            child: _MarkerPin(m),
+                          ),
+                      ],
+                    ),
                   ],
-                ),
-              ],
+                );
+              },
             ),
           ),
         ),
@@ -196,7 +232,13 @@ class _MarkerPin extends StatelessWidget {
           border: Border.all(color: color, width: 2.5),
           boxShadow: const [BoxShadow(blurRadius: 3, color: Colors.black38)],
         ),
-        child: Center(child: Icon(icon, size: 20, color: color)),
+        child: Center(
+          child: FractionallySizedBox(
+            widthFactor: 0.55,
+            heightFactor: 0.55,
+            child: FittedBox(child: Icon(icon, color: color)),
+          ),
+        ),
       ),
     );
   }

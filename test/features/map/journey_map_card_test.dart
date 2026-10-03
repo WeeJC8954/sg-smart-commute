@@ -174,6 +174,23 @@ void main() {
     expect(visible.east, lessThanOrEqualTo(MapConfig.boundsEast));
   });
 
+  testWidgets(
+    'the first tiles requested are those of the fitted view, none at a '
+    'default camera first',
+    (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+
+      final camera = MapCamera.of(tester.element(find.byType(MarkerLayer)));
+      expect(tiles.requested, isNotEmpty);
+      expect(tiles.requested.map((t) => t.z).toSet(), {
+        camera.zoom.round(),
+      }, reason: 'a tile at another zoom would be a wasted OneMap request');
+    },
+  );
+
   testWidgets('OneMap Default tiles in light mode, Night tiles in dark mode', (
     tester,
   ) async {
