@@ -148,10 +148,20 @@ class JsonHttpClient {
 
   /// Throws [ApiRateLimited] with the time left while [uri]'s host is held;
   /// forgets an expired hold.
+  ///
+  /// The hold uses the device clock. A forward jump only ends it early (the
+  /// next send may draw a fresh 429 and a new hold). A backward jump would
+  /// stretch it by the jump, so more than [AppTimings.maxRetryAfter] left is
+  /// cut back to the cap from now: a hold never outlasts the cap.
   void _throwIfHeld(Uri uri) {
     final heldUntil = _heldUntil[uri.host];
     if (heldUntil == null) return;
-    final left = heldUntil.difference(_clock());
+    final now = _clock();
+    var left = heldUntil.difference(now);
+    if (left > AppTimings.maxRetryAfter) {
+      left = AppTimings.maxRetryAfter;
+      _heldUntil[uri.host] = now.add(left);
+    }
     if (left > Duration.zero) {
       _debugLog('held for Retry-After', uri);
       throw ApiRateLimited(retryAfter: left);

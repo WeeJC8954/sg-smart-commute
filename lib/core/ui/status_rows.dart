@@ -3,26 +3,16 @@ import 'package:flutter/material.dart';
 /// A small spinner next to [label]. Screen readers hear the label once.
 ///
 /// [compact] is for secondary, inline states (e.g. live arrivals under an
-/// option): a smaller spinner and small text. [liveRegion] announces the
-/// label when it appears, for states the user just triggered.
+/// option): a smaller spinner and small text.
 class BusyRow extends StatelessWidget {
-  const BusyRow(
-    this.label, {
-    super.key,
-    this.compact = false,
-    this.liveRegion = false,
-  });
+  const BusyRow(this.label, {super.key, this.compact = false});
 
   final String label;
   final bool compact;
-  final bool liveRegion;
 
   @override
   Widget build(BuildContext context) => Semantics(
     label: label,
-    // A live region is its own node, so only this label is announced.
-    container: liveRegion,
-    liveRegion: liveRegion,
     child: Row(
       children: [
         SizedBox.square(
