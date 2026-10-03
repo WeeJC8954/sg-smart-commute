@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/ui/section_heading.dart';
 import '../map_providers.dart';
 import 'basemap.dart';
@@ -64,10 +63,7 @@ class JourneyMapCard extends ConsumerWidget {
               ],
             ),
           ),
-          SizedBox(
-            height: MapConfig.height,
-            child: JourneyMap(scene: scene),
-          ),
+          JourneyMap(scene: scene),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: BasemapAttributionRow(),

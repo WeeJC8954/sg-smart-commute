@@ -288,6 +288,11 @@ void main() {
 
     expect(find.byKey(const Key('map-tiles-unavailable')), findsOneWidget);
     expect(find.text(JourneyMap.tilesUnavailable), findsOneWidget);
+    // Below the map, never over a marker.
+    expect(
+      tester.getTopLeft(find.byKey(const Key('map-tiles-unavailable'))).dy,
+      greaterThanOrEqualTo(tester.getBottomLeft(find.byType(FlutterMap)).dy),
+    );
     // Markers and the attribution still show.
     expect(marker('boarding'), findsOneWidget);
     expect(find.byKey(const Key('basemap-attribution')), findsOneWidget);

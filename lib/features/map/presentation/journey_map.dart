@@ -107,98 +107,98 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
     }
     _brightness = brightness;
 
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
-          container: true,
-          label: widget.scene.summary,
-          // Visual only: the journey card above is the accessible answer.
-          child: ExcludeSemantics(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final initial = _initialCamera ??= _fittedCamera(
-                  widget.scene,
-                  constraints.biggest,
-                );
-                return FlutterMap(
-                  key: const Key('journey-map'),
-                  mapController: _controller,
-                  options: MapOptions(
-                    initialCenter: initial.center,
-                    initialZoom: initial.zoom,
-                    minZoom: MapConfig.minZoom,
-                    maxZoom: MapConfig.maxZoom,
-                    cameraConstraint: _constraint,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                    ),
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    onMapReady: () => _ready = true,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: basemapTemplateFor(brightness),
-                      tileProvider: _tiles,
-                      userAgentPackageName: MapConfig.userAgentPackageName,
+        SizedBox(
+          height: MapConfig.height,
+          child: Semantics(
+            container: true,
+            label: widget.scene.summary,
+            // Visual only: the journey card above is the accessible answer.
+            child: ExcludeSemantics(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final initial = _initialCamera ??= _fittedCamera(
+                    widget.scene,
+                    constraints.biggest,
+                  );
+                  return FlutterMap(
+                    key: const Key('journey-map'),
+                    mapController: _controller,
+                    options: MapOptions(
+                      initialCenter: initial.center,
+                      initialZoom: initial.zoom,
                       minZoom: MapConfig.minZoom,
                       maxZoom: MapConfig.maxZoom,
-                      maxNativeZoom: MapConfig.maxZoom.toInt(),
-                      errorTileCallback: _onTileError,
+                      cameraConstraint: _constraint,
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                      ),
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
+                      onMapReady: () => _ready = true,
                     ),
-                    MarkerLayer(
-                      markers: [
-                        // Ends first and larger, stops on top and smaller: where
-                        // a stop is a short walk from an end, both stay visible.
-                        for (final m in [
-                          ...widget.scene.markers.where((m) => _isEnd(m.kind)),
-                          ...widget.scene.markers.where((m) => !_isEnd(m.kind)),
-                        ])
-                          Marker(
-                            key: Key('map-marker-${m.kind.name}'),
-                            point: _toMap(m.position),
-                            width: _isEnd(m.kind) ? 40 : 30,
-                            height: _isEnd(m.kind) ? 40 : 30,
-                            child: _MarkerPin(m),
-                          ),
-                      ],
-                    ),
-                  ],
-                );
-              },
+                    children: [
+                      TileLayer(
+                        urlTemplate: basemapTemplateFor(brightness),
+                        tileProvider: _tiles,
+                        userAgentPackageName: MapConfig.userAgentPackageName,
+                        minZoom: MapConfig.minZoom,
+                        maxZoom: MapConfig.maxZoom,
+                        maxNativeZoom: MapConfig.maxZoom.toInt(),
+                        errorTileCallback: _onTileError,
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          // Ends first and larger, stops on top and smaller: where
+                          // a stop is a short walk from an end, both stay visible.
+                          for (final m in [
+                            ...widget.scene.markers.where(
+                              (m) => _isEnd(m.kind),
+                            ),
+                            ...widget.scene.markers.where(
+                              (m) => !_isEnd(m.kind),
+                            ),
+                          ])
+                            Marker(
+                              key: Key('map-marker-${m.kind.name}'),
+                              point: _toMap(m.position),
+                              width: _isEnd(m.kind) ? 40 : 30,
+                              height: _isEnd(m.kind) ? 40 : 30,
+                              child: _MarkerPin(m),
+                            ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
+        // Below the map, not over it, so it never hides a marker.
         if (_tilesFailed)
-          Positioned(
-            left: 8,
-            right: 8,
-            top: 8,
-            child: Semantics(
-              liveRegion: true,
-              child: Material(
-                key: const Key('map-tiles-unavailable'),
-                color: theme.colorScheme.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(8),
-                elevation: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.cloud_off,
-                        size: 18,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          JourneyMap.tilesUnavailable,
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ),
-                    ],
+          Semantics(
+            liveRegion: true,
+            child: Padding(
+              key: const Key('map-tiles-unavailable'),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.cloud_off,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      JourneyMap.tilesUnavailable,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
