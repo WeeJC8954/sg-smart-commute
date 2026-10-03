@@ -386,8 +386,8 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    - Web-safe `polyline_codec` with VM and Chrome tests.
    - `ride_geometry` matching and slicing with the §5 rules, on fixtures captured once from the real payload
      (including a loop, a reversed direction and `2B`-style mismatch cases).
-   - Draw the ride line plus boarding and alighting markers; "route shape approximate" or "unavailable"
-     states.
+   - Draw the ride line under the boarding and alighting markers; when it cannot be matched, markers only with
+     a short note (§5 rule 2).
    - Tunables go in `docs/assumptions.md`.
    - **Done in P2-M2**, with these decisions (docs/assumptions.md "Bus ride line", "Route geometry load" and
      "Map camera"; docs/architecture.md; plan: `docs/p2-m2-bus-geometry-implementation-plan.md`):
