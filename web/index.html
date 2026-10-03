@@ -19,7 +19,8 @@
   <meta charset="UTF-8">
   <!--
     Content-Security-Policy (M5). The app is static files only: it talks to
-    the four public, keyless APIs below, and the Flutter engine loads
+    the four public, keyless APIs below (OneMap serves both place search and
+    the journey map's basemap tiles and logo), and the Flutter engine loads
     CanvasKit (script + WebAssembly) from www.gstatic.com and fallback fonts
     from fonts.gstatic.com. Nothing else may be loaded, posted or framed in.
     A <meta> policy cannot set frame-ancestors; static hosting would need a

@@ -34,6 +34,14 @@ void main() {
       BusrouterEndpoints.stops,
       BusrouterEndpoints.services,
       ArriveLahEndpoints.forStop('01012'),
+      // Basemap tiles and the OneMap logo are fetched (flutter_map and the
+      // engine decode their bytes), so they need connect-src, not img-src.
+      for (final template in [
+        BasemapEndpoints.defaultTiles,
+        BasemapEndpoints.nightTiles,
+      ])
+        Uri.parse(template.replaceAll(RegExp('[{}]'), '')),
+      BasemapEndpoints.logo,
     }.map((u) => '${u.scheme}://${u.host}').toSet();
     // The Flutter engine's own CDN: CanvasKit and fallback fonts.
     const engine = {'https://www.gstatic.com', 'https://fonts.gstatic.com'};

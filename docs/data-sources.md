@@ -69,6 +69,18 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 | Token notice | The OneMap API docs (checked 2026-10-02) show a banner: "Search API now requires token-based authentication". The tokenless call still answered HTTP 200 the same day. This is the main risk for M2/M3 place search; on enforcement the app shows `ApiUnauthorized`, with no credential or proxy added |
 | Failure handling | HTTP 401/403, or an `error` with no `results` list → `ApiUnauthorized`: a clear "requires sign-in" state, no workaround. `error` + empty `results` → no results. The tested OSM adapters remain contingency providers (not built) |
 
+## OneMap basemap tiles (P2-M1)
+
+| | |
+|---|---|
+| Owner | Singapore Land Authority |
+| Endpoint | `https://www.onemap.gov.sg/maps/tiles/{Default\|Night}/{z}/{x}/{y}.png` (raster, 256 px), and the logo `https://www.onemap.gov.sg/web-assets/images/logo/om_logo.png` |
+| Data used | Default tiles in light mode, Night in dark mode, z11–19 inside OneMap's documented bounds; only while the user has the map open |
+| Auth | None (keyless). CORS `*`; same host as search, so no new CSP origin |
+| Licence / attribution | OneMap terms of use (accepted in P2-M0, docs/map-feasibility.md §4.2). The logo and "OneMap © contributors \| Singapore Land Authority", both names linked, always visible below the map |
+| Limitations | No service-level agreement ("as is", "as available"; may be suspended, restricted, blocked or charged for). **No published volume limit**, which is not read as permission for unlimited traffic: the app keeps the P2-M0 reasonable-use rules (docs/assumptions.md "Map tiles: reasonable use") |
+| Failure handling | A failed tile is not retried; a note below the map says tiles are unavailable and the journey is unaffected. No automatic fallback to another tile provider and no proxy |
+
 ## Candidate fallbacks (evaluated, not integrated)
 
 - **Photon** (`photon.komoot.io`, ODbL / OSM): keyless, CORS-enabled, suits type-ahead. Terms: "be fair —
@@ -98,6 +110,15 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 | Why | Flutter's default for `flutter build web` (`--web-resources-cdn`). Measured over a full journey in Chrome on 2026-10-02 (M5) |
 | Auth | None. No user data is sent; the requests are static engine files |
 | Limitations | A third-party dependency at load time: if it is blocked or down, the Web app does not start. `--no-web-resources-cdn` would bundle CanvasKit, but fallback fonts would still come from `fonts.gstatic.com` |
+
+## url_launcher (UI/platform package, not a data source)
+
+| | |
+|---|---|
+| Owner | Flutter team (`url_launcher` on pub.dev) |
+| What | Opens the two basemap attribution links in the external browser (P2-M1). It sends and receives no app data |
+| Why | OneMap's attribution snippet links "OneMap" and "Singapore Land Authority"; user decision, 2026-10-03 |
+| Platform notes | Web: a new browser tab (no CSP change). Android: `launchUrl` starts the browser activity directly, so no `<queries>` entry is needed (only `canLaunchUrl` would need one, and the app does not call it) |
 
 ## Excluded
 

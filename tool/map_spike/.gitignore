@@ -1,9 +1,0 @@
-# Only the spike's sources are tracked; everything `flutter create` / builds add stays local.
-/*
-!/.gitignore
-!/README.md
-!/pubspec.yaml
-!/lib/
-!/web/
-/web/*
-!/web/index.html

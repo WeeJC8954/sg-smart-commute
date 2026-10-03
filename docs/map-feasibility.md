@@ -2,7 +2,8 @@
 
 Research and design only. P2-M0 adds **no app dependency and changes no app behaviour**. The app's
 `pubspec.yaml`, `lib/` and `web/index.html` are unchanged. Evidence comes from three sources:
-- an isolated, removable spike app (`tool/map_spike/`);
+- an isolated, removable spike app (`tool/map_spike/`, removed in P2-M1; source in git history at
+  `f5934d1`);
 - two dev-only probes (`tool/probe_map.sh` → `docs/probe-output/map-probes.txt`, and
   `tool/route_geometry_probe.dart` → `docs/probe-output/route-geometry.txt`);
 - screenshots in `docs/probe-output/map-spike/`.
@@ -55,7 +56,7 @@ All were read 2026-10-02/03.
 
 ## 3. Compatibility evidence (spike)
 
-`tool/map_spike/` is a ~340-line app (README there) that uses the M3 smoke journey: Raffles Place → VivoCity,
+`tool/map_spike/` was a ~340-line app (removed in P2-M1, see §10) that used the M3 smoke journey: Raffles Place → VivoCity,
 Bus 10 from 03019 OUE Bayfront to 14141 (9 stops). It draws five layers:
 - the basemap, switchable at runtime between OneMap Default, OneMap Night, OSM standard, CARTO Positron and
   CARTO Dark Matter;
@@ -361,6 +362,12 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    - Tests: fake tile provider seam, light/dark attribution test, CSP test update.
    - Remove `tool/map_spike/` and its `analysis_options.yaml` exclude.
    - Gates as §19, plus live tile smoke on Chrome and Android.
+   - **Done in P2-M1**, with these decisions (docs/assumptions.md, map rows; docs/architecture.md):
+     - the map is closed by default ("Show map") and stays open for the session;
+     - `url_launcher` was added for the attribution links, which open in the external browser;
+     - the camera is fitted before the first frame, because flutter_map's `initialCameraFit` let its first
+       frame request about 25 tiles at a default camera (seen live on Web);
+     - the "tiles unavailable" note sits below the map, so it never covers a marker.
 2. **P2-M2 — Bus ride geometry.**
    - `RouteGeometryRepository` (`routes.min.json`, once per session, lazy).
    - Web-safe `polyline_codec` with VM and Chrome tests.

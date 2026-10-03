@@ -7,6 +7,7 @@ import '../core/ui/section_heading.dart';
 import '../features/environment/environment_providers.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
 import '../features/journey/presentation/journey_card.dart';
+import '../features/map/presentation/journey_map_card.dart';
 import 'app_logo.dart';
 import 'route_card.dart';
 
@@ -31,6 +32,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   RouteCard(),
                   MotionSize(child: JourneyCard()),
+                  JourneyMapCard(),
                 ],
               ),
             ),
