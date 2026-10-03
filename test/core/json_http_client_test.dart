@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -253,6 +254,230 @@ void main() {
       now = now.add(AppTimings.maxRetryAfter);
       expect(await c.getJson(uri), {'ok': 1});
     });
+
+    test(
+      'a held host does not hold another host, which keeps working',
+      () async {
+        final sent = <Uri>[];
+        final c = JsonHttpClient(
+          MockClient((request) async {
+            sent.add(request.url);
+            return request.url.host == uri.host
+                ? http.Response(
+                    'slow down',
+                    429,
+                    headers: {'retry-after': '30'},
+                  )
+                : http.Response('{"ok":2}', 200);
+          }),
+          delay: (d) async => delays.add(d),
+          clock: () => now,
+        );
+        final other = Uri.parse('https://other.example.test/x');
+
+        await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+        // Another path on the held host is held too (the limit is per host).
+        await expectLater(
+          c.getJson(uri.replace(path: '/y')),
+          throwsA(isA<ApiRateLimited>()),
+        );
+        expect(await c.getJson(other), {'ok': 2});
+        expect(await c.getJson(other), {'ok': 2});
+        expect(sent, [uri, other, other]);
+      },
+    );
+
+    test('a held request fails before taking a rate-limiter grant', () async {
+      var grants = 0;
+      final c = JsonHttpClient(
+        MockClient(
+          (_) async =>
+              http.Response('slow down', 429, headers: {'retry-after': '9'}),
+        ),
+        delay: (d) async => delays.add(d),
+        clock: () => now,
+        rateLimiterFor: (_) => _CountingLimiter(() => grants++),
+      );
+      await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+      expect(grants, 1);
+      now = now.add(const Duration(seconds: 2));
+      await expectLater(
+        c.getJson(uri),
+        throwsA(
+          isA<ApiRateLimited>().having(
+            (e) => e.retryAfter,
+            'retryAfter',
+            const Duration(seconds: 7),
+          ),
+        ),
+      );
+      expect(grants, 1, reason: 'the held request used no grant');
+    });
+
+    test('identical concurrent requests share one send and one 429', () async {
+      final gate = Completer<void>();
+      var sends = 0;
+      final c = JsonHttpClient(
+        MockClient((_) async {
+          sends++;
+          await gate.future;
+          return http.Response('slow down', 429, headers: {'retry-after': '5'});
+        }),
+        delay: (d) async => delays.add(d),
+        clock: () => now,
+      );
+      final a = c.getJson(uri);
+      final b = c.getJson(uri);
+      gate.complete();
+      await expectLater(a, throwsA(isA<ApiRateLimited>()));
+      await expectLater(b, throwsA(isA<ApiRateLimited>()));
+      expect(sends, 1);
+      await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+      expect(sends, 1, reason: 'held after the shared 429');
+    });
+
+    test(
+      'a request already sent when the hold starts keeps its answer',
+      () async {
+        final slow = Completer<void>();
+        final c = JsonHttpClient(
+          MockClient((request) async {
+            if (request.url.path == '/slow') {
+              await slow.future;
+              return http.Response('{"ok":"slow"}', 200);
+            }
+            return http.Response(
+              'slow down',
+              429,
+              headers: {'retry-after': '5'},
+            );
+          }),
+          delay: (d) async => delays.add(d),
+          clock: () => now,
+        );
+        final inFlight = c.getJson(uri.replace(path: '/slow'));
+        await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+        slow.complete();
+        expect(await inFlight, {'ok': 'slow'});
+      },
+    );
+
+    test('of two concurrent 429s, the longer Retry-After wins', () async {
+      final first = Completer<void>();
+      final c = JsonHttpClient(
+        MockClient((request) async {
+          if (request.url.path == '/long') {
+            return http.Response('', 429, headers: {'retry-after': '30'});
+          }
+          await first.future;
+          return http.Response('', 429, headers: {'retry-after': '5'});
+        }),
+        delay: (d) async => delays.add(d),
+        clock: () => now,
+      );
+      final short = c.getJson(uri.replace(path: '/short'));
+      await expectLater(
+        c.getJson(uri.replace(path: '/long')),
+        throwsA(isA<ApiRateLimited>()),
+      );
+      first.complete();
+      await expectLater(short, throwsA(isA<ApiRateLimited>()));
+
+      now = now.add(const Duration(seconds: 10));
+      await expectLater(
+        c.getJson(uri),
+        throwsA(
+          isA<ApiRateLimited>().having(
+            (e) => e.retryAfter,
+            'retryAfter',
+            const Duration(seconds: 20),
+          ),
+        ),
+      );
+    });
+
+    for (final (header, why) in [
+      ('', 'empty'),
+      ('abc', 'not a number'),
+      ('-5', 'negative'),
+      ('+7', 'signed'),
+      ('1.5', 'fractional'),
+      ('0', 'zero'),
+      ('Wed, 21 Oct 2026 07:28:00 GMT', 'HTTP-date'),
+    ]) {
+      test('a $why Retry-After ("$header") sets no hold', () async {
+        final c = held({'retry-after': header});
+        await expectLater(
+          c.getJson(uri),
+          throwsA(
+            isA<ApiRateLimited>()
+                .having((e) => e.retryAfter, 'retryAfter', isNull)
+                .having((e) => e.message, 'message', contains('in a moment')),
+          ),
+        );
+        expect(await c.getJson(uri), {'ok': 1});
+        expect(calls[uri.host], 2);
+      });
+    }
+
+    test('surrounding whitespace is tolerated', () async {
+      final c = held({'retry-after': ' 7 '});
+      await expectLater(
+        c.getJson(uri),
+        throwsA(
+          isA<ApiRateLimited>().having(
+            (e) => e.retryAfter,
+            'retryAfter',
+            const Duration(seconds: 7),
+          ),
+        ),
+      );
+    });
+
+    for (final header in [
+      '9223372036854775807', // int max: seconds → microseconds would overflow
+      '99999999999999999999999', // beyond int: tryParse gives null
+    ]) {
+      test('a huge Retry-After ($header) is capped, never wrapped', () async {
+        final c = held({'retry-after': header});
+        await expectLater(
+          c.getJson(uri),
+          throwsA(
+            isA<ApiRateLimited>().having(
+              (e) => e.retryAfter,
+              'retryAfter',
+              AppTimings.maxRetryAfter,
+            ),
+          ),
+        );
+        now = now.add(AppTimings.maxRetryAfter - const Duration(seconds: 1));
+        await expectLater(c.getJson(uri), throwsA(isA<ApiRateLimited>()));
+        now = now.add(const Duration(seconds: 1));
+        expect(await c.getJson(uri), {'ok': 1});
+        expect(calls[uri.host], 2);
+      });
+    }
+
+    test('5xx retries are unchanged and set no hold', () async {
+      var sends = 0;
+      final c = JsonHttpClient(
+        MockClient((_) async {
+          sends++;
+          return sends < 3
+              ? http.Response('', 503, headers: {'retry-after': '30'})
+              : http.Response('{"ok":3}', 200);
+        }),
+        delay: (d) async => delays.add(d),
+        clock: () => now,
+      );
+      expect(await c.getJson(uri), {'ok': 3});
+      expect(sends, 3);
+      expect(delays, [
+        const Duration(milliseconds: 500),
+        const Duration(seconds: 1),
+      ]);
+      expect(await c.getJson(uri), {'ok': 3}, reason: 'no hold after a 503');
+    });
   });
 
   test('401 / 403 → ApiUnauthorized, never retried', () async {
@@ -460,6 +685,56 @@ void main() {
       },
     );
 
+    test(
+      'a request queued for a grant when a 429 sets the hold is not sent',
+      () {
+        fakeAsync((async) {
+          final limiter = RollingWindowRateLimiter(
+            maxRequests: 1,
+            window: const Duration(seconds: 10),
+          );
+          final sends = <Uri>[];
+          final c = JsonHttpClient(
+            MockClient((request) async {
+              sends.add(request.url);
+              return sends.length == 1
+                  ? http.Response('', 429, headers: {'retry-after': '30'})
+                  : http.Response('{"ok":1}', 200);
+            }),
+            delay: (_) async {},
+            rateLimiterFor: (_) => limiter,
+            clock: () => clock.now(), // the limiter's fake time
+          );
+          Object? first;
+          Object? queued;
+          c.getJson(limitedN(1)).catchError((Object e) => first = e);
+          c.getJson(limitedN(2)).catchError((Object e) => queued = e);
+          async.flushMicrotasks();
+          expect(first, isA<ApiRateLimited>());
+          expect(queued, isNull, reason: 'still waiting for its grant');
+
+          async.elapse(const Duration(seconds: 10)); // the grant arrives
+          expect(
+            queued,
+            isA<ApiRateLimited>().having(
+              (e) => e.retryAfter,
+              'retryAfter',
+              const Duration(seconds: 20),
+            ),
+          );
+          expect(sends, [
+            limitedN(1),
+          ], reason: 'the queued request never went out');
+
+          async.elapse(const Duration(seconds: 20)); // hold over
+          Object? later;
+          c.getJson(limitedN(3)).then((v) => later = v);
+          async.flushMicrotasks();
+          expect(later, {'ok': 1});
+        });
+      },
+    );
+
     test('each retry of a 5xx waits for its own grant', () {
       fakeAsync((async) {
         final limiter = RollingWindowRateLimiter(
@@ -533,4 +808,13 @@ void main() {
       });
     });
   });
+}
+
+/// A limiter that grants at once and counts its grants.
+class _CountingLimiter implements RequestRateLimiter {
+  _CountingLimiter(this._onGrant);
+  final void Function() _onGrant;
+
+  @override
+  Future<void> acquire() async => _onGrant();
 }

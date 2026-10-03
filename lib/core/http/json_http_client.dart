@@ -77,17 +77,13 @@ class JsonHttpClient {
   }
 
   Future<Object?> _getOnce(Uri uri) async {
-    final heldUntil = _heldUntil[uri.host];
-    if (heldUntil != null) {
-      final left = heldUntil.difference(_clock());
-      if (left > Duration.zero) {
-        _debugLog('held for Retry-After', uri);
-        throw ApiRateLimited(retryAfter: left);
-      }
-      _heldUntil.remove(uri.host);
-    }
+    // Checked before the grant (a held request takes none) and again after
+    // it: a request that queued in the limiter while a 429 set the hold must
+    // not go out either.
+    _throwIfHeld(uri);
     // Waiting for a grant is not part of the request timeout.
     await rateLimiterFor?.call(uri)?.acquire();
+    _throwIfHeld(uri);
     final _Received response;
     try {
       // The timeout covers the headers and the whole body.
@@ -111,7 +107,7 @@ class JsonHttpClient {
     _debugLog('HTTP $status', uri);
     if (status == 429) {
       final retryAfter = _parseRetryAfter(response.headers['retry-after']);
-      if (retryAfter != null) _heldUntil[uri.host] = _clock().add(retryAfter);
+      if (retryAfter != null) _hold(uri.host, retryAfter);
       throw ApiRateLimited(retryAfter: retryAfter);
     }
     if (status == 401 || status == 403) throw const ApiUnauthorized();
@@ -150,13 +146,39 @@ class JsonHttpClient {
     return _Received(status, response.headers, body.takeBytes());
   }
 
-  /// Delay-seconds form only (an HTTP-date is treated as absent), capped at
-  /// [AppTimings.maxRetryAfter] so a bad header cannot lock a provider out.
+  /// Throws [ApiRateLimited] with the time left while [uri]'s host is held;
+  /// forgets an expired hold.
+  void _throwIfHeld(Uri uri) {
+    final heldUntil = _heldUntil[uri.host];
+    if (heldUntil == null) return;
+    final left = heldUntil.difference(_clock());
+    if (left > Duration.zero) {
+      _debugLog('held for Retry-After', uri);
+      throw ApiRateLimited(retryAfter: left);
+    }
+    _heldUntil.remove(uri.host);
+  }
+
+  /// Holds [host] for [wait]. Concurrent 429s never shorten a hold: the
+  /// later end wins.
+  void _hold(String host, Duration wait) {
+    final until = _clock().add(wait);
+    final current = _heldUntil[host];
+    if (current == null || until.isAfter(current)) _heldUntil[host] = until;
+  }
+
+  /// RFC 9110 delay-seconds only: digits, nothing else (a sign, a fraction or
+  /// an HTTP-date is treated as absent, as is 0). Capped at
+  /// [AppTimings.maxRetryAfter], so a bad header cannot lock a provider out;
+  /// the cap is applied to the number before it becomes a [Duration], so a
+  /// huge value cannot overflow.
   static Duration? _parseRetryAfter(String? value) {
-    final seconds = int.tryParse(value?.trim() ?? '');
-    if (seconds == null || seconds <= 0) return null;
-    final wait = Duration(seconds: seconds);
-    return wait > AppTimings.maxRetryAfter ? AppTimings.maxRetryAfter : wait;
+    final text = value?.trim() ?? '';
+    if (!RegExp(r'^[0-9]+$').hasMatch(text)) return null;
+    const max = AppTimings.maxRetryAfter;
+    final seconds = int.tryParse(text); // null: too big for an int
+    if (seconds == null || seconds > max.inSeconds) return max;
+    return seconds == 0 ? null : Duration(seconds: seconds);
   }
 
   static void _debugLog(String what, Uri uri) {
