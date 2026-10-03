@@ -506,6 +506,41 @@ void main() {
       expect(find.text('Take Bus F20 toward VivoCity (fake)'), findsOneWidget);
     });
 
+    testWidgets('a malformed line fails only its own ride: markers and a '
+        'note, journey unchanged; another service is still drawn', (
+      tester,
+    ) async {
+      final network = fakeBusNetwork();
+      geometry.geometry = RouteGeometry({
+        for (final s in network.services.values)
+          s.number: [
+            for (final codes in s.directions)
+              encodePolyline([
+                for (final c in codes) network.stops[c]!.position,
+              ]),
+          ],
+        'F20': ['_p~iF'], // a latitude without its longitude
+      });
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+      for (final k in ['origin', 'boarding', 'alighting', 'destination']) {
+        expect(marker(k), findsOneWidget, reason: k);
+      }
+      expect(find.text('Take Bus F20 toward VivoCity (fake)'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD'); // F30
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsNothing);
+      expect(geometry.loads, 1, reason: 'the same loaded file serves both');
+    });
+
     testWidgets('no note while the line loads, and none for a walk-only '
         'journey', (tester) async {
       geometry.hold();

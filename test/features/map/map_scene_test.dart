@@ -366,5 +366,51 @@ void main() {
       expect(scene.ride!.stops, [a.position, b.position]);
       expect(scene.ride!.leadingStops, [c.position]);
     });
+
+    test('the planner boards a later occurrence: its boardIndex reaches the '
+        'ride, with the leading stops that pin it', () {
+      BusStop s(String code, double lat, double lng) => BusStop(
+        code: code,
+        position: LatLng(lat, lng),
+        name: code,
+        road: 'Fake Rd',
+      );
+      const destination = LatLng(1.3000, 103.8400);
+      final a = s('A', 1.3510, 103.8490); // near the origin
+      final b = s('B', 1.3002, 103.8402); // near the destination
+      final x = s('X', 1.3300, 103.8600);
+      final c = s('C', 1.3200, 103.8300);
+      final d = s('D', 1.3400, 103.8200);
+      // A → B is 2 stops from index 0 and 1 stop from index 4 or 7. The
+      // planner keeps the first of equal options, so it boards at 4. The run
+      // [A, B] also occurs at 7, so C (index 3) pins the occurrence.
+      final repeated = BusNetwork(
+        stops: {
+          for (final st in [a, b, x, c, d]) st.code: st,
+        },
+        services: const {
+          'R3': BusService(
+            number: 'R3',
+            name: 'R3',
+            directions: [
+              ['A', 'X', 'B', 'C', 'A', 'B', 'D', 'A', 'B'],
+            ],
+          ),
+        },
+      );
+      final plan = planDirectBus(repeated, bishan, destination);
+      final option = (plan as DirectBusOptions).options.single;
+      expect(option.boardIndex, 4);
+      expect(option.stops, 1);
+
+      final ride = sceneTo(
+        destination,
+        plan: plan,
+        stops: repeated.stops,
+      ).ride!;
+      expect(ride.boardIndex, 4);
+      expect(ride.stops, [a.position, b.position]);
+      expect(ride.leadingStops, [c.position]);
+    });
   });
 }

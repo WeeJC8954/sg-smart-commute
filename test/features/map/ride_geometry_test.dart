@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
+import 'package:sg_smart_commute/features/map/data/busrouter_routes_parser.dart';
 import 'package:sg_smart_commute/features/map/domain/polyline_codec.dart';
 import 'package:sg_smart_commute/features/map/domain/ride_geometry.dart';
 import 'package:sg_smart_commute/features/map/domain/route_geometry.dart';
@@ -144,6 +145,23 @@ void main() {
         RideLineGap.malformedGeometry,
       );
     }
+  });
+
+  test('a malformed line for one service fails only that service\'s ride', () {
+    // Through the parser, as loaded: 46's lines are corrupt, the rest are the
+    // captured file. The parser keeps lines encoded, so the file still loads.
+    final g = parseBusrouterRoutes({
+      ..._routes,
+      '46': ['_p~iF~ps|U_', '_p~iF'],
+    });
+    final bad = ride('46', 1, 0, 1);
+    expect(
+      (matchRide(bad, g) as RideLineUnavailable).gap,
+      RideLineGap.malformedGeometry,
+    );
+    final from = indexIn('10', 0, '03019');
+    final good = ride('10', 0, from, from + 9);
+    expectDrawn(matchRide(good, g), good, 4426);
   });
 
   group('synthetic', () {
