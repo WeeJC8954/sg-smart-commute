@@ -140,6 +140,19 @@ abstract final class MapConfig {
 
   /// Sent as the tile requests' User-Agent on Android (not settable on Web).
   static const String userAgentPackageName = 'sg.smartcommute.sg_smart_commute';
+
+  /// Bus ride line (P2-M2; docs/assumptions.md "Bus ride line"): a ride stop
+  /// matches the route line within this distance.
+  static const double rideStopToleranceMeters = 60;
+
+  /// Positions of one stop closer than this along the line are one pass.
+  static const double rideCandidateMergeMeters = 40;
+
+  /// A hop longer than this × its straight line is not trusted…
+  static const double rideMaxDetour = 3.0;
+
+  /// …when the straight line is longer than this (very short hops are noisy).
+  static const double rideDetourMinStraightMeters = 50;
 }
 
 /// data.gov.sg anonymous limit for the v2 real-time API: 6 calls in any 10 s
