@@ -224,8 +224,12 @@ class _SnapshotTile<T> extends ConsumerWidget {
         retryLabel: 'Retry $title',
       );
     } else if (needsPosition && position == null) {
-      // Only "waiting" while a fix is being found; at needsManual nothing is
-      // looking any more, so say what the user has to do.
+      // "Waiting" only while the app waits for a fix (checking permission,
+      // acquiring). At needsManual it has stopped waiting and asks for a
+      // place, so say what the user can do. After a denial, location off, an
+      // error or a fix outside SG nothing is pending; after an unanswered
+      // prompt or a timeout a late fix may still fill the origin (late-fix
+      // rule), and the tile then shows the reading.
       final needsManual = ref.watch(
         originControllerProvider.select(
           (s) => s.phase == OriginPhase.needsManual,

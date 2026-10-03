@@ -49,8 +49,10 @@ abstract final class ReadingText {
   /// A location tile while the origin is still being found.
   static const String waitingForLocation = 'Waiting for your location';
 
-  /// A location tile when nothing is finding a fix any more and the user has
-  /// to enter their starting point (permission denied, timeout, outside SG).
+  /// A location tile once the origin needs manual entry: permission denied
+  /// or unanswered, location off, a timeout, an error, or a fix outside SG.
+  /// After an unanswered prompt or a timeout a late fix may still fill the
+  /// origin, but it is no longer awaited, so the user is asked for a place.
   static const String needsOrigin =
       'Set your starting point above to see this.';
 
