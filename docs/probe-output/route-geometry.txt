@@ -1,0 +1,8 @@
+busrouter routes.min.json geometry check (2026-10-03T02:10:49.857324Z)
+services 602, directions 798
+directions with every stop matched in order: 600 (75.2%)
+polyline orientation used: {as given: 688, doubled: 104, reversed: 4, reversed+doubled: 2}
+consecutive stop pairs drawable: 25634 / 26025 (98.5%)
+along-line / straight-line per drawable hop: median 1.02, p95 1.59, p99 2.42
+random rides (1-25 stops, 10 per direction, seed 1) drawable end to end: 7036 / 7980 (88.2%)
+M3 smoke ride Bus 10 03019 -> 14141 (direction 0, 9 stops): drawable true, 4426 m along the line
