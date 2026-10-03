@@ -2,7 +2,8 @@
 
 Research and design only. P2-M0 adds **no app dependency and changes no app behaviour**. The app's
 `pubspec.yaml`, `lib/` and `web/index.html` are unchanged. Evidence comes from three sources:
-- an isolated, removable spike app (`tool/map_spike/`);
+- an isolated, removable spike app (`tool/map_spike/`, removed in P2-M1; source in git history at
+  `f5934d1`);
 - two dev-only probes (`tool/probe_map.sh` → `docs/probe-output/map-probes.txt`, and
   `tool/route_geometry_probe.dart` → `docs/probe-output/route-geometry.txt`);
 - screenshots in `docs/probe-output/map-spike/`.
@@ -55,7 +56,7 @@ All were read 2026-10-02/03.
 
 ## 3. Compatibility evidence (spike)
 
-`tool/map_spike/` is a ~340-line app (README there) that uses the M3 smoke journey: Raffles Place → VivoCity,
+`tool/map_spike/` was a ~340-line app (removed in P2-M1, see §10) that used the M3 smoke journey: Raffles Place → VivoCity,
 Bus 10 from 03019 OUE Bayfront to 14141 (9 stops). It draws five layers:
 - the basemap, switchable at runtime between OneMap Default, OneMap Night, OSM standard, CARTO Positron and
   CARTO Dark Matter;

@@ -114,9 +114,9 @@ bash tool/probe_map.sh > docs/probe-output/map-probes.txt               # tiles 
 dart run tool/route_geometry_probe.dart > docs/probe-output/route-geometry.txt   # busrouter ride geometry
 ```
 
-`tool/map_spike/` is a separate, throwaway Flutter app with its own `pubspec.yaml` (excluded from the root
-analysis; how to run it: its README). Its builds go to `tool/map_spike/build/`, so it never touches the
-app's `app-debug.apk`.
+The P2-M0 spike app (`tool/map_spike/`) was removed in P2-M1, once the production map (`lib/features/map/`)
+had reproduced its Web and Android results; its source is in git history at `f5934d1`, and its screenshots
+stay in `docs/probe-output/map-spike/`.
 
 ## Android emulator notes
 
