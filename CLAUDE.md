@@ -5,8 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project
 
 Front-end-only Flutter app (Android + Web) for Singapore: environmental dashboard (2-hr forecast, UV, 1-hr
-PM2.5, 24-hr PSI) and, in later milestones, place search, a direct-bus planner with live arrivals, and an MRT
-alternative. The spec is `docs/singapore-smart-commute-implementation-guide.v2.md` (guide v2.1; code and docs
+PM2.5, 24-hr PSI), place search, a direct-bus planner with live arrivals, an MRT alternative and, since Phase 2,
+an optional journey map. The spec is `docs/singapore-smart-commute-implementation-guide.v2.md` (guide v2.1; code and docs
 cite it as `§N`). Decisions live in `docs/architecture.md` (ADRs), tunable values and ambiguity resolutions in
 `docs/assumptions.md`, provider details in `docs/data-sources.md`. Work proceeds one milestone at a time
 (guide §21: M0 feasibility → M1 location + environment → M2 places → M3 bus planner + MRT → M4 live arrivals

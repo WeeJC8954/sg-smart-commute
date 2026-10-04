@@ -91,10 +91,11 @@ Status after Milestone 5 (2026-10-02). Evidence for each line is in the run log 
   "not answered" fallback stays until a fix arrives. Accepted: manual entry stays available.
 
 - **Phase 2 (map), after P2-M4 (2026-10-04):**
-  - Integration on Android and Web: closed. The three files pass on both (Android 5/5; Web 3/3 with 0 CSP
-    violations).
-  - Live smoke on Web and Android: light, dark, 360 dp / 360 px and 2× text, option selection, walk-only and
-    no-direct-bus trips; no walking-router request.
+  - Integration on Android and Web: closed. All three files pass on both: Android 3/3 files (5/5 tests; the
+    happy path after one emulator reboot), Web 3/3 files (5/5 tests) with 0 CSP violations.
+  - Live smoke, Web: light, dark, 360 px with 2× text, option selection, walk-only and no-direct-bus trips, the
+    browser cache, and no walking-router request. Android: the journey, option selection, gestures with and
+    without Remove animations, dark mode and 2× font (walk-only and no-direct-bus were checked on the Web only).
   - Tile cache: verified offline on the AVD (fresh tiles served with no request) and in Chrome (`transferSize` 0);
     the 4-hour expiry is Not run (source-verified).
   - Performance: emulator numbers only (profile build); no physical device.
@@ -135,7 +136,8 @@ dev tool run by hand; no test calls a live API.
 Phase 2 M4 (performance): a dev-only probe of the open journey map's frame timings, Android only, profile mode:
 
 ```bash
-flutter drive --profile --keep-app-running -d <android-device> \n  --driver=test_driver/integration_test.dart --target=tool/map_performance_probe.dart
+flutter drive --profile --keep-app-running -d <android-device> \
+  --driver=test_driver/integration_test.dart --target=tool/map_performance_probe.dart
 ```
 
 It drives the integration tests' fake Bishan → VivoCity journey over live OneMap tiles and writes
