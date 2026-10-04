@@ -2,10 +2,19 @@ import '../../../core/config/app_config.dart';
 import '../../../core/geo/geo.dart';
 import '../../journey/domain/bus_network.dart';
 import '../../journey/domain/direct_bus_planner.dart';
+import '../../journey/domain/mrt.dart';
 import 'ride_geometry.dart';
 
-/// What a map marker stands for.
-enum MapMarkerKind { origin, boarding, alighting, destination }
+/// What a map marker stands for. The two MRT kinds (P2-M3) are the journey
+/// card's MRT suggestions, informational only.
+enum MapMarkerKind {
+  origin,
+  boarding,
+  alighting,
+  destination,
+  mrtNearOrigin,
+  mrtNearDestination,
+}
 
 /// One point on the journey map. [label] names the place for tooltips and
 /// the map's summary.
@@ -64,9 +73,9 @@ class MapScene {
     this.isAlternative = false,
   });
 
-  /// In journey order: origin, boarding stop, alighting stop, destination.
-  /// The two stops are present only when the journey has a direct bus; they
-  /// are the shown option's.
+  /// In journey order: origin, boarding stop, alighting stop, destination
+  /// (the two stops only when the journey has a direct bus; they are the shown
+  /// option's), then the MRT suggestions that are present.
   final List<MapMarker> markers;
 
   /// The shown option's bus, when there is one.
@@ -144,8 +153,14 @@ class MapScene {
     final walking = walks.isEmpty
         ? ''
         : 'Walks are drawn as straight lines, estimates only. ';
+    final mrt = [
+      for (final m in markers)
+        if (m.kind == MapMarkerKind.mrtNearOrigin ||
+            m.kind == MapMarkerKind.mrtNearDestination)
+          '${m.label}. ',
+    ].join();
     return 'Map of $journey: from $from$stops, to $to. '
-        '${walking}The journey details are listed above.';
+        '$walking${mrt}The journey details are listed above.';
   }
 
   @override
@@ -175,7 +190,10 @@ class MapScene {
 /// (the user's selection, P2-M3; 0, the planner's suggestion, by default or
 /// when out of range). Every other answer shows the two ends only. [stops] is
 /// the bus network's stop table: with it, the shown option also yields the
-/// [MapScene.ride]. Never plans or selects anything itself.
+/// [MapScene.ride]. [mrt] is the journey's settled MRT suggestion (null while
+/// it loads or has failed): each side present adds an informational marker at
+/// the exit the card's estimate was made to, with the card's wording. Never
+/// plans, selects or looks up anything itself.
 MapScene buildMapScene({
   required LatLng origin,
   required String originLabel,
@@ -183,6 +201,7 @@ MapScene buildMapScene({
   required String destinationLabel,
   JourneyPlan? plan,
   int selectedIndex = 0,
+  ({MrtSuggestion? nearOrigin, MrtSuggestion? nearDestination})? mrt,
   Map<String, BusStop>? stops,
 }) {
   final shown = switch (plan) {
@@ -210,6 +229,18 @@ MapScene buildMapScene({
         ),
       ],
       MapMarker(MapMarkerKind.destination, destination, destinationLabel),
+      if (mrt?.nearOrigin case final s?)
+        MapMarker(
+          MapMarkerKind.mrtNearOrigin,
+          s.nearestExit.position,
+          MrtWording.named(MrtWording.nearOrigin, s.station),
+        ),
+      if (mrt?.nearDestination case final s?)
+        MapMarker(
+          MapMarkerKind.mrtNearDestination,
+          s.nearestExit.position,
+          MrtWording.named(MrtWording.nearDestination, s.station),
+        ),
     ],
     serviceNumber: shown?.service.number,
     ride: ride,

@@ -352,11 +352,11 @@ class _Mrt extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _line('Nearest MRT', value?.nearOrigin),
+                _line(MrtWording.nearOrigin, value?.nearOrigin),
                 key: const Key('journey-mrt-origin'),
               ),
               Text(
-                _line('Near your destination', value?.nearDestination),
+                _line(MrtWording.nearDestination, value?.nearDestination),
                 key: const Key('journey-mrt-destination'),
               ),
             ],
@@ -368,5 +368,5 @@ class _Mrt extends StatelessWidget {
 
   String _line(String label, MrtSuggestion? s) => s == null
       ? '$label: none within about ${distanceText(maxMeters)}'
-      : '$label: ${s.station.name} — ${s.walk.label}';
+      : '${MrtWording.named(label, s.station)} — ${s.walk.label}';
 }

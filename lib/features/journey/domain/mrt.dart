@@ -24,6 +24,21 @@ class MrtStation {
   String toString() => 'MrtStation($name, ${exits.length} exits)';
 }
 
+/// The journey card's words for the two MRT suggestions. The map's MRT
+/// markers (P2-M3) use the same words, from here, so the two can never say
+/// different things. Journey-owned: the map reads it, never the reverse.
+abstract final class MrtWording {
+  /// The station nearest the origin.
+  static const String nearOrigin = 'Nearest MRT';
+
+  /// The station nearest the destination.
+  static const String nearDestination = 'Near your destination';
+
+  /// `<side>: <station name>`, e.g. "Nearest MRT: BISHAN MRT STATION".
+  static String named(String side, MrtStation station) =>
+      '$side: ${station.name}';
+}
+
 class MrtSuggestion {
   const MrtSuggestion({
     required this.station,

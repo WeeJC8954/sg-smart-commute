@@ -284,6 +284,8 @@ class _MarkerPin extends StatelessWidget {
       MapMarkerKind.boarding => (Icons.directions_bus, scheme.primary),
       MapMarkerKind.alighting => (Icons.logout, scheme.primary),
       MapMarkerKind.destination => (Icons.place, scheme.tertiary),
+      MapMarkerKind.mrtNearOrigin ||
+      MapMarkerKind.mrtNearDestination => (Icons.train, scheme.secondary),
     };
     return Tooltip(
       message: marker.label,
