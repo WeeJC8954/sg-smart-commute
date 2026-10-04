@@ -1,5 +1,8 @@
 # P2-M4 Map Hardening Implementation Plan
 
+> **Status (2026-10-05):** implemented by PR #46 (merged as `8c0ccf6`), which closed Phase 2. Kept as the
+> historical record: its checkboxes are the original execution instructions, not outstanding work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for
 > tracking.

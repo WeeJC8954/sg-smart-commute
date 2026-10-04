@@ -1,5 +1,8 @@
 # UI Polish Follow-ups Implementation Plan
 
+> **Status (2026-10-05):** implemented by PR #48 (merged as `dfc2e8d`). Kept as the historical record: its
+> checkboxes are the original execution instructions, not outstanding work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

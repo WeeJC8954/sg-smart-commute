@@ -1,5 +1,8 @@
 # Simplification (over-engineering cuts) Implementation Plan
 
+> **Status (2026-10-05):** plan only; intentionally not implemented as part of the completed project scope. Its
+> checkboxes are not outstanding work.
+
 > **For agentic workers:** if available, use superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
 > tracking.
