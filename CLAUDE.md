@@ -102,7 +102,8 @@ Key flows that span several files:
   pure `MapScene` (the selected option's stops; only the two ends while the plan loads or failed); it never plans or
   selects. The map is closed by default (`mapExpandedProvider`, session UI state), so no
   tile is requested before "Show map". `flutter_map` / `latlong2` are imported only in `features/map/presentation/`.
-  OneMap Default/Night tiles, camera fitted before the first frame inside OneMap's bounds and z11–19 and refitted
+  OneMap Default/Night tiles, gestures without fling and with an
+  instant double-tap zoom under the system's reduce-motion setting (P2-M4), camera fitted before the first frame inside OneMap's bounds and z11–19 and refitted
   once per scene change (journey, selection, MRT settling; never on a timer), no automatic tile retry, persistent linked attribution (`url_launcher`). Rules: `docs/map-feasibility.md` §4.2 and the map
   rows of `docs/assumptions.md`. **Ride line** (P2-M2): the scene carries the selected option's `MapRide`
   (from `BusOption.boardIndex` and `BusService.sourceDirectionOf`); `routeGeometryProvider` loads busrouter

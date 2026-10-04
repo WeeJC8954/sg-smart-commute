@@ -1310,6 +1310,174 @@ void main() {
       }
     });
   });
+
+  group('reduced motion (P2-M4)', () {
+    MapCamera camera(WidgetTester tester) =>
+        MapCamera.of(tester.element(find.byType(MarkerLayer)));
+
+    InteractionOptions gestures(WidgetTester tester) => tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .options
+        .interactionOptions;
+
+    /// The system's reduce-motion setting as the engine reports it (Android
+    /// "Remove animations", Web prefers-reduced-motion). It reaches both
+    /// MediaQuery and the framework's own animation scaling.
+    void setReduceMotion(WidgetTester tester, bool on) {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          FakeAccessibilityFeatures(disableAnimations: on);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+    }
+
+    Future<void> openJourneyMap(WidgetTester tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+    }
+
+    /// Two taps on an empty part of the map: near its top-left corner, which
+    /// the fitted camera keeps clear of every pin (MapConfig.fitPadding).
+    Future<void> doubleTapMap(WidgetTester tester) async {
+      final spot =
+          tester.getTopLeft(find.byType(FlutterMap)) + const Offset(12, 12);
+      await tester.tapAt(spot);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tapAt(spot);
+    }
+
+    /// A quick swipe, well over flutter_map's 800 px/s fling threshold.
+    Future<void> swipeMap(WidgetTester tester) =>
+        tester.fling(find.byType(FlutterMap), const Offset(-300, 0), 2000);
+
+    const allButRotate = InteractiveFlag.all & ~InteractiveFlag.rotate;
+
+    testWidgets('the gestures follow the reduce-motion setting: no fling and '
+        'an instant double-tap zoom while it is on, flutter_map\'s defaults '
+        'otherwise; every other gesture stays on', (tester) async {
+      await openJourneyMap(tester);
+      expect(gestures(tester).flags, allButRotate);
+      expect(
+        gestures(tester).doubleTapZoomDuration,
+        const InteractionOptions().doubleTapZoomDuration,
+      );
+
+      setReduceMotion(tester, true);
+      await tester.pump();
+      expect(
+        gestures(tester).flags,
+        allButRotate & ~InteractiveFlag.flingAnimation,
+      );
+      expect(gestures(tester).doubleTapZoomDuration, Duration.zero);
+
+      setReduceMotion(tester, false);
+      await tester.pump();
+      expect(gestures(tester).flags, allButRotate);
+      expect(
+        gestures(tester).doubleTapZoomDuration,
+        const InteractionOptions().doubleTapZoomDuration,
+      );
+    });
+
+    testWidgets('reduce motion: a swipe moves the map and it stops where the '
+        'finger lifts; a double-tap zoom lands in the same frame', (
+      tester,
+    ) async {
+      setReduceMotion(tester, true);
+      await openJourneyMap(tester);
+      final before = camera(tester).center;
+
+      await swipeMap(tester);
+      await tester.pump();
+      final released = camera(tester).center;
+      expect(released, isNot(before), reason: 'the drag itself still works');
+      await tester.pump(const Duration(seconds: 1));
+      expect(camera(tester).center, released, reason: 'no glide, no jump');
+
+      final zoom = camera(tester).zoom;
+      await doubleTapMap(tester);
+      await tester.pump();
+      expect(camera(tester).zoom, closeTo(zoom + 1, 1e-9));
+    });
+
+    // A guard, not a regression test: it passes before and after P2-M4. It
+    // pins flutter_map's default motion when the setting is off, and shows
+    // that the checks above can tell motion from none.
+    testWidgets('without reduce motion: a swipe glides on after the finger '
+        'lifts and a double-tap zoom animates (flutter_map\'s defaults)', (
+      tester,
+    ) async {
+      await openJourneyMap(tester);
+      await swipeMap(tester);
+      await tester.pump();
+      final released = camera(tester).center;
+      await tester.pump(const Duration(seconds: 1));
+      expect(camera(tester).center, isNot(released));
+
+      final zoom = camera(tester).zoom;
+      await doubleTapMap(tester);
+      await tester.pump();
+      expect(camera(tester).zoom, closeTo(zoom, 1e-9));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(camera(tester).zoom, closeTo(zoom + 1, 1e-9));
+    });
+
+    testWidgets('reduce motion switched on while the map is open (as '
+        'designed, Q1): the camera stays where the user panned it, the next '
+        'swipe stops where the finger lifts, a double-tap zoom lands within a '
+        'frame, and the journey stays drawn', (tester) async {
+      await openJourneyMap(tester);
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      // A slow pan (under the fling threshold), so the user's view differs
+      // from the fitted one and a refit would show.
+      await tester.timedDrag(
+        find.byType(FlutterMap),
+        const Offset(-200, 0),
+        const Duration(seconds: 1),
+      );
+      await tester.pump();
+      final panned = camera(tester);
+
+      setReduceMotion(tester, true);
+      await tester.pump();
+      expect(camera(tester).center, panned.center, reason: 'no rebuild/refit');
+      expect(camera(tester).zoom, panned.zoom, reason: 'no rebuild/refit');
+
+      await swipeMap(tester);
+      await tester.pump();
+      final released = camera(tester).center;
+      await tester.pump(const Duration(seconds: 1));
+      expect(camera(tester).center, released);
+
+      // As designed (P2-M4 Q1): the map is not rebuilt when the setting
+      // changes, so it keeps the duration flutter_map fixed at creation, and
+      // the framework plays it at 5 % (10 ms), within one frame. A map opened
+      // with the setting on uses zero.
+      final zoom = camera(tester).zoom;
+      await doubleTapMap(tester);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 17));
+      expect(camera(tester).zoom, closeTo(zoom + 1, 1e-9));
+
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+      expect(find.byKey(const Key('map-walk-connectors')), findsOneWidget);
+      // The layer still holds every pin; flutter_map builds only those in
+      // view, and the pans above moved some of them out of it.
+      expect(
+        tester
+            .widget<MarkerLayer>(find.byType(MarkerLayer))
+            .markers
+            .map((m) => m.key),
+        containsAll([
+          const Key('map-marker-mrtNearOrigin'),
+          const Key('map-marker-mrtNearDestination'),
+        ]),
+      );
+      expect(geometry.loads, 1);
+    });
+  });
 }
 
 ll.LatLng _toMap(LatLng p) => ll.LatLng(p.latitude, p.longitude);
