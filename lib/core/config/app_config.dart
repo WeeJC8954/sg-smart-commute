@@ -153,6 +153,11 @@ abstract final class MapConfig {
 
   /// …when the straight line is longer than this (very short hops are noisy).
   static const double rideDetourMinStraightMeters = 50;
+
+  /// Walking connectors (P2-M3; docs/assumptions.md "Walking connectors and
+  /// legend"): one shorter than this is not drawn (its two ends are the same
+  /// place, e.g. a destination at the stop itself).
+  static const double walkConnectorMinMeters = 1;
 }
 
 /// data.gov.sg anonymous limit for the v2 real-time API: 6 calls in any 10 s

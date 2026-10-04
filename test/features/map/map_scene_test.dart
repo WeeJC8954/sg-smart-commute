@@ -17,6 +17,7 @@ const bishan = LatLng(1.3508, 103.8485);
 MapScene sceneTo(
   LatLng destination, {
   JourneyPlan? plan,
+  int selectedIndex = 0,
   Map<String, BusStop>? stops,
 }) => buildMapScene(
   origin: bishan,
@@ -24,6 +25,7 @@ MapScene sceneTo(
   destination: destination,
   destinationLabel: 'Destination',
   plan: plan,
+  selectedIndex: selectedIndex,
   stops: stops,
 );
 
@@ -106,7 +108,8 @@ void main() {
         sceneTo(vivoCity.position, plan: plan).summary,
         'Map of the suggested journey: from Current location, bus F20 from '
         'Opp Bishan Stn (fake) (BSH2) to VivoCity (fake) (VIV1), to '
-        'Destination. The journey details are listed above.',
+        'Destination. Walks are drawn as straight lines, estimates only. '
+        'The journey details are listed above.',
       );
       expect(
         sceneTo(vivoCity.position).summary,
@@ -411,6 +414,96 @@ void main() {
       expect(ride.boardIndex, 4);
       expect(ride.stops, [a.position, b.position]);
       expect(ride.leadingStops, [c.position]);
+    });
+  });
+
+  group('the selected option (P2-M3)', () {
+    final stops = network.stops;
+    final plan =
+        planDirectBus(network, bishan, vivoCity.position) as DirectBusOptions;
+    // F20 BSH2 → VIV1 (suggested), F10 BSH1 → VIV1, F30 BSH1 → VIV1.
+    MapScene at(int i) =>
+        sceneTo(vivoCity.position, plan: plan, stops: stops, selectedIndex: i);
+    LatLng pos(MapScene s, MapMarkerKind k) =>
+        s.markers.firstWhere((m) => m.kind == k).position;
+
+    test('index 0 is the suggestion; index 1 shows F10 everywhere', () {
+      expect(at(0).serviceNumber, 'F20');
+      expect(at(0).isAlternative, isFalse);
+      final s1 = at(1);
+      expect(s1.serviceNumber, 'F10');
+      expect(s1.isAlternative, isTrue);
+      expect(pos(s1, MapMarkerKind.boarding), stops['BSH1']!.position);
+      expect(pos(s1, MapMarkerKind.alighting), stops['VIV1']!.position);
+      expect(s1.ride!.service, 'F10');
+      expect(s1.ride!.boardIndex, plan.options[1].boardIndex);
+    });
+
+    test('two options with the same stops are different scenes (F10, F30)', () {
+      expect(
+        pos(at(1), MapMarkerKind.boarding),
+        pos(at(2), MapMarkerKind.boarding),
+      );
+      expect(
+        pos(at(1), MapMarkerKind.alighting),
+        pos(at(2), MapMarkerKind.alighting),
+      );
+      expect(at(1).ride, isNot(at(2).ride));
+      expect(at(1), isNot(at(2)));
+    });
+
+    test('an out-of-range index shows the suggestion', () {
+      expect(at(9).serviceNumber, 'F20');
+      expect(at(9).isAlternative, isFalse);
+      expect(at(-1).serviceNumber, 'F20');
+    });
+
+    test('walks: origin → boarding and alighting → destination, exactly '
+        'the markers', () {
+      expect(at(1).walks, [
+        MapWalk(bishan, stops['BSH1']!.position),
+        MapWalk(stops['VIV1']!.position, vivoCity.position),
+      ]);
+    });
+
+    test('no walks without a bus: loading, walk-only, no direct bus, no '
+        'stops', () {
+      for (final p in <JourneyPlan?>[
+        null,
+        WalkOnly(WalkEstimate.between(bishan, bishan)),
+        const NoDirectBus(radiusMeters: 800),
+        const NoNearbyStops(JourneyEnd.origin, radiusMeters: 800),
+      ]) {
+        expect(
+          sceneTo(vivoCity.position, plan: p, stops: stops).walks,
+          isEmpty,
+          reason: '$p',
+        );
+      }
+    });
+
+    test('a connector under walkConnectorMinMeters is left out, the other '
+        'kept', () {
+      final o = plan.options.first;
+      final atStop = buildMapScene(
+        origin: o.board.position, // the origin is the boarding stop itself
+        originLabel: 'Here',
+        destination: vivoCity.position,
+        destinationLabel: 'Destination',
+        plan: plan,
+        stops: stops,
+      );
+      expect(atStop.walks, [MapWalk(o.alight.position, vivoCity.position)]);
+    });
+
+    test('summary: an alternative says so, and walks are called estimates', () {
+      expect(
+        at(1).summary,
+        'Map of an alternative journey: from Current location, bus F10 from '
+        'Bishan Int (fake) (BSH1) to VivoCity (fake) (VIV1), to Destination. '
+        'Walks are drawn as straight lines, estimates only. '
+        'The journey details are listed above.',
+      );
     });
   });
 }
