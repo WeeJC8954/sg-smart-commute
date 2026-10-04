@@ -342,7 +342,9 @@ evidence gaps Phase 2 left (`docs/ui-polish-followups-implementation-plan.md`): 
 
 - **Colours:** only from the theme scheme. The map pins' shadow, added in P2-M1 as a fixed colour, uses
   `colorScheme.shadow`. `test/app/app_theme_test.dart` scans `lib/`, and the teal seed is the one fixed colour.
-- **Motion:** `MotionSize` as documented. Known limitation: content changing on adjacent frames settles directly
+- **Motion:** `MotionSize` as documented. Growing reveals new content as the card grows; shrinking removes it at
+  once and only the freed space below closes over the resize duration (existing presentation behaviour, not a
+  defect). Known limitation: content changing on adjacent frames settles directly
   to the later layout. Whole-app tests at the real 250 ms are in `test/app/home_screen_test.dart`. The map card's
   Show/Hide stays instant (D2).
 - **Home list:** lazy, with no keep-alive. Known presentation limitation: at 2× text, a deep scroll resets open
