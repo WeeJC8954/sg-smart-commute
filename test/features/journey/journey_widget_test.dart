@@ -556,6 +556,32 @@ void main() {
     expect(inKey('journey-suggested', 'F20'), findsOneWidget);
     expect(inKey('journey-alternative-1', 'F10'), findsOneWidget);
   });
+  testWidgets('only an option with a heading has a gap above its summary', (
+    tester,
+  ) async {
+    await pumpApp(tester, gpsApp());
+    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await tester.pump();
+    await tester.pump();
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    Finder summary(String option) => find.descendant(
+      of: find.byKey(Key(option)),
+      matching: find.textContaining('Take Bus'),
+    );
+    // An alternative has no heading: its summary starts right under the
+    // option's 8 px top padding.
+    expect(
+      top(summary('journey-alternative-1')) -
+          top(find.byKey(const Key('journey-alternative-1'))),
+      8,
+    );
+    // The suggestion keeps 4 px between "Suggested" and its summary.
+    expect(
+      top(summary('journey-suggested')) -
+          tester.getBottomLeft(inKey('journey-suggested', 'Suggested')).dy,
+      4,
+    );
+  });
   testWidgets('dark theme, 2× text, 320 dp: the whole journey renders '
       'without overflow, with one MotionSize per animated card', (
     tester,
