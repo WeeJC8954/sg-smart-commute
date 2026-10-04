@@ -1043,9 +1043,12 @@ Docs only. It starts the implementation PR.
   // map on an Android device or emulator, in profile mode. Not part of the app
   // and not a test gate; `flutter test` never runs it:
   //
-  //   flutter drive --profile -d <android-device> \
+  //   flutter drive --profile --keep-app-running -d <android-device> \
   //     --driver=test_driver/integration_test.dart \
   //     --target=tool/map_performance_probe.dart
+  //
+  // Without --keep-app-running, flutter drive uninstalls the app at the end,
+  // and the tile cache goes with it, so a second run would start cold.
   //
   // The journey is the integration tests' fake one (GPS at Bishan, a direct bus
   // to VivoCity with its ride line, both walking connectors and both MRT pins),
@@ -1182,12 +1185,23 @@ Docs only. It starts the implementation PR.
   - `adb shell wm size`, `adb shell wm density`, `adb shell nproc`, `adb shell head -1 /proc/meminfo`;
   - the display refresh rate from `adb shell dumpsys display` (`refreshRate` / `renderFrameRate`, if shown);
   - the host CPU (`powershell -c "(Get-CimInstance Win32_Processor).Name"`).
-- [ ] **Step 4: Run it, twice.**
-  - **Run 1 (cold tile cache):** `adb uninstall sg.smartcommute.sg_smart_commute` (ignore "not installed"), then
-    `flutter drive --profile -d emulator-5554 --driver=test_driver/integration_test.dart
-    --target=tool/map_performance_probe.dart`. Copy `build/integration_response_data.json` to the scratchpad as
-    `perf-run1.json`.
-  - **Run 2 (warm cache, the same command right after):** copy the output as `perf-run2.json`.
+- [ ] **Step 4: Run it, twice.** Both runs pass `--keep-app-running`. By default, `flutter drive` stops **and
+  uninstalls** the app when a run ends (flutter_tools `drive/drive_service.dart`, `stop()`), and that would
+  delete Run 1's tile cache before Run 2. With the app still installed, Run 2's start reinstalls it with
+  `adb install -r`, which keeps the app's data (`android/android_device.dart`, `installApp`).
+  - Don't use `--use-existing-app`. It attaches to an app that is already running and doesn't start it, and this
+    probe's test runs once, at app start, so nothing would be measured.
+  - **Run 1 (cold tile cache):**
+    - `adb uninstall sg.smartcommute.sg_smart_commute` (ignore "not installed");
+    - then `flutter drive --profile --keep-app-running -d emulator-5554
+      --driver=test_driver/integration_test.dart --target=tool/map_performance_probe.dart`;
+    - copy `build/integration_response_data.json` to the scratchpad as `perf-run1.json`.
+  - **Run 2 (warm cache):**
+    - check the app is still installed: `adb shell pm list packages sg.smartcommute.sg_smart_commute` lists it;
+    - run the same command right after Run 1;
+    - copy the output as `perf-run2.json`.
+    - If Run 2's output shows "Uninstalling old version..." (the `-r` install failed, so the app's data was
+      deleted), record Run 2 as a **cold** run, not a warm one.
   - Watch `adb logcat -d -s flutter AndroidRuntime ActivityManager` for exceptions, ANRs or crashes during each
     run.
   - Expected: "All tests passed", and each mode reports `frame_count` > 0 and `tiles_unavailable_note: false`.
@@ -1212,10 +1226,13 @@ Docs only. It starts the implementation PR.
 
   These are triggers for investigation, not a pass mark. Otherwise record the numbers as emulator evidence only.
 - [ ] **Step 6: Restore the device for the next tasks.** `adb uninstall sg.smartcommute.sg_smart_commute`, then `adb
-  install build/app/outputs/flutter-apk/app-release.apk`. The probe left a profile build installed.
+  install build/app/outputs/flutter-apk/app-release.apk`. The runs used `--keep-app-running`, so the profile build
+  is still installed and running.
 - [ ] **Step 7: Docs.**
-  - **`testing.md` "Feasibility probes":** add a "Phase 2 M4 (performance)" block with the `flutter drive --profile`
-    command and one sentence: the probe uses live OneMap tiles, Android only, and is not a gate.
+  - **`testing.md` "Feasibility probes":** add a "Phase 2 M4 (performance)" block. Give the `flutter drive --profile
+    --keep-app-running` command and one sentence: the probe uses live OneMap tiles, runs on Android only and is
+    not a gate; `--keep-app-running` stops `flutter drive` from uninstalling the app, and with it the tile cache,
+    between runs.
   - **Run-log row:** the configuration, the scenario (fake Bishan → VivoCity journey, ride line, two connectors,
     two MRT pins; 8 pans of 600 ms and one double-tap zoom, in light then dark; live OneMap tiles, cold then warm
     cache), both runs' numbers, and "emulator evidence only, not physical-device performance".
