@@ -77,7 +77,8 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
   }
 
   void _select(Place place) {
-    // Confirms the commit moment only; a no-op on Web.
+    // Confirms the commit moment only. On Web: a 10 ms vibration where the
+    // browser has the Vibration API (e.g. Chrome on Android), else nothing.
     HapticFeedback.selectionClick();
     _controller.clear();
     _session.clear();

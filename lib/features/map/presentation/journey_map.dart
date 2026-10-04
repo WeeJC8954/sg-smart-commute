@@ -448,7 +448,12 @@ class _MarkerPin extends StatelessWidget {
           color: scheme.surface,
           shape: BoxShape.circle,
           border: Border.all(color: color, width: 2.5),
-          boxShadow: const [BoxShadow(blurRadius: 3, color: Colors.black38)],
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 3,
+              color: scheme.shadow.withValues(alpha: 0.38),
+            ),
+          ],
         ),
         child: Center(
           child: FractionallySizedBox(

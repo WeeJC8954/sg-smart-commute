@@ -1,5 +1,9 @@
 # UI Polish Implementation Plan
 
+> **Status (2026-10-04):** implemented in full by PR #35 (merged as `374a024` on 2026-10-02), before Phase 2. Kept
+> as the historical record. Its snippets predate Phase 2 and must not be re-applied. The drift and evidence gaps
+> found after Phase 2 are closed by `docs/ui-polish-followups-implementation-plan.md`.
+
 > **For agentic workers:** execute the tasks in order, one at a time; each ends on a green test run and a
 > commit. If your harness has `superpowers:subagent-driven-development` or `superpowers:executing-plans`, use
 > it. Steps use checkbox (`- [ ]`) syntax for tracking.

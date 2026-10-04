@@ -13,10 +13,15 @@ final uiMotionDurationProvider = Provider<Duration>((ref) => AppMotion.resize);
 /// pure Dart.
 const Curve motionCurve = Curves.easeOutCubic;
 
-/// Animates [child]'s height when its content changes, from the top edge, so
-/// new content unfolds below what caused it and collapses back the same way.
-/// A change mid-animation continues from the current on-screen size. With
-/// the system's reduce-motion setting on, changes are instant.
+/// Animates [child]'s height when its content changes, from the top edge.
+/// Growing, new content unfolds below what caused it as the box grows.
+/// Shrinking, the child takes its new size at once (removed content goes in
+/// that frame) and only the freed space below closes over the duration.
+/// A later change mid-animation continues from the current on-screen size,
+/// but content that changes again on the very next layout (data landing on
+/// consecutive frames) makes [AnimatedSize] jump to each new size until it
+/// holds for a frame, so such a burst lands at once. With the system's
+/// reduce-motion setting on, changes are instant.
 ///
 /// Wrap a whole card, once. Never nest one inside another: the outer one
 /// would chase the inner one's animated size.

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/app/app.dart';
@@ -35,4 +37,33 @@ void main() {
       expect(Theme.of(context).brightness, brightness);
     });
   }
+
+  test('lib/ takes its colours from the theme scheme; the teal seed is the '
+      'one fixed colour', () {
+    // Colors.x, Color(…) and Color.from…(…) in code; text after `//` is
+    // dropped as a comment. ponytail: a line scan, not a Dart parser — `//`
+    // inside a string hides the rest of that line, and a /* block */ comment
+    // is scanned. Add a parser only if that ever misleads.
+    final fixed = RegExp(r'Colors\s*\.\s*\w+|\bColor\s*(?:\.\s*from\w*\s*)?\(');
+    final found = <String>[];
+    for (final file in Directory('lib').listSync(recursive: true)) {
+      if (file is! File || !file.path.endsWith('.dart')) continue;
+      final code = file
+          .readAsLinesSync()
+          .map((line) => line.split('//').first)
+          .join('\n');
+      final path = file.path.replaceAll(r'\', '/');
+      for (final m in fixed.allMatches(code)) {
+        final line = '\n'.allMatches(code.substring(0, m.start)).length + 1;
+        found.add('$path:$line ${m[0]}');
+      }
+    }
+    final seed = RegExp(r'^lib/app/app\.dart:\d+ Colors\.teal$');
+    expect(found.where(seed.hasMatch), hasLength(1), reason: 'the seed');
+    expect(
+      found.where((f) => !seed.hasMatch(f)),
+      isEmpty,
+      reason: 'take colours from Theme.of(context).colorScheme',
+    );
+  });
 }

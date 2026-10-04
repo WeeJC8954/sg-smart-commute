@@ -215,9 +215,10 @@ class _OptionState extends State<_Option> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.heading != null)
+          if (widget.heading != null) ...[
             Text(widget.heading!, style: theme.textTheme.labelLarge),
-          const SizedBox(height: 4),
+            const SizedBox(height: 4),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
