@@ -192,8 +192,8 @@ void main() {
       await tester.tap(inAlternative('Hide steps'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      expect(shown(tester), lessThanOrEqualTo(opening)); // no jump open
-      expect(shown(tester), greaterThan(closed)); // no jump shut
+      expect(shown(tester), lessThanOrEqualTo(opening)); // box: no jump open
+      expect(shown(tester), greaterThan(closed)); // box: no jump shut
       await tester.pump(AppMotion.resize);
       expect(shown(tester), closed);
       expect(tester.takeException(), isNull);

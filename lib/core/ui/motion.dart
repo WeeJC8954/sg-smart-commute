@@ -13,8 +13,10 @@ final uiMotionDurationProvider = Provider<Duration>((ref) => AppMotion.resize);
 /// pure Dart.
 const Curve motionCurve = Curves.easeOutCubic;
 
-/// Animates [child]'s height when its content changes, from the top edge, so
-/// new content unfolds below what caused it and collapses back the same way.
+/// Animates [child]'s height when its content changes, from the top edge.
+/// Growing, new content unfolds below what caused it as the box grows.
+/// Shrinking, the child takes its new size at once (removed content goes in
+/// that frame) and only the freed space below closes over the duration.
 /// A later change mid-animation continues from the current on-screen size,
 /// but content that changes again on the very next layout (data landing on
 /// consecutive frames) makes [AnimatedSize] jump to each new size until it
