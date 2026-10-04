@@ -445,7 +445,7 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
 | M4 | dart2js bitwise semantics (found in the spike) and other VM/Web differences | Garbage geometry on Web only | Web-safe decoder; decoder tests also run with `--platform chrome`; Web integration test draws a known ride |
 | M5 | flutter_map cannot abort superseded tile requests on Web (noted in its source); they still download | Bandwidth, and OneMap load during the camera fit | Fit the camera once without animating; zoom 11–19; no prefetch |
 | M6 | flutter_map maintenance or breaking 9.x | Upgrade work | Pin `^8.3`; flutter_map imported in one widget only |
-| M7 | Performance on low-end Android (overdraw, large polylines) | Jank | Ride slice only (tens of points), not whole routes; check frame times in P2-M4 |
+| M7 | Performance on low-end Android (overdraw, large polylines) | Jank | Ride slice only (tens of points), not whole routes; frame times measured in P2-M4 on the emulator (`docs/testing.md`, 2026-10-04); no physical device was available |
 | M8 | Accessibility: a map is visual-only | Screen-reader users lose nothing only if the text stays complete | Journey card remains the full answer; map has one summary label; no information only on the map |
 | M9 | Privacy: tile requests reveal the viewed area to OneMap; a walking router would get exact coordinates | Data exposure | OneMap only (already used for search); **no walking router** (§6.1), so no exact coordinates leave the app |
 | M10 | CARTO-style policy changes (keyless 200 with a watermark) can't be seen as HTTP errors | Silent bad map | Spot-check visually in each milestone's smoke run; not detectable automatically |
