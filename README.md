@@ -12,12 +12,12 @@ nearest MRT station as an alternative. University course project.
 ## Screenshots
 
 The release Web build at phone width with live data: a trip from Bishan to HDB Hub, Toa Payoh (2026-10-05,
-06:20 SGT). The middle map is zoomed in by hand at the destination end, where the walking estimate and the MRT
+06:20–06:24 SGT). The middle map is zoomed in by hand at the destination end, where the walking estimate and the MRT
 marker show.
 
 | Journey with live arrivals | Map at the destination end | Map, dark theme |
 |---|---|---|
-| ![Journey card: the suggested Bus 88 with live arrivals and the Selected mark, then alternatives 56 and 57 with Select and Show steps](docs/images/app-light.png) | ![Map zoomed in at Toa Payoh: the end of the Bus 88 route, the dashed straight-line walk to HDB Hub, the Toa Payoh MRT marker, the legend and the OneMap attribution](docs/images/journey-map-light.png) | ![Dark theme: the map on OneMap Night tiles with the whole Bus 88 route from Bishan to Toa Payoh](docs/images/journey-map-dark.png) |
+| ![The From/To card, then the journey card: the suggested Bus 88 with live arrivals and the Selected mark, alternative 56 with Select and Show steps, and 57 below](docs/images/app-light.png) | ![Map zoomed in at Toa Payoh: the end of the Bus 88 route, the dashed straight-line walk to HDB Hub, the Toa Payoh MRT marker, the legend and the OneMap attribution](docs/images/journey-map-light.png) | ![Dark theme: the map on OneMap Night tiles with the whole Bus 88 route from Bishan to Toa Payoh](docs/images/journey-map-dark.png) |
 
 ## No credentials required
 
