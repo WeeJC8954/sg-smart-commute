@@ -21,6 +21,10 @@ import 'basemap.dart';
 /// suggestion settling), without animation and never periodically or on a
 /// timer, and cannot leave OneMap's bounds or zoom range; failed tiles are
 /// not retried automatically.
+///
+/// Reduced motion (P2-M4): with the system's setting on, a swipe stops
+/// where the finger lifts and a double-tap zoom lands at once; every
+/// gesture still works.
 class JourneyMap extends ConsumerStatefulWidget {
   const JourneyMap({super.key, required this.scene});
 
@@ -59,6 +63,24 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
       const ll.LatLng(MapConfig.boundsSouth, MapConfig.boundsWest),
       const ll.LatLng(MapConfig.boundsNorth, MapConfig.boundsEast),
     ),
+  );
+
+  /// Every gesture but rotation (P2-M1), with flutter_map's motion: the map
+  /// glides on after a quick swipe and a double tap zooms over 200 ms.
+  static const _interaction = InteractionOptions(
+    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+  );
+
+  /// The same gestures for the system's reduce-motion setting (P2-M4): the
+  /// map stops where the finger lifts, and a double-tap zoom lands at once.
+  /// Under that setting the framework would otherwise play a fling 200×
+  /// faster, so the map jumped on release.
+  static const _reducedMotionInteraction = InteractionOptions(
+    flags:
+        InteractiveFlag.all &
+        ~InteractiveFlag.rotate &
+        ~InteractiveFlag.flingAnimation,
+    doubleTapZoomDuration: Duration.zero,
   );
 
   static ll.LatLng _toMap(LatLng p) => ll.LatLng(p.latitude, p.longitude);
@@ -143,6 +165,11 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
       _tilesFailed = false;
     }
     _brightness = brightness;
+    // Android "Remove animations", Web prefers-reduced-motion. flutter_map
+    // reads the flags on every gesture but the double-tap duration only when
+    // the map is created; a change while it is open leaves that zoom to the
+    // framework's reduced timing (one frame) until the map is next opened.
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     // Also starts the one route-geometry load for a direct-bus ride (this is
     // only ever built while the map is open). The line is drawn only for the
@@ -188,9 +215,9 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
                       minZoom: MapConfig.minZoom,
                       maxZoom: MapConfig.maxZoom,
                       cameraConstraint: _constraint,
-                      interactionOptions: const InteractionOptions(
-                        flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                      ),
+                      interactionOptions: reduceMotion
+                          ? _reducedMotionInteraction
+                          : _interaction,
                       backgroundColor:
                           theme.colorScheme.surfaceContainerHighest,
                       onMapReady: _onMapReady,

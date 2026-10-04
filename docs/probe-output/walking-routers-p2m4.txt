@@ -1,0 +1,42 @@
+# P2-M4 walking-router re-check: 2026-10-04T04:28:42Z
+# Four requests, 2 s apart: only what the P2-M4 decision rests on (decision R).
+# Decision and reasons: docs/map-feasibility.md §6.1. The OSRM demo, OneMap routing and BRouter
+# results are from the 2026-10-04 discovery (docs/testing.md run log), not re-requested.
+
+=== FOSSGIS OSRM routed-foot
+GET https://routing.openstreetmap.de/routed-foot/route/v1/foot/103.8515,1.2840;103.8531,1.2862?overview=full&geometries=polyline
+Access-Control-Allow-Headers: X-Requested-With, Content-Type
+Access-Control-Allow-Methods: GET
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=UTF-8
+HTTP/1.1 200 OK
+bytes: 709
+body: {"code":"Ok","routes":[{"legs":[{"steps":[],"weight":75.95,"summary":"","duration":685.9,"distance":852.5}],"weight_name":"routability","geometry":"_xyFynzxRB?`@@vDLV@X@^ZGV?DAV?D?FG?G?ANEFAGCO@}@K??}@m@Ce@EiAGKDI?kAIiAII?kAIk@G[aA[aAGKBQ@EDQICBKDO]EIADkAk@QmAY","weight":75.95,"duration":685.9,"dist
+
+=== FOSSGIS OSRM routed-foot, CORS preflight
+Access-Control-Allow-Headers: X-Requested-With, Content-Type
+Access-Control-Allow-Methods: GET
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=UTF-8
+HTTP/1.1 200 OK
+
+=== FOSSGIS terms, covering routing.openstreetmap.de and valhalla1.openstreetmap.de
+    (https://www.fossgis.de/arbeitsgruppen/osm-server/nutzungsbedingungen/)
+Content-Type: text/html; charset=utf-8
+HTTP/1.1 200 OK
+Last-Modified: Sat, 03 Oct 2026 07:51:28 GMT
+extracted text sha256: e882f21f5870486772c3ce2bcd2cb80b06117679dff50ff52f51f37f361f763c
+'primary purpose is to support usage on our website': present
+'should not be hardcoded into the app': present
+'an email address of the operator must be easily identifiable': present
+'User agents of libraries are not sufficient': present
+'Websites with high traffic volumes are generally not permitted': present
+'Maximum one request per second': present
+'routing.openstreetmap.de, valhalla1.openstreetmap.de': present
+'may be revoked by us at any time': present
+'development and testing': absent
+'testing only': absent
+
+=== routing.openstreetmap.de/about.html (request logging)
+(The single-line grep above found nothing: the page wraps the sentence across lines. Re-run of this one request at 2026-10-04T04:29:24Z with line breaks joined: `curl -s -A "$UA" https://routing.openstreetmap.de/about.html | tr -s '\r\n\t ' ' ' | grep -o -i 'is saved[^<]\{0,40\}log file'`)
+is saved in the server log file

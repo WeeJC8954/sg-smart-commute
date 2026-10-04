@@ -5,12 +5,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project
 
 Front-end-only Flutter app (Android + Web) for Singapore: environmental dashboard (2-hr forecast, UV, 1-hr
-PM2.5, 24-hr PSI) and, in later milestones, place search, a direct-bus planner with live arrivals, and an MRT
-alternative. The spec is `docs/singapore-smart-commute-implementation-guide.v2.md` (guide v2.1; code and docs
+PM2.5, 24-hr PSI), place search, a direct-bus planner with live arrivals, an MRT alternative and, since Phase 2,
+an optional journey map. The spec is `docs/singapore-smart-commute-implementation-guide.v2.md` (guide v2.1; code and docs
 cite it as `§N`). Decisions live in `docs/architecture.md` (ADRs), tunable values and ambiguity resolutions in
 `docs/assumptions.md`, provider details in `docs/data-sources.md`. Work proceeds one milestone at a time
 (guide §21: M0 feasibility → M1 location + environment → M2 places → M3 bus planner + MRT → M4 live arrivals
-→ M5 hardening → Phase 2 map); don't broaden scope or start a later milestone silently.
+→ M5 hardening → Phase 2 map; Phase 2 closed in P2-M4, and a later change needs its own milestone); don't broaden
+scope or start a later milestone silently.
 
 ## Hard constraints (guide §2, §14, ADR-001)
 
@@ -102,7 +103,8 @@ Key flows that span several files:
   pure `MapScene` (the selected option's stops; only the two ends while the plan loads or failed); it never plans or
   selects. The map is closed by default (`mapExpandedProvider`, session UI state), so no
   tile is requested before "Show map". `flutter_map` / `latlong2` are imported only in `features/map/presentation/`.
-  OneMap Default/Night tiles, camera fitted before the first frame inside OneMap's bounds and z11–19 and refitted
+  OneMap Default/Night tiles, gestures without fling and with an
+  instant double-tap zoom under the system's reduce-motion setting (P2-M4), camera fitted before the first frame inside OneMap's bounds and z11–19 and refitted
   once per scene change (journey, selection, MRT settling; never on a timer), no automatic tile retry, persistent linked attribution (`url_launcher`). Rules: `docs/map-feasibility.md` §4.2 and the map
   rows of `docs/assumptions.md`. **Ride line** (P2-M2): the scene carries the selected option's `MapRide`
   (from `BusOption.boardIndex` and `BusService.sourceDirectionOf`); `routeGeometryProvider` loads busrouter
@@ -115,7 +117,7 @@ Key flows that span several files:
   selection, journey-owned (`optionSelectionProvider`, written by the card's "Select", read by the map), honoured
   only for the identical plan object (`selectedOptionIndex`), so it never carries over to a new journey; selecting
   never re-plans or touches arrivals. **Walk connectors**: `MapScene.walks`, derived from the markers (origin →
-  boarding, alighting → destination), straight and dashed, never routed. **MRT markers**: read from
+  boarding, alighting → destination), straight and dashed, never routed (no walking router: `docs/map-feasibility.md` §6.1). **MRT markers**: read from
   `mrtSuggestionProvider` (settled values only), worded via the journey's `MrtWording`. Rules: the P2-M3 rows of
   `docs/assumptions.md`.
 - **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no

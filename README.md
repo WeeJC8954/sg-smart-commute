@@ -4,11 +4,10 @@ A **front-end-only** Flutter app (Android + Web) for Singapore. It shows current
 UV, 1-hr PM2.5, 24-hr PSI) and suggests how to start a journey: a direct bus with live arrival times, and the
 nearest MRT station as an alternative. University course project.
 
-> **Status:** Milestone 5 (hardening). Phase 1's features are in: location with manual fallback, the
-> environmental dashboard, OneMap place search for origin and destination, a direct-bus suggestion with an
-> MRT alternative, and live bus arrival times (ArriveLah) for each suggested bus, refreshed manually. M5 closed
-> the Web integration run, checked the Chrome and Android location edge cases live, and added a response-size
-> cap, a Web Content-Security-Policy and large-text fixes.
+> **Status:** Phase 1 (M1–M5) and Phase 2 (the optional journey map, P2-M0–P2-M4) are complete: location with
+> manual fallback, the environmental dashboard, OneMap place search, a direct-bus suggestion with live arrivals
+> and an MRT alternative, and an optional map (OneMap basemap) showing the selected option's bus route, straight
+> walking estimates and the MRT suggestions. UI polish continues separately.
 
 ## No credentials required
 
@@ -92,6 +91,9 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 ## Known limitations
 
 - Walking times are **estimates** (straight-line × 1.3 at 80 m/min), not routed.
+- The map's walking lines are straight-line estimates between the same points as the walking times; there is no
+  walking router (`docs/map-feasibility.md` §6.1).
+- The map needs network for its OneMap tiles (no offline maps); OneMap gives no service-level agreement.
 - Phase 1 suggests **direct buses only** (no transfers), ranked by a documented heuristic, not "the best"
   route. MRT is shown as information only: the nearest station name and an estimated walk, with no lines,
   codes, routes or arrivals.
@@ -120,4 +122,5 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 ## Roadmap
 
 M1 location + environment → M2 places → M3 direct-bus planner + MRT → M4 live arrivals → M5 hardening →
-Phase 2 map.
+Phase 2 map (P2-M0 feasibility → P2-M1 map shell → P2-M2 bus ride line → P2-M3 option sync, walk connectors, MRT
+markers → P2-M4 hardening): **complete**. UI polish continues separately.

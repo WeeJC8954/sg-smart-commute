@@ -314,9 +314,26 @@ a consumer: it never plans, selects, looks up stations or computes walking times
   `StrokePattern.dashed`.
 - **Decision numbers**: P2-M3's D1–D9 are its plan's own, separate from P2-M2's D1–D6 above (the plan's
   "Decision numbers" note maps them).
-- Not in P2-M3: walking routing (the `routed-foot` question stays with P2-M4), a walk-only connector, MRT
+- Not in P2-M3: walking routing (the `routed-foot` question went to P2-M4, which closed it with no router: `docs/map-feasibility.md` §6.1), a walk-only connector, MRT
   routing, lines, codes, directions or arrivals, a legend entry for MRT, choosing an option from the map,
   transfers, live vehicles.
+
+## Phase 2 Milestone 4 (hardening) and Phase 2 close-out
+
+Hardening checks from `docs/map-feasibility.md` §10 item 4, with decisions D1–D8, Q1–Q4 and R in
+`docs/p2-m4-map-hardening-implementation-plan.md`. Phase 2 closes here.
+
+- **Reduced motion:** `JourneyMap` passes flutter_map one of two constant `InteractionOptions`, chosen by
+  `MediaQuery.disableAnimations` (Android "Remove animations", Web `prefers-reduced-motion`): with the setting, no
+  `flingAnimation` flag and `doubleTapZoomDuration: Duration.zero`; otherwise today's options. Why: flutter_map ignores
+  the setting, and the framework plays a fling 200× faster under it, so the map jumped on release. The camera fit is
+  unchanged. flutter_map fixes the double-tap duration when the map is created, so a setting change while the map is
+  open does not rebuild it (the camera is kept) and that zoom keeps the framework's reduced timing until reopened.
+- **No walking router:** `docs/map-feasibility.md` §6.1, so no new host, client, header or CSP change; the map stays
+  a consumer of the plan, and the straight dashed connectors are final.
+- **Verified, unchanged:** the Android tile cache follows `max-age`; no HD tiles; OneMap's terms re-checked.
+- **Dev tool:** `tool/map_performance_probe.dart` (profile, Android only, live OneMap tiles, not a gate).
+- Not in P2-M4: any new map feature, routing, keyboard-animation changes, the simplification refactor, UI polish.
 
 ## Dev tools (M0)
 
@@ -324,3 +341,4 @@ a consumer: it never plans, selects, looks up stations or computes walking times
   `api_probe_app.dart` (an alternative Flutter entry point for Chrome/Android), and
   `place_search_eval.dart` (Dart VM). M3 adds `build_mrt_asset.dart` (generates the bundled MRT asset) and
   `journey_smoke.dart` (a real-data planner check against live busrouter, with a raw-route cross-check).
+  P2-M4 adds `map_performance_probe.dart` (journey-map frame timings, `flutter drive --profile`, Android only).
