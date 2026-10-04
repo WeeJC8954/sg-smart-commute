@@ -7,20 +7,26 @@
 // (fake arrivals) → manual refresh updates the ETAs → P2-M1: the optional
 // journey map, opened on request, with the journey's markers and the OneMap
 // attribution (fake tiles: no live tile is fetched) → P2-M2: the ride line,
-// drawn from fake route geometry (no live routes.min.json request).
+// drawn from fake route geometry (no live routes.min.json request) → P2-M3:
+// the dashed walking connectors and both MRT suggestion markers; selecting
+// another option in the journey card moves the map to it, with no second
+// routes.min.json load and no arrival request.
 //
 // Every provider is a fake and the clock is injected; no live API is called.
 import 'package:flutter/widgets.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
 
 import 'fakes/fake_bus_arrival_repository.dart';
+import 'fakes/fake_bus_network.dart';
 import 'fakes/fake_environment_repository.dart';
 import 'fakes/fake_location_service.dart';
 import 'fakes/fake_map.dart';
 import 'fakes/fake_place_search_repository.dart';
+import 'fakes/fake_route_geometry.dart';
 import 'fakes/test_app.dart';
 import 'support.dart';
 
@@ -33,6 +39,7 @@ void main() {
     final places = FakePlaceSearchRepository();
     final arrivals = FakeBusArrivalRepository();
     final tiles = FakeTileProvider();
+    final geometry = FakeRouteGeometryRepository();
     var now = fakeNow;
     await tester.pumpWidget(
       buildTestApp(
@@ -45,6 +52,7 @@ void main() {
         busArrivals: arrivals,
         clock: () => now,
         mapTiles: () => tiles,
+        routeGeometry: geometry,
       ),
     );
 
@@ -183,5 +191,30 @@ void main() {
         findsOneWidget,
       );
     }
+
+    // P2-M3: straight dashed walking connectors and both MRT suggestions.
+    expect(find.byKey(const Key('map-walk-connectors')), findsOneWidget);
+    expect(find.byKey(const Key('map-marker-mrtNearOrigin')), findsOneWidget);
+    expect(
+      find.byKey(const Key('map-marker-mrtNearDestination')),
+      findsOneWidget,
+    );
+    // Selecting F10 in the journey card moves the map to it: no second
+    // routes.min.json load and no arrival request.
+    final callsBefore = arrivals.totalCalls;
+    await scrollToAndTap(tester, find.byKey(const Key('select-option-F10')));
+    await pumpUntilFound(tester, find.byKey(const Key('selected-option-F10')));
+    await tester.pump();
+    final boarding = tester
+        .widget<MarkerLayer>(find.byType(MarkerLayer))
+        .markers
+        .firstWhere((m) => m.key == const Key('map-marker-boarding'))
+        .point;
+    final bsh1 = fakeBusNetwork().stops['BSH1']!.position;
+    expect(boarding.latitude, bsh1.latitude);
+    expect(boarding.longitude, bsh1.longitude);
+    expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+    expect(geometry.loads, 1);
+    expect(arrivals.totalCalls, callsBefore);
   });
 }

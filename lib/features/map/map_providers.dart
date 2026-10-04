@@ -4,6 +4,7 @@ import '../../core/errors/failure_guard.dart';
 import '../../core/http/json_http_client.dart';
 import '../destination/domain/destination_controller.dart';
 import '../journey/domain/direct_bus_planner.dart';
+import '../journey/domain/option_selection.dart';
 import '../journey/journey_providers.dart';
 import '../origin/domain/origin_controller.dart';
 import 'data/busrouter_route_geometry_repository.dart';
@@ -12,11 +13,12 @@ import 'domain/ride_geometry.dart';
 import 'domain/route_geometry.dart';
 
 /// What the journey map shows; null until both an origin and a destination
-/// exist. It reads the plan the journey card already shows and never plans:
-/// while that plan is being found or has failed, only the two ends are
-/// marked, so a previous journey's stops are never shown on a new one. The
-/// bus stop table is read only for a direct-bus plan, so a walk-only journey
-/// never touches bus data.
+/// exist. It reads the plan the journey card already shows, the option the
+/// card has selected (P2-M3) and the card's MRT suggestion, and never plans,
+/// selects or looks anything up: while the plan (or the MRT suggestion) is
+/// being found or has failed, its part is left out, so a previous journey's
+/// stops or stations are never shown on a new one. The bus stop table is read
+/// only for a direct-bus plan, so a walk-only journey never touches bus data.
 final mapSceneProvider = Provider<MapScene?>((ref) {
   final origin = ref.watch(originControllerProvider.select((s) => s.origin));
   final destination = ref.watch(
@@ -25,6 +27,8 @@ final mapSceneProvider = Provider<MapScene?>((ref) {
   if (origin == null || destination == null) return null;
   final plan = ref.watch(journeyPlanProvider);
   final current = plan.isLoading || plan.hasError ? null : plan.value;
+  final selection = ref.watch(optionSelectionProvider);
+  final mrt = ref.watch(mrtSuggestionProvider);
   final stops = current is DirectBusOptions
       ? ref.watch(busNetworkProvider).value?.stops
       : null;
@@ -34,6 +38,13 @@ final mapSceneProvider = Provider<MapScene?>((ref) {
     destination: destination.position,
     destinationLabel: destination.displayName,
     plan: current,
+    // The card's selection applies only to the plan it was made for.
+    selectedIndex: current is DirectBusOptions
+        ? selectedOptionIndex(selection, current)
+        : 0,
+    // As for the plan: nothing while it loads or has failed, never the
+    // previous journey's stations. The card shows the error and its Retry.
+    mrt: mrt.isLoading || mrt.hasError ? null : mrt.value,
     stops: stops,
   );
 });

@@ -1,14 +1,19 @@
 // P2-M1 widget tests: the optional journey map. Location, place search, bus
 // data, tiles, the OneMap logo and the link launcher are all fakes
 // (integration_test/fakes/), so no tile is fetched and no browser opened.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart' as ll;
 import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/features/journey/data/mrt_asset_repository.dart';
+import 'package:sg_smart_commute/features/journey/domain/mrt.dart';
 import 'package:sg_smart_commute/features/map/domain/map_scene.dart';
 import 'package:sg_smart_commute/features/map/domain/ride_geometry.dart';
 import 'package:sg_smart_commute/features/map/domain/route_geometry.dart';
@@ -59,6 +64,66 @@ Future<void> openMap(WidgetTester tester) async {
 
 Finder marker(String kind) => find.byKey(Key('map-marker-$kind'));
 
+/// The drawn position of the marker of [kind].
+LatLng pointOf(WidgetTester tester, String kind) {
+  final m = tester
+      .widget<MarkerLayer>(find.byType(MarkerLayer))
+      .markers
+      .firstWhere((m) => m.key == Key('map-marker-$kind'));
+  return LatLng(m.point.latitude, m.point.longitude);
+}
+
+/// The drawn bus ride line.
+List<LatLng> ridePoints(WidgetTester tester) => [
+  for (final p
+      in tester
+          .widget<PolylineLayer>(find.byKey(const Key('map-ride-line')))
+          .polylines
+          .single
+          .points)
+    LatLng(p.latitude, p.longitude),
+];
+
+/// [points] are exactly the fake stops [codes], in order (the fake route
+/// geometry runs straight through each direction's stops, so a ride's line is
+/// its stops; 1e-5 is the polyline's precision).
+void expectLineThrough(List<LatLng> points, List<String> codes) {
+  final stops = fakeBusNetwork().stops;
+  expect(points, hasLength(codes.length), reason: '$points');
+  for (var i = 0; i < codes.length; i++) {
+    final at = stops[codes[i]]!.position;
+    expect(points[i].latitude, closeTo(at.latitude, 1e-5), reason: codes[i]);
+    expect(points[i].longitude, closeTo(at.longitude, 1e-5), reason: codes[i]);
+  }
+}
+
+/// Taps the journey card's "Select" for [service]'s option (P2-M3). Not
+/// scrollToAndTap: widget tests import only the fakes from integration_test/.
+Future<void> selectOption(WidgetTester tester, String service) async {
+  final button = find.byKey(Key('select-option-$service'));
+  await tester.ensureVisible(button);
+  await tester.pump();
+  await tester.tap(button);
+  await tester.pump();
+  await tester.pump();
+}
+
+/// Each stations() call waits on its own gate. The real repository caches a
+/// success, which would make a later suggestion instant and hide the frames
+/// in which the previous journey's value is still held while it reloads.
+class HeldMrtRepository extends MrtAssetRepository {
+  HeldMrtRepository() : super(load: () async => '');
+
+  final gates = <Completer<List<MrtStation>>>[];
+
+  @override
+  Future<List<MrtStation>> stations() {
+    final gate = Completer<List<MrtStation>>();
+    gates.add(gate);
+    return gate.future;
+  }
+}
+
 void main() {
   late FakeBusNetworkRepository bus;
   late FakeRouteGeometryRepository geometry;
@@ -72,15 +137,16 @@ void main() {
     links = FakeLinkOpener();
   });
 
-  Widget app({FakeTileProvider? tileProvider}) => buildTestApp(
-    location: FakeLocationService(
-      access: LocationAccess.granted,
-      position: bishan,
-    ),
+  Widget app({
+    FakeTileProvider? tileProvider,
+    MrtAssetRepository? mrt,
+    LatLng at = bishan,
+  }) => buildTestApp(
+    location: FakeLocationService(access: LocationAccess.granted, position: at),
     environment: FakeEnvironmentRepository(),
     places: FakePlaceSearchRepository(),
     busNetwork: bus,
-    mrt: fakeMrtRepository(),
+    mrt: mrt ?? fakeMrtRepository(),
     busArrivals: FakeBusArrivalRepository(),
     routeGeometry: geometry,
     mapTiles: () => tileProvider ?? tiles,
@@ -482,7 +548,7 @@ void main() {
           .widget<FlutterMap>(find.byType(FlutterMap))
           .children;
       expect(
-        children.indexWhere((w) => w is PolylineLayer),
+        children.indexWhere((w) => w.key == const Key('map-ride-line')),
         lessThan(children.indexWhere((w) => w is MarkerLayer)),
       );
     });
@@ -789,4 +855,461 @@ void main() {
       expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
     });
   });
+
+  group('option sync and MRT (P2-M3)', () {
+    final stops = fakeBusNetwork().stops;
+
+    testWidgets('the suggested option is drawn first: F20 along its own '
+        'stops', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(pointOf(tester, 'boarding'), stops['BSH2']!.position);
+      expectLineThrough(ridePoints(tester), ['BSH2', 'MID1', 'VIV1']);
+    });
+
+    testWidgets('selecting F10 moves the boarding marker and draws F10\'s '
+        'line exactly; one load', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      await selectOption(tester, 'F10');
+      expect(pointOf(tester, 'boarding'), stops['BSH1']!.position);
+      expect(pointOf(tester, 'alighting'), stops['VIV1']!.position);
+      // F10 is BSH1 → MID1 → MID2 → VIV1; F20 (BSH2 → MID1 → VIV1) also
+      // passes MID1, so only the whole line tells them apart.
+      expectLineThrough(ridePoints(tester), ['BSH1', 'MID1', 'MID2', 'VIV1']);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('F10 → F30: the same stops, a different line (via ION1)', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      await selectOption(tester, 'F10');
+      await selectOption(tester, 'F30');
+      expect(pointOf(tester, 'boarding'), stops['BSH1']!.position);
+      expectLineThrough(ridePoints(tester), ['BSH1', 'ION1', 'MID2', 'VIV1']);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('a new plan resets the map to its suggestion: F10, then ION '
+        'Orchard, then VivoCity again shows F20 from BSH2', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      await selectOption(tester, 'F10');
+      expect(pointOf(tester, 'boarding'), stops['BSH1']!.position);
+      expectLineThrough(ridePoints(tester), ['BSH1', 'MID1', 'MID2', 'VIV1']);
+
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD');
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY'); // a new plan
+      await tester.pump();
+
+      expect(pointOf(tester, 'boarding'), stops['BSH2']!.position);
+      expectLineThrough(ridePoints(tester), ['BSH2', 'MID1', 'VIV1']);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('select while the map is closed: no tile, no geometry; '
+        'opening shows the selection', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await selectOption(tester, 'F10');
+      expect(geometry.loads, 0);
+      expect(tiles.requested, isEmpty);
+      await openMap(tester);
+      await tester.pump();
+      expect(pointOf(tester, 'boarding'), stops['BSH1']!.position);
+      expectLineThrough(ridePoints(tester), ['BSH1', 'MID1', 'MID2', 'VIV1']);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('the selection survives Hide map / Show map; no second '
+        'load', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      await selectOption(tester, 'F10');
+      await tester.tap(find.byKey(hideMap));
+      await tester.pump();
+      await openMap(tester);
+      await tester.pump();
+      expect(pointOf(tester, 'boarding'), stops['BSH1']!.position);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('the camera fits the selected option and the MRT markers', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      await selectOption(tester, 'F10');
+      final visible = MapCamera.of(tester.element(find.byType(MarkerLayer)))
+          .visibleBounds;
+      final markers = tester.widget<MarkerLayer>(find.byType(MarkerLayer));
+      expect(marker('mrtNearOrigin'), findsOneWidget);
+      for (final m in markers.markers) {
+        expect(visible.contains(m.point), isTrue, reason: '${m.key}');
+      }
+      for (final code in ['BSH1', 'MID1', 'MID2', 'VIV1']) {
+        final p = stops[code]!.position;
+        expect(
+          visible.contains(_toMap(p)),
+          isTrue,
+          reason: '$code (a ride stop)',
+        );
+      }
+    });
+
+    testWidgets("both MRT markers, with the card's wording as tooltips", (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(marker('mrtNearOrigin'), findsOneWidget);
+      expect(marker('mrtNearDestination'), findsOneWidget);
+      expect(find.byTooltip('Nearest MRT: BISHAN MRT STATION'), findsOneWidget);
+      expect(
+        find.byTooltip('Near your destination: HARBOURFRONT MRT STATION'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('while the MRT suggestion reloads for a new journey, no MRT '
+        'marker (never the old one)', (tester) async {
+      final mrt = HeldMrtRepository();
+      await pumpApp(tester, app(mrt: mrt));
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(marker('mrtNearOrigin'), findsNothing, reason: 'loading');
+      mrt.gates.last.complete(fakeMrtStations);
+      await tester.pump();
+      await tester.pump();
+      expect(
+        find.byTooltip('Near your destination: HARBOURFRONT MRT STATION'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD');
+      expect(mrt.gates, hasLength(2), reason: 'the suggestion re-runs');
+      expect(
+        find.byTooltip('Near your destination: HARBOURFRONT MRT STATION'),
+        findsNothing,
+      );
+      expect(marker('mrtNearOrigin'), findsNothing);
+      mrt.gates.last.complete(fakeMrtStations);
+      await tester.pump();
+      await tester.pump();
+      expect(
+        find.byTooltip('Near your destination: ORCHARD MRT STATION'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('MRT failure: no MRT marker and no map note; the rest is '
+        'unaffected', (tester) async {
+      await pumpApp(tester, app(mrt: fakeMrtRepository(fail: true)));
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(marker('mrtNearOrigin'), findsNothing);
+      expect(marker('mrtNearDestination'), findsNothing);
+      expect(marker('boarding'), findsOneWidget);
+      expect(find.byKey(const Key('map-ride-line')), findsOneWidget);
+    });
+  });
+  group('connectors, MRT pins and legend (P2-M3)', () {
+    final stops = fakeBusNetwork().stops;
+    const connectors = Key('map-walk-connectors');
+    const legend = Key('map-legend');
+    Finder inLegend(String text) =>
+        find.descendant(of: find.byKey(legend), matching: find.text(text));
+
+    testWidgets('two dashed connectors whose ends are exactly the markers; '
+        'the bus line stays solid', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      final walks = tester.widget<PolylineLayer>(find.byKey(connectors));
+      expect(walks.polylines, hasLength(2));
+      final at = {
+        for (final m
+            in tester.widget<MarkerLayer>(find.byType(MarkerLayer)).markers)
+          m.key: m.point,
+      };
+      expect(walks.polylines[0].points, [
+        at[const Key('map-marker-origin')],
+        at[const Key('map-marker-boarding')],
+      ]);
+      expect(walks.polylines[1].points, [
+        at[const Key('map-marker-alighting')],
+        at[const Key('map-marker-destination')],
+      ]);
+      final ride = tester
+          .widget<PolylineLayer>(find.byKey(const Key('map-ride-line')))
+          .polylines
+          .single;
+      for (final w in walks.polylines) {
+        // flutter_map 8.3.2's StrokePattern has value equality (the
+        // segments compared by value). dashed() can't be const: its asserts
+        // read the list's length.
+        expect(w.pattern, StrokePattern.dashed(segments: const [10, 8]));
+        expect(w.pattern.segments, [10, 8]);
+        expect(w.strokeWidth, 3);
+        expect(w.color, isNot(ride.color), reason: 'pin colour, not the bus');
+      }
+      expect(ride.pattern, const StrokePattern.solid());
+      expect(ride.strokeWidth, 5);
+    });
+
+    testWidgets('layer order: connectors, ride line, markers; in the '
+        'markers: MRT, ends, stops', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      final children = tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .children;
+      final walksAt = children.indexWhere((w) => w.key == connectors);
+      final rideAt = children.indexWhere(
+        (w) => w.key == const Key('map-ride-line'),
+      );
+      final markersAt = children.indexWhere((w) => w is MarkerLayer);
+      expect(walksAt, isNonNegative);
+      expect(walksAt, lessThan(rideAt));
+      expect(rideAt, lessThan(markersAt));
+      final keys = [
+        for (final m
+            in tester.widget<MarkerLayer>(find.byType(MarkerLayer)).markers)
+          (m.key! as ValueKey<String>).value,
+      ];
+      expect(keys, [
+        'map-marker-mrtNearOrigin',
+        'map-marker-mrtNearDestination',
+        'map-marker-origin',
+        'map-marker-destination',
+        'map-marker-boarding',
+        'map-marker-alighting',
+      ]);
+    });
+
+    testWidgets('connectors follow the selection (F10: origin → BSH1)', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      await selectOption(tester, 'F10');
+      final first = tester
+          .widget<PolylineLayer>(find.byKey(connectors))
+          .polylines
+          .first
+          .points;
+      expect(first.first, _toMap(bishan));
+      expect(first.last, _toMap(stops['BSH1']!.position));
+    });
+
+    testWidgets('connectors, markers and MRT stay when the ride line is '
+        'unavailable', (tester) async {
+      geometry.failure = const StaticDataUnavailable(
+        StaticDataset.busRouteGeometry,
+      );
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      expect(find.byKey(const Key('map-ride-unavailable')), findsOneWidget);
+      expect(
+        tester.widget<PolylineLayer>(find.byKey(connectors)).polylines,
+        hasLength(2),
+      );
+      expect(marker('mrtNearOrigin'), findsOneWidget);
+      expect(marker('mrtNearDestination'), findsOneWidget);
+      expect(inLegend(JourneyMap.walkLegend), findsOneWidget);
+      expect(inLegend(JourneyMap.busLegend('F20')), findsNothing);
+    });
+
+    testWidgets('selecting while the line loads: the new ride only, never '
+        'the old', (tester) async {
+      geometry.hold();
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      expect(find.byKey(const Key('map-ride-line')), findsNothing);
+      expect(find.byKey(connectors), findsOneWidget, reason: 'needs no data');
+      await selectOption(tester, 'F10');
+      geometry.release();
+      await tester.pump();
+      await tester.pump();
+      expectLineThrough(ridePoints(tester), ['BSH1', 'MID1', 'MID2', 'VIV1']);
+      expect(geometry.loads, 1);
+    });
+
+    testWidgets('walk-only: the ends and MRT, no connectors, no legend', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      // Bishan MRT (NS17) is about 30 m from the fake fix: walk-only.
+      await pickDestination(tester, 'Bishan MRT', 'BISHAN MRT STATION (NS17)');
+      await openMap(tester);
+      await tester.pump();
+      expect(marker('origin'), findsOneWidget);
+      expect(marker('destination'), findsOneWidget);
+      expect(marker('mrtNearOrigin'), findsOneWidget);
+      expect(find.byKey(connectors), findsNothing);
+      expect(find.byKey(legend), findsNothing);
+    });
+
+    testWidgets('no direct bus: the ends and MRT, no connectors, no legend', (
+      tester,
+    ) async {
+      // Tampines Hub → ION Orchard: no fake service connects them.
+      await pumpApp(tester, app(at: tampinesHub.position));
+      await pickDestination(tester, 'ION Orchard', 'ION ORCHARD');
+      expect(find.byKey(const Key('journey-no-direct')), findsOneWidget);
+      await openMap(tester);
+      await tester.pump();
+      expect(marker('boarding'), findsNothing);
+      expect(
+        find.byTooltip('Nearest MRT: TAMPINES MRT STATION'),
+        findsOneWidget,
+      );
+      expect(
+        find.byTooltip('Near your destination: ORCHARD MRT STATION'),
+        findsOneWidget,
+      );
+      expect(find.byKey(connectors), findsNothing);
+      expect(find.byKey(legend), findsNothing);
+      expect(geometry.loads, 0);
+    });
+
+    testWidgets('legend: the bus and walk entries, nothing for MRT', (
+      tester,
+    ) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(JourneyMap.busLegend('F20'), 'Bus F20 route');
+      expect(JourneyMap.walkLegend, 'Walk (straight-line estimate)');
+      expect(inLegend('Bus F20 route'), findsOneWidget);
+      expect(inLegend(JourneyMap.walkLegend), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(legend),
+          matching: find.textContaining('MRT'),
+        ),
+        findsNothing,
+      );
+      await selectOption(tester, 'F10');
+      expect(inLegend('Bus F10 route'), findsOneWidget);
+    });
+
+    testWidgets('dark mode: the same connectors, pins and legend', (
+      tester,
+    ) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(
+        tester.widget<PolylineLayer>(find.byKey(connectors)).polylines,
+        hasLength(2),
+      );
+      expect(marker('mrtNearOrigin'), findsOneWidget);
+      expect(inLegend(JourneyMap.walkLegend), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('2× text at 360 dp: the legend wraps without overflow', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 6000);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(app());
+      await tester.pump();
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      expect(inLegend(JourneyMap.busLegend('F20')), findsOneWidget);
+      expect(inLegend(JourneyMap.walkLegend), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('selecting an option refits the camera the user had moved '
+        'away (once per scene change)', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      LatLngBounds visible() =>
+          MapCamera.of(tester.element(find.byType(MarkerLayer))).visibleBounds;
+      // Pan far east: the journey leaves the view.
+      for (var i = 0; i < 4; i++) {
+        await tester.drag(find.byType(FlutterMap), const Offset(-600, 0));
+        await tester.pump();
+      }
+      final viv1 = _toMap(stops['VIV1']!.position);
+      expect(visible().contains(viv1), isFalse, reason: 'precondition: moved');
+      await selectOption(tester, 'F10');
+      for (final code in ['BSH1', 'MID1', 'MID2', 'VIV1']) {
+        expect(
+          visible().contains(_toMap(stops[code]!.position)),
+          isTrue,
+          reason: code,
+        );
+      }
+    });
+
+    // A guard, not a regression test: on flutter_map 8.3.2 a scene change
+    // cannot land before onMapReady (see the ledger / docs), so this passes on
+    // the pre-P2-M3 code too. It pins that the latest scene is the one fitted.
+    testWidgets('a selection made as the map opens is the one the camera '
+        'fits (the latest scene, not the first)', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await tester.tap(find.byKey(showMap));
+      await tester.pump(); // the map's first frame
+      await selectOption(tester, 'F30');
+      final visible = MapCamera.of(tester.element(find.byType(MarkerLayer)))
+          .visibleBounds;
+      for (final code in ['BSH1', 'ION1', 'MID2', 'VIV1']) {
+        expect(
+          visible.contains(_toMap(stops[code]!.position)),
+          isTrue,
+          reason: code,
+        );
+      }
+    });
+  });
 }
+
+ll.LatLng _toMap(LatLng p) => ll.LatLng(p.latitude, p.longitude);

@@ -182,8 +182,9 @@ onwards. The reasons:
 3. **No prefetching or bulk download.** No offline packs, warming, tile scraping or redistribution.
 4. **Cache what has been fetched.** Use the HTTP cache with OneMap's `max-age`. Cap the Android cache
    (`MapConfig`), and check in P2-M4 that it honours `max-age=14400`.
-5. **No automatic refresh, polling or retry loops.** The camera is fitted once per journey, without
-   animation. A failed tile shows the "Map tiles unavailable" overlay; there is no app-level retry loop.
+5. **No automatic refresh, polling or retry loops.** The camera is fitted once per scene change (a new
+   journey; since P2-M3 also the user's option selection, or the MRT suggestion settling), without animation,
+   and never periodically or on a timer. When the map becomes ready it fits the latest scene. A failed tile shows the "Map tiles unavailable" overlay; there is no app-level retry loop.
 6. **Honest identity.** No credentials, proxy or spoofed client. On Android, flutter_map sends its
    package-name `User-Agent`; on Web the browser's own headers go out.
 7. **Re-check the terms** at each map milestone (P2-M1 to P2-M4), and record the date and any change in
@@ -397,16 +398,20 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
      - D4: `BusService.sourceDirectionOf` keeps busrouter's direction index if the parser ever drops a
        direction; this index mapping is what prevents the opposite direction's line, because the matcher does not
        detect a swapped direction (its reversed variant may accept it);
-     - D5: the camera is fitted to the ride's stops as well as the four markers, still once per journey and
-       before the first frame (no refit when the line arrives);
+     - D5: the camera is fitted to the ride's stops as well as the four markers, before the first frame (no
+       refit when the line arrives); since P2-M3, once per scene change (§4.2 rule 5);
      - the loop additions of §5: the boarding occurrence is pinned with `leadingStops`, and a chain may not
        span more than one loop;
      - `routes.min.json` is loaded only after "Show map" with a direct-bus journey, once per session; a failed
        load is held, and the next "Show map" retries.
-3. **P2-M3 — Walk connectors, MRT and option sync.**
-   - Straight dashed "est." walk connectors (origin → board, alight → destination).
-   - MRT suggestion markers from the existing `mrtSuggestionProvider`.
-   - Selecting an option (suggested or alternative) shows that option on the map; a legend.
+3. **P2-M3 — Walk connectors, MRT and option sync.** Planned in
+   `docs/p2-m3-map-option-sync-implementation-plan.md` (decisions D1–D9) and built as specified:
+   - Straight dashed "est." walk connectors (origin → board, alight → destination), derived from the markers;
+     none for walk-only, no-direct-bus or no-nearby-stop answers.
+   - MRT suggestion markers from the existing `mrtSuggestionProvider`: both sides, each when present, at the
+     nearest exit, with the card's wording; informational only.
+   - Selecting an option (suggested or alternative) in the journey card shows that option on the map; a legend
+     with two entries ("Bus <N> route", "Walk (straight-line estimate)").
    - Never shows data the journey card doesn't already show.
 4. **P2-M4 — Hardening.**
    - Android tile cache cap.
@@ -425,5 +430,5 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    unlimited traffic.
 2. Ride lines: **decided in P2-M2 (2026-10-03).** Markers only for a ride that is not fully matched; no
    straight dashed connectors and no "approximate" label (§5 rule 2).
-3. Walking: confirm straight-line "est." connectors. Should the FOSSGIS `routed-foot` experiment stay off
-   the roadmap, or be considered in P2-M4?
+3. Walking: **decided in P2-M3 (2026-10-04).** Straight-line "est." connectors, drawn dashed; no walking
+   router. Whether the FOSSGIS `routed-foot` experiment is considered stays a P2-M4 question.

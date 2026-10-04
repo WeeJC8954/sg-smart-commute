@@ -9,6 +9,7 @@ import '../../destination/domain/destination_controller.dart';
 import '../../origin/domain/origin_controller.dart';
 import '../domain/direct_bus_planner.dart';
 import '../domain/mrt.dart';
+import '../domain/option_selection.dart';
 import '../journey_providers.dart';
 import 'distance_text.dart';
 
@@ -16,6 +17,10 @@ import 'distance_text.dart';
 /// plus up to two alternatives, each with its live arrivals, or a clear
 /// "no direct bus" / walk / unavailable state, and the MRT alternative. Live
 /// arrivals are never invented, and their failure never hides the route.
+///
+/// With two or more options the user can select one (P2-M3): the selected
+/// option is the one the journey map shows. Selecting never re-plans, never
+/// reorders the options or moves "Suggested", and never touches arrivals.
 class JourneyCard extends ConsumerWidget {
   const JourneyCard({super.key});
 
@@ -35,6 +40,7 @@ class JourneyCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final plan = ref.watch(journeyPlanProvider);
     final mrt = ref.watch(mrtSuggestionProvider);
+    final selection = ref.watch(optionSelectionProvider);
 
     return Card(
       key: const Key('journey-card'),
@@ -59,7 +65,11 @@ class JourneyCard extends ConsumerWidget {
                   ..invalidate(journeyPlanProvider),
                 retryLabel: 'Retry finding a bus',
               ),
-              AsyncValue(:final value) => _Plan(plan: value),
+              AsyncValue(:final value) => _Plan(
+                plan: value,
+                selection: selection,
+                onSelect: ref.read(optionSelectionProvider.notifier).select,
+              ),
             },
             const Divider(height: 24),
             _Mrt(
@@ -77,8 +87,16 @@ class JourneyCard extends ConsumerWidget {
 }
 
 class _Plan extends StatelessWidget {
-  const _Plan({required this.plan});
+  const _Plan({
+    required this.plan,
+    required this.selection,
+    required this.onSelect,
+  });
   final JourneyPlan? plan;
+
+  /// The user's selection; it applies only to the plan it was made for.
+  final OptionSelection? selection;
+  final void Function(DirectBusOptions plan, int index) onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -106,39 +124,51 @@ class _Plan extends StatelessWidget {
           ),
         ],
       ),
-      final DirectBusOptions direct => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Option(
-            key: const Key('journey-suggested'),
-            plan: direct,
-            option: direct.options.first,
-            heading: 'Suggested',
-          ),
-          if (direct.options.length > 1) ...[
-            const SizedBox(height: 12),
-            SectionHeading('Alternatives', style: theme.textTheme.titleSmall),
-            for (var i = 1; i < direct.options.length; i++)
-              // Keyed by the option itself, so an open "Show steps" never
-              // carries over to a different bus at the same position.
-              KeyedSubtree(
-                key: ValueKey(
-                  '${direct.options[i].board.code}-'
-                  '${direct.options[i].service.number}',
-                ),
-                child: _Option(
-                  key: Key('journey-alternative-$i'),
-                  plan: direct,
-                  option: direct.options[i],
-                  collapsible: true,
-                ),
-              ),
-          ],
-          const SizedBox(height: 8),
-          ArrivalsFooter(plan: direct),
-        ],
-      ),
+      final DirectBusOptions direct => _directOptions(theme, direct),
     };
+  }
+
+  Widget _directOptions(ThemeData theme, DirectBusOptions direct) {
+    final shown = selectedOptionIndex(selection, direct);
+    // Only a choice of two or more can be selected.
+    VoidCallback? selectable(int i) =>
+        direct.options.length > 1 ? () => onSelect(direct, i) : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Option(
+          key: const Key('journey-suggested'),
+          plan: direct,
+          option: direct.options.first,
+          heading: 'Suggested',
+          selected: shown == 0,
+          onSelect: selectable(0),
+        ),
+        if (direct.options.length > 1) ...[
+          const SizedBox(height: 12),
+          SectionHeading('Alternatives', style: theme.textTheme.titleSmall),
+          for (var i = 1; i < direct.options.length; i++)
+            // Keyed by the option itself, so an open "Show steps" never
+            // carries over to a different bus at the same position.
+            KeyedSubtree(
+              key: ValueKey(
+                '${direct.options[i].board.code}-'
+                '${direct.options[i].service.number}',
+              ),
+              child: _Option(
+                key: Key('journey-alternative-$i'),
+                plan: direct,
+                option: direct.options[i],
+                collapsible: true,
+                selected: shown == i,
+                onSelect: selectable(i),
+              ),
+            ),
+        ],
+        const SizedBox(height: 8),
+        ArrivalsFooter(plan: direct),
+      ],
+    );
   }
 }
 
@@ -154,11 +184,19 @@ class _Option extends StatefulWidget {
     required this.option,
     this.heading,
     this.collapsible = false,
+    this.selected = false,
+    this.onSelect,
   });
   final DirectBusOptions plan;
   final BusOption option;
   final String? heading;
   final bool collapsible;
+
+  /// This is the selected option (the one the map shows).
+  final bool selected;
+
+  /// Selects this option; null when there is nothing to choose between.
+  final VoidCallback? onSelect;
 
   @override
   State<_Option> createState() => _OptionState();
@@ -205,22 +243,81 @@ class _OptionState extends State<_Option> {
             ],
           ),
           _Steps(option: o, full: _expanded),
-          if (widget.collapsible)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: () => setState(() => _expanded = !_expanded),
-                // Spoken with the bus: several alternatives each have one,
-                // and a bare "Show steps" doesn't say which it opens (#25).
-                child: Text(
-                  _expanded ? 'Hide steps' : 'Show steps',
-                  semanticsLabel:
-                      '${_expanded ? 'Hide' : 'Show'} steps for Bus '
-                      '${o.service.number}',
-                ),
-              ),
+          if (widget.onSelect != null || widget.collapsible)
+            // Wraps below each other at large text or in a narrow card.
+            Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (widget.onSelect != null)
+                  _SelectControl(
+                    service: o.service.number,
+                    selected: widget.selected,
+                    onSelect: widget.onSelect!,
+                  ),
+                if (widget.collapsible)
+                  TextButton(
+                    onPressed: () => setState(() => _expanded = !_expanded),
+                    // Spoken with the bus: several alternatives each have one,
+                    // and a bare "Show steps" doesn't say which it opens (#25).
+                    child: Text(
+                      _expanded ? 'Hide steps' : 'Show steps',
+                      semanticsLabel:
+                          '${_expanded ? 'Hide' : 'Show'} steps for Bus '
+                          '${o.service.number}',
+                    ),
+                  ),
+              ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Select" for an option that isn't selected, or the "Selected" mark (P2-M3).
+/// Both are spoken with the bus, since every option has one.
+class _SelectControl extends StatelessWidget {
+  const _SelectControl({
+    required this.service,
+    required this.selected,
+    required this.onSelect,
+  });
+  final String service;
+  final bool selected;
+  final VoidCallback onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!selected) {
+      return OutlinedButton(
+        key: Key('select-option-$service'),
+        onPressed: onSelect,
+        child: Text('Select', semanticsLabel: 'Select Bus $service'),
+      );
+    }
+    final color = Theme.of(context).colorScheme.primary;
+    return Semantics(
+      key: Key('selected-option-$service'),
+      // Its own node, so a screen reader stops on it. Selecting removes the
+      // focused "Select" button, so the mark announces itself (live region).
+      container: true,
+      liveRegion: true,
+      selected: true,
+      label: 'Bus $service selected',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, size: 18, color: color),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text('Selected', style: TextStyle(color: color)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -352,11 +449,11 @@ class _Mrt extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _line('Nearest MRT', value?.nearOrigin),
+                _line(MrtWording.nearOrigin, value?.nearOrigin),
                 key: const Key('journey-mrt-origin'),
               ),
               Text(
-                _line('Near your destination', value?.nearDestination),
+                _line(MrtWording.nearDestination, value?.nearDestination),
                 key: const Key('journey-mrt-destination'),
               ),
             ],
@@ -368,5 +465,5 @@ class _Mrt extends StatelessWidget {
 
   String _line(String label, MrtSuggestion? s) => s == null
       ? '$label: none within about ${distanceText(maxMeters)}'
-      : '$label: ${s.station.name} — ${s.walk.label}';
+      : '${MrtWording.named(label, s.station)} — ${s.walk.label}';
 }

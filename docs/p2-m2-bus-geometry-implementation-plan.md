@@ -49,7 +49,8 @@ Baseline: `main` at `c537b1f` (P2-M0 and P2-M1 merged).
 - **OneMap reasonable use (P2-M0 §4.2 / P2-M1)** stays unchanged:
   - map closed by default;
   - no tile before "Show map";
-  - camera inside OneMap's bounds and z11–19, fitted once per journey without animation;
+  - camera inside OneMap's bounds and z11–19, fitted once per journey without animation (since P2-M3: once
+    per scene change, `docs/map-feasibility.md` §4.2 rule 5);
   - no prefetch;
   - no automatic tile retry.
 - **`routes.min.json` is lazy:** nothing is requested before the user opens the map with a direct-bus journey.
@@ -197,6 +198,8 @@ Fix:
 `MapScene.bounds` adds every ride stop position to the four markers. These positions are known synchronously
 from the bus network the plan came from. The camera is therefore still fitted **once per journey, before the
 first frame** (the P2-M1 rule), and a bending ride stays in view. There is no refit when the line arrives.
+(Since P2-M3 the rule is once per scene change: journey, option selection, or the MRT suggestion settling;
+`docs/map-feasibility.md` §4.2 rule 5.)
 
 ### D6. Where things live
 

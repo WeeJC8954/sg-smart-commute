@@ -280,6 +280,44 @@ never plans and never changes the service, direction, boarding or alighting stop
 - Not in P2-M2: walking lines or routers (P2-M3 adds straight dashed "est." connectors), transfers, option sync
   (the map shows the suggested option), live vehicles, automatic OSM fallback, map-based planning.
 
+## Phase 2 Milestone 3 (walk connectors, MRT markers, option sync)
+
+The user can select any displayed direct-bus option in the journey card, and the open map shows that option, with
+straight dashed "est." walking connectors, the card's two MRT suggestions and a two-entry legend (decisions D1–D9 in
+`docs/p2-m3-map-option-sync-implementation-plan.md`; rules in `docs/assumptions.md` "Journey option selection",
+"Walking connectors and legend", "MRT markers" and "Map camera"). The planner stays authoritative and the map stays
+a consumer: it never plans, selects, looks up stations or computes walking times.
+
+- **Files and responsibilities:**
+  - `features/journey/domain/option_selection.dart` (pure Dart): `OptionSelection(plan, index)` and
+    `selectedOptionIndex`, which honours a selection only for the identical plan object (else 0, the suggestion).
+  - `features/journey/journey_providers.dart`: `optionSelectionProvider` (`OptionSelectionController.select`). It
+    never watches the plan, so selecting never re-plans; it is not auto-disposed, so it survives "Hide map".
+  - `features/journey/domain/mrt.dart`: `MrtWording`, the card's MRT words, now shared with the map's markers.
+  - `features/journey/presentation/journey_card.dart`: "Select" / "Selected" per option (two or more options).
+  - `features/map/domain/map_scene.dart`: `buildMapScene(selectedIndex:, mrt:)`; `MapWalk` and the derived
+    `MapScene.walks`; `MapMarkerKind.mrtNearOrigin` / `mrtNearDestination`; `MapScene.isAlternative`; the summary.
+  - `features/map/map_providers.dart`: `mapSceneProvider` reads the selection and the settled MRT suggestion.
+  - `features/map/presentation/journey_map.dart`: the dashed connector layer, MRT pins (drawn first), the legend,
+    and the camera's fit-the-latest-scene rule.
+- **Data flow**: the journey card writes `optionSelectionProvider`; `mapSceneProvider` reads it with
+  `journeyPlanProvider` and `mrtSuggestionProvider` (both only when settled) → `buildMapScene` → `JourneyMap`.
+  `rideLineProvider` follows the scene's ride, so a selection recomputes the line against the same session-held
+  `routes.min.json` (no second request), and the P2-M2 guard (`line.ride == scene.ride`) is unchanged. Arrivals
+  are untouched: `journeyArrivalsProvider` already covers every displayed option's boarding stop.
+- **Dependency direction**: the journey feature (and `bus_arrival`) never imports `features/map`; the map reads the
+  journey's selection, plan and MRT suggestion. `flutter_map` / `latlong2` stay in `features/map/presentation/`.
+- **Camera**: fitted once per scene change (a new journey, the user's selection, the MRT suggestion settling),
+  without animation and never on a timer (`docs/map-feasibility.md` §4.2 rule 5). `JourneyMap` remembers the scene
+  it last fitted and fits the latest one when the map becomes ready and on each change.
+- **No new dependency, provider host or network request**; CSP unchanged. Dashed lines use flutter_map 8.3.2's
+  `StrokePattern.dashed`.
+- **Decision numbers**: P2-M3's D1–D9 are its plan's own, separate from P2-M2's D1–D6 above (the plan's
+  "Decision numbers" note maps them).
+- Not in P2-M3: walking routing (the `routed-foot` question stays with P2-M4), a walk-only connector, MRT
+  routing, lines, codes, directions or arrivals, a legend entry for MRT, choosing an option from the map,
+  transfers, live vehicles.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),

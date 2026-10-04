@@ -54,6 +54,14 @@ exactly as they are.
 
 Baseline: `main` at `70a74cb` (the P2-M2 merge, PR #42).
 
+**Decision numbers.** D1–D9 in this plan are P2-M3's own. They are not P2-M2's D1–D6 (which
+`docs/map-feasibility.md` §10 and `docs/architecture.md` "Phase 2 Milestone 2" cite), and not P2-M0's §5 rules.
+The approval of 2026-10-04 used this plan's numbers: D2 (Select / Selected), D5 (no walk-only connector), D6
+(legend) and D7 (MRT markers). D7 is the one that changed: the first draft deferred MRT markers; the approved
+D7 keeps them in P2-M3. Implementation also applied six review refinements (camera contract wording, a
+map-side reset test, an exact F10 line assertion, shared MRT wording, the map-ready fit, this mapping); they
+refine tests and wording, not D1–D9.
+
 ---
 
 ## Global Constraints

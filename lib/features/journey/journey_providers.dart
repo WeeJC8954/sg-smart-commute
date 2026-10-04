@@ -12,6 +12,7 @@ import 'domain/bus_network.dart';
 import 'domain/bus_network_repository.dart';
 import 'domain/direct_bus_planner.dart';
 import 'domain/mrt.dart';
+import 'domain/option_selection.dart';
 import 'domain/walking.dart';
 
 /// Static bus data (busrouter). Overridden with a fake in tests.
@@ -72,6 +73,26 @@ final journeyPlanProvider = FutureProvider<JourneyPlan?>((ref) async {
   final network = await ref.watch(busNetworkProvider.future);
   return planDirectBus(network, origin, destination, config: config);
 });
+
+/// Which displayed direct-bus option the user selected (P2-M3). Journey state:
+/// the journey card writes it and the map reads it. It never watches the
+/// plan, so selecting never re-plans; it is tied to the plan object instead
+/// ([selectedOptionIndex]), so it can never carry over to a new journey.
+final optionSelectionProvider =
+    NotifierProvider<OptionSelectionController, OptionSelection?>(
+      OptionSelectionController.new,
+    );
+
+class OptionSelectionController extends Notifier<OptionSelection?> {
+  @override
+  OptionSelection? build() => null;
+
+  /// Selects [plan]'s option at [index]; an index out of range is ignored.
+  void select(DirectBusOptions plan, int index) {
+    if (index < 0 || index >= plan.options.length) return;
+    state = OptionSelection(plan, index);
+  }
+}
 
 /// Nearest MRT station to the origin and to the destination (guide v2.1
 /// §9.5, informational only). Null until both ends exist.

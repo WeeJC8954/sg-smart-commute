@@ -2,13 +2,16 @@
 // Location, environment, place search, bus data and the MRT asset are fakes
 // (integration_test/fakes/). No arrival times are shown anywhere in M3.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/ui/motion.dart';
+import 'package:sg_smart_commute/features/bus_arrival/bus_arrival_providers.dart';
 import 'package:sg_smart_commute/features/journey/domain/walking.dart';
+import 'package:sg_smart_commute/features/journey/journey_providers.dart';
 import 'package:sg_smart_commute/features/journey/presentation/journey_card.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
 
@@ -58,6 +61,16 @@ String textOf(WidgetTester tester, String key) =>
     tester.widget<Text>(find.byKey(Key(key))).data!;
 
 String walk(LatLng a, LatLng b) => WalkEstimate.between(a, b).label;
+
+/// Taps the "Select" control of [service]'s option (P2-M3).
+Future<void> select(WidgetTester tester, String service) async {
+  final button = find.byKey(Key('select-option-$service'));
+  await tester.ensureVisible(button);
+  await tester.pump();
+  await tester.tap(button);
+  await tester.pump();
+  await tester.pump();
+}
 
 void main() {
   late FakeBusNetworkRepository bus;
@@ -575,5 +588,156 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  group('selecting an option (P2-M3)', () {
+    testWidgets('the suggestion is selected first; one control per other '
+        'option', (tester) async {
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      expect(find.byKey(const Key('selected-option-F20')), findsOneWidget);
+      expect(find.byKey(const Key('select-option-F10')), findsOneWidget);
+      expect(find.byKey(const Key('select-option-F30')), findsOneWidget);
+      expect(find.byKey(const Key('select-option-F20')), findsNothing);
+    });
+
+    testWidgets('select F10, then back to F20; "Suggested" and the order '
+        'never change', (tester) async {
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await select(tester, 'F10');
+      expect(find.byKey(const Key('selected-option-F10')), findsOneWidget);
+      expect(find.byKey(const Key('selected-option-F20')), findsNothing);
+      expect(find.byKey(const Key('select-option-F20')), findsOneWidget);
+      expect(
+        inKey('journey-suggested', 'Take Bus F20 toward VivoCity (fake)'),
+        findsOneWidget,
+      );
+      expect(
+        inKey('journey-alternative-1', 'Take Bus F10 toward VivoCity (fake)'),
+        findsOneWidget,
+      );
+      expect(
+        inKey('journey-alternative-2', 'Take Bus F30 toward VivoCity (fake)'),
+        findsOneWidget,
+      );
+      await select(tester, 'F20');
+      expect(find.byKey(const Key('selected-option-F20')), findsOneWidget);
+      expect(find.byKey(const Key('select-option-F10')), findsOneWidget);
+    });
+
+    testWidgets('selecting never re-plans, reloads buses or touches '
+        'arrivals', (tester) async {
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await tester.pump();
+      final c = ProviderScope.containerOf(
+        tester.element(find.byKey(const Key('journey-card'))),
+      );
+      final plan = c.read(journeyPlanProvider).value;
+      final journeyArrivals = c.read(journeyArrivalsProvider).value;
+      expect(journeyArrivals, isNotNull);
+      final calls = arrivals.totalCalls;
+      await select(tester, 'F10');
+      await select(tester, 'F30');
+      expect(identical(c.read(journeyPlanProvider).value, plan), isTrue);
+      expect(
+        identical(c.read(journeyArrivalsProvider).value, journeyArrivals),
+        isTrue,
+      );
+      expect(arrivals.totalCalls, calls);
+      expect(bus.loads, 1);
+    });
+
+    testWidgets('a new journey starts at its suggestion (no stale index)', (
+      tester,
+    ) async {
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await select(tester, 'F10');
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      // One option only: no select control at all.
+      await searchAndPick(
+        tester,
+        destinationField,
+        'ION Orchard',
+        'ION ORCHARD',
+      );
+      expect(find.byKey(const Key('select-option-F30')), findsNothing);
+      expect(find.byKey(const Key('selected-option-F30')), findsNothing);
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      // A new plan object for the same trip: back at its suggestion.
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      expect(find.byKey(const Key('selected-option-F20')), findsOneWidget);
+      expect(find.byKey(const Key('selected-option-F10')), findsNothing);
+    });
+
+    testWidgets('"Refresh arrivals" keeps the selection', (tester) async {
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await select(tester, 'F10');
+      await tester.tap(find.byKey(const Key('arrivals-refresh')));
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('selected-option-F10')), findsOneWidget);
+    });
+
+    testWidgets('spoken labels name the bus; the mark is selected', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      expect(find.bySemanticsLabel('Select Bus F10'), findsOneWidget);
+      expect(find.bySemanticsLabel('Select Bus F30'), findsOneWidget);
+      expect(
+        tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
+        isSemantics(label: 'Bus F20 selected', isSelected: true),
+      );
+      await select(tester, 'F10');
+      // Selecting removes the focused button, so the mark announces itself.
+      expect(
+        tester.getSemantics(find.byKey(const Key('selected-option-F10'))),
+        isSemantics(
+          label: 'Bus F10 selected',
+          isSelected: true,
+          isLiveRegion: true,
+        ),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('2× text at 360 dp: no overflow', (tester) async {
+      tester.view.physicalSize = const Size(360, 6000);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(gpsApp());
+      await tester.pump();
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      expect(find.byKey(const Key('select-option-F10')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      // The widest row: an alternative selected, with its steps expanded.
+      await select(tester, 'F10');
+      final showSteps = find.descendant(
+        of: find.byKey(const Key('journey-alternative-1')),
+        matching: find.text('Show steps'),
+      );
+      await tester.ensureVisible(showSteps);
+      await tester.tap(showSteps);
+      await tester.pump();
+      expect(find.byKey(const Key('selected-option-F10')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('journey-alternative-1')),
+          matching: find.text('Hide steps'),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
   });
 }

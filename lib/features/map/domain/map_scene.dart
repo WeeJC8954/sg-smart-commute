@@ -1,10 +1,20 @@
+import '../../../core/config/app_config.dart';
 import '../../../core/geo/geo.dart';
 import '../../journey/domain/bus_network.dart';
 import '../../journey/domain/direct_bus_planner.dart';
+import '../../journey/domain/mrt.dart';
 import 'ride_geometry.dart';
 
-/// What a map marker stands for.
-enum MapMarkerKind { origin, boarding, alighting, destination }
+/// What a map marker stands for. The two MRT kinds (P2-M3) are the journey
+/// card's MRT suggestions, informational only.
+enum MapMarkerKind {
+  origin,
+  boarding,
+  alighting,
+  destination,
+  mrtNearOrigin,
+  mrtNearDestination,
+}
 
 /// One point on the journey map. [label] names the place for tooltips and
 /// the map's summary.
@@ -31,24 +41,86 @@ class MapMarker {
   String toString() => 'MapMarker(${kind.name}, $label)';
 }
 
+/// A straight walking connector between two journey points (P2-M3). An
+/// estimate, not a route: the map has no walking geometry (guide §17), and
+/// the walking times stay the journey card's.
+class MapWalk {
+  const MapWalk(this.from, this.to);
+
+  final LatLng from;
+  final LatLng to;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MapWalk && other.from == from && other.to == to;
+
+  @override
+  int get hashCode => Object.hash(from, to);
+
+  @override
+  String toString() => 'MapWalk($from -> $to)';
+}
+
 /// What the journey map draws: markers, and the bus ride when there is one,
 /// read from the journey that the planner already produced. Pure Dart: no
 /// Flutter or map-package import, so it is testable on its own and the map
 /// widget stays replaceable (guide §17).
 class MapScene {
-  const MapScene(this.markers, {this.serviceNumber, this.ride});
+  const MapScene(
+    this.markers, {
+    this.serviceNumber,
+    this.ride,
+    this.isAlternative = false,
+  });
 
-  /// In journey order: origin, boarding stop, alighting stop, destination.
-  /// The two stops are present only when a direct bus was suggested.
+  /// In journey order: origin, boarding stop, alighting stop, destination
+  /// (the two stops only when the journey has a direct bus; they are the shown
+  /// option's), then the MRT suggestions that are present.
   final List<MapMarker> markers;
 
-  /// The suggested option's bus, when there is one.
+  /// The shown option's bus, when there is one.
   final String? serviceNumber;
 
-  /// The suggested bus ride, whose line is drawn on the road once the route
-  /// geometry is known. Null when there is no ride, or when the plan and the
-  /// bus network do not agree on it.
+  /// The shown option's bus ride, whose line is drawn on the road once the
+  /// route geometry is known. Null when there is no ride, or when the plan and
+  /// the bus network do not agree on it.
   final MapRide? ride;
+
+  /// The shown option is one the user selected instead of the planner's
+  /// first (suggested) option (P2-M3).
+  final bool isAlternative;
+
+  /// The walking connectors (P2-M3): origin → boarding stop and alighting
+  /// stop → destination, straight, when the scene has a bus. Their ends are
+  /// the markers themselves. One shorter than
+  /// [MapConfig.walkConnectorMinMeters] (the same place) is left out.
+  List<MapWalk> get walks {
+    LatLng? at(MapMarkerKind kind) {
+      for (final m in markers) {
+        if (m.kind == kind) return m.position;
+      }
+      return null;
+    }
+
+    final origin = at(MapMarkerKind.origin);
+    final boarding = at(MapMarkerKind.boarding);
+    final alighting = at(MapMarkerKind.alighting);
+    final destination = at(MapMarkerKind.destination);
+    if (origin == null ||
+        boarding == null ||
+        alighting == null ||
+        destination == null) {
+      return const [];
+    }
+    return [
+      for (final w in [
+        MapWalk(origin, boarding),
+        MapWalk(alighting, destination),
+      ])
+        if (haversineMeters(w.from, w.to) >= MapConfig.walkConnectorMinMeters)
+          w,
+    ];
+  }
 
   /// Smallest box holding every marker and every ride stop.
   ({LatLng southWest, LatLng northEast}) get bounds {
@@ -75,8 +147,20 @@ class MapScene {
         ? ''
         : ', bus $bus from ${labelOf(MapMarkerKind.boarding)} '
               'to ${labelOf(MapMarkerKind.alighting)}';
-    return 'Map of the suggested journey: from $from$stops, to $to. '
-        'The journey details are listed above.';
+    final journey = isAlternative
+        ? 'an alternative journey'
+        : 'the suggested journey';
+    final walking = walks.isEmpty
+        ? ''
+        : 'Walks are drawn as straight lines, estimates only. ';
+    final mrt = [
+      for (final m in markers)
+        if (m.kind == MapMarkerKind.mrtNearOrigin ||
+            m.kind == MapMarkerKind.mrtNearDestination)
+          '${m.label}. ',
+    ].join();
+    return 'Map of $journey: from $from$stops, to $to. '
+        '$walking${mrt}The journey details are listed above.';
   }
 
   @override
@@ -84,10 +168,12 @@ class MapScene {
       other is MapScene &&
       other.serviceNumber == serviceNumber &&
       other.ride == ride &&
+      other.isAlternative == isAlternative &&
       _listEquals(other.markers, markers);
 
   @override
-  int get hashCode => Object.hash(serviceNumber, ride, Object.hashAll(markers));
+  int get hashCode =>
+      Object.hash(serviceNumber, ride, isAlternative, Object.hashAll(markers));
 
   static bool _listEquals(List<MapMarker> a, List<MapMarker> b) {
     if (a.length != b.length) return false;
@@ -100,45 +186,68 @@ class MapScene {
 
 /// The scene for a journey from [origin] to [destination]. [plan] is the
 /// planner's current answer (null while it is being found or has failed):
-/// only a [DirectBusOptions] adds stops, from its first (suggested) option.
-/// Every other answer shows the two ends only. [stops] is the bus network's
-/// stop table: with it, that suggested option also yields the [MapScene.ride].
-/// Never plans anything itself.
+/// only a [DirectBusOptions] adds stops, from the option at [selectedIndex]
+/// (the user's selection, P2-M3; 0, the planner's suggestion, by default or
+/// when out of range). Every other answer shows the two ends only. [stops] is
+/// the bus network's stop table: with it, the shown option also yields the
+/// [MapScene.ride]. [mrt] is the journey's settled MRT suggestion (null while
+/// it loads or has failed): each side present adds an informational marker at
+/// the exit the card's estimate was made to, with the card's wording. Never
+/// plans, selects or looks up anything itself.
 MapScene buildMapScene({
   required LatLng origin,
   required String originLabel,
   required LatLng destination,
   required String destinationLabel,
   JourneyPlan? plan,
+  int selectedIndex = 0,
+  ({MrtSuggestion? nearOrigin, MrtSuggestion? nearDestination})? mrt,
   Map<String, BusStop>? stops,
 }) {
-  final suggested = switch (plan) {
-    DirectBusOptions(:final options) when options.isNotEmpty => options.first,
+  final shown = switch (plan) {
+    DirectBusOptions(:final options) when options.isNotEmpty =>
+      options[selectedIndex >= 0 && selectedIndex < options.length
+          ? selectedIndex
+          : 0],
     _ => null,
   };
-  final ride = suggested == null || stops == null
-      ? null
-      : _rideOf(suggested, stops);
+  final ride = shown == null || stops == null ? null : _rideOf(shown, stops);
   String stopLabel(BusStop stop) => '${stop.name} (${stop.code})';
   return MapScene(
     [
       MapMarker(MapMarkerKind.origin, origin, originLabel),
-      if (suggested != null) ...[
+      if (shown != null) ...[
         MapMarker(
           MapMarkerKind.boarding,
-          suggested.board.position,
-          stopLabel(suggested.board),
+          shown.board.position,
+          stopLabel(shown.board),
         ),
         MapMarker(
           MapMarkerKind.alighting,
-          suggested.alight.position,
-          stopLabel(suggested.alight),
+          shown.alight.position,
+          stopLabel(shown.alight),
         ),
       ],
       MapMarker(MapMarkerKind.destination, destination, destinationLabel),
+      if (mrt?.nearOrigin case final s?)
+        MapMarker(
+          MapMarkerKind.mrtNearOrigin,
+          s.nearestExit.position,
+          MrtWording.named(MrtWording.nearOrigin, s.station),
+        ),
+      if (mrt?.nearDestination case final s?)
+        MapMarker(
+          MapMarkerKind.mrtNearDestination,
+          s.nearestExit.position,
+          MrtWording.named(MrtWording.nearDestination, s.station),
+        ),
     ],
-    serviceNumber: suggested?.service.number,
+    serviceNumber: shown?.service.number,
     ride: ride,
+    isAlternative:
+        plan is DirectBusOptions &&
+        shown != null &&
+        !identical(shown, plan.options.first),
   );
 }
 

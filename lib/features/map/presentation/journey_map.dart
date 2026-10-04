@@ -10,13 +10,17 @@ import '../domain/ride_geometry.dart';
 import '../map_providers.dart';
 import 'basemap.dart';
 
-/// The journey on a OneMap basemap: markers (P2-M1) and the bus ride drawn on
-/// its road when the route geometry matches it (P2-M2). Built only while
-/// the user has the map open, so tiles are requested only for a visible map.
+/// The journey on a OneMap basemap: markers (P2-M1), the bus ride drawn on
+/// its road when the route geometry matches it (P2-M2), and (P2-M3) straight
+/// dashed walking connectors, the MRT suggestions and a small legend. It
+/// shows the option the journey card has selected. Built only while the user
+/// has the map open, so tiles are requested only for a visible map.
 ///
 /// Reasonable use (docs/map-feasibility.md §4.2): the camera is fitted once
-/// per journey without animation and cannot leave OneMap's bounds or zoom
-/// range; failed tiles are not retried automatically.
+/// per scene change (a new journey, the user's option selection, or the MRT
+/// suggestion settling), without animation and never periodically or on a
+/// timer, and cannot leave OneMap's bounds or zoom range; failed tiles are
+/// not retried automatically.
 class JourneyMap extends ConsumerStatefulWidget {
   const JourneyMap({super.key, required this.scene});
 
@@ -28,6 +32,12 @@ class JourneyMap extends ConsumerStatefulWidget {
   static const String rideLineUnavailable =
       "The bus route line isn't available for this ride. The stops are shown.";
 
+  /// Legend (P2-M3): the dashed walking connectors are estimates, not routes.
+  static const String walkLegend = 'Walk (straight-line estimate)';
+
+  /// Legend (P2-M3): the solid line is the shown bus's route.
+  static String busLegend(String service) => 'Bus $service route';
+
   @override
   ConsumerState<JourneyMap> createState() => _JourneyMapState();
 }
@@ -36,6 +46,10 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
   final _controller = MapController();
   late final TileProvider _tiles = ref.read(mapTileProviderFactoryProvider)();
   bool _ready = false;
+
+  /// The scene the camera was last fitted to (the initial camera, then each
+  /// refit), so a change is fitted exactly once, and the latest one wins.
+  MapScene? _cameraScene;
   bool _tilesFailed = false;
   Brightness? _brightness;
   MapCamera? _initialCamera;
@@ -51,6 +65,10 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
 
   static bool _isEnd(MapMarkerKind kind) =>
       kind == MapMarkerKind.origin || kind == MapMarkerKind.destination;
+
+  static bool _isMrt(MapMarkerKind kind) =>
+      kind == MapMarkerKind.mrtNearOrigin ||
+      kind == MapMarkerKind.mrtNearDestination;
 
   CameraFit _fit(MapScene scene) {
     final b = scene.bounds;
@@ -82,10 +100,23 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
   @override
   void didUpdateWidget(JourneyMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A new journey (or new stops for it): fit once, without animating.
-    if (_ready && widget.scene != oldWidget.scene) {
-      _controller.fitCamera(_fit(widget.scene));
-    }
+    // A new scene (journey, selected option, settled MRT suggestion): fit
+    // once, without animating. Before the map is ready, _onMapReady does it.
+    if (_ready) _fitLatest();
+  }
+
+  /// The map is ready: fit the scene as it is now, which may be newer than
+  /// the one the initial camera was worked out for.
+  void _onMapReady() {
+    _ready = true;
+    _fitLatest();
+  }
+
+  void _fitLatest() {
+    final scene = widget.scene;
+    if (scene == _cameraScene) return;
+    _cameraScene = scene;
+    _controller.fitCamera(_fit(scene));
   }
 
   @override
@@ -123,6 +154,7 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
     };
     // A failed load is a note only once it is not being retried, and a worked
     // out gap only for the ride this scene shows (as for the drawn line).
+    final walks = widget.scene.walks;
     final rideUnavailable =
         widget.scene.ride != null &&
         ((rideLine != null && rideLine.hasError && !rideLine.isLoading) ||
@@ -144,7 +176,7 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final initial = _initialCamera ??= _fittedCamera(
-                    widget.scene,
+                    _cameraScene = widget.scene,
                     constraints.biggest,
                   );
                   return FlutterMap(
@@ -161,7 +193,7 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
                       ),
                       backgroundColor:
                           theme.colorScheme.surfaceContainerHighest,
-                      onMapReady: () => _ready = true,
+                      onMapReady: _onMapReady,
                     ),
                     children: [
                       TileLayer(
@@ -173,6 +205,23 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
                         maxNativeZoom: MapConfig.maxZoom.toInt(),
                         errorTileCallback: _onTileError,
                       ),
+                      // Straight dashed estimates (P2-M3), under the bus line:
+                      // dashes, width and colour all differ from it.
+                      if (walks.isNotEmpty)
+                        PolylineLayer(
+                          key: const Key('map-walk-connectors'),
+                          polylines: [
+                            for (final w in walks)
+                              Polyline(
+                                points: [_toMap(w.from), _toMap(w.to)],
+                                strokeWidth: 3,
+                                pattern: _walkPattern,
+                                color: theme.colorScheme.tertiary,
+                                borderStrokeWidth: 1,
+                                borderColor: theme.colorScheme.surface,
+                              ),
+                          ],
+                        ),
                       // Before the markers, so the pins stay on top.
                       if (drawn != null)
                         PolylineLayer(
@@ -189,14 +238,19 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
                         ),
                       MarkerLayer(
                         markers: [
-                          // Ends first and larger, stops on top and smaller: where
-                          // a stop is a short walk from an end, both stay visible.
+                          // MRT first (informational, never hiding a journey
+                          // pin), then the ends, larger, then the stops on top
+                          // and smaller: where a stop is a short walk from an
+                          // end, both stay visible.
                           for (final m in [
+                            ...widget.scene.markers.where(
+                              (m) => _isMrt(m.kind),
+                            ),
                             ...widget.scene.markers.where(
                               (m) => _isEnd(m.kind),
                             ),
                             ...widget.scene.markers.where(
-                              (m) => !_isEnd(m.kind),
+                              (m) => !_isEnd(m.kind) && !_isMrt(m.kind),
                             ),
                           ])
                             Marker(
@@ -215,6 +269,29 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
             ),
           ),
         ),
+        if (drawn != null || walks.isNotEmpty)
+          Padding(
+            key: const Key('map-legend'),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 4,
+              children: [
+                if (drawn != null)
+                  _LegendEntry(
+                    color: theme.colorScheme.primary,
+                    dashed: false,
+                    label: JourneyMap.busLegend(drawn.ride.service),
+                  ),
+                if (walks.isNotEmpty)
+                  _LegendEntry(
+                    color: theme.colorScheme.tertiary,
+                    dashed: true,
+                    label: JourneyMap.walkLegend,
+                  ),
+              ],
+            ),
+          ),
         // Below the map, not over it, so it never hides a marker.
         if (_tilesFailed)
           Semantics(
@@ -269,6 +346,56 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
   }
 }
 
+/// The walking connectors' dashes (P2-M3). Not const: StrokePattern.dashed
+/// asserts on its list, which a constant expression cannot do.
+final StrokePattern _walkPattern = StrokePattern.dashed(
+  segments: const [10, 8],
+);
+
+/// One legend line: a short swatch of the line, solid or dashed, and its name.
+class _LegendEntry extends StatelessWidget {
+  const _LegendEntry({
+    required this.color,
+    required this.dashed,
+    required this.label,
+  });
+
+  final Color color;
+  final bool dashed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget bar(double width) => SizedBox(
+      width: width,
+      height: 4,
+      child: ColoredBox(color: color),
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (dashed)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              bar(5),
+              const SizedBox(width: 3),
+              bar(5),
+              const SizedBox(width: 3),
+              bar(5),
+            ],
+          )
+        else
+          bar(21),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ),
+      ],
+    );
+  }
+}
+
 /// A round pin with an icon per kind, on the surface colour with a border, so
 /// it stands out on both the light and the dark basemap.
 class _MarkerPin extends StatelessWidget {
@@ -284,6 +411,8 @@ class _MarkerPin extends StatelessWidget {
       MapMarkerKind.boarding => (Icons.directions_bus, scheme.primary),
       MapMarkerKind.alighting => (Icons.logout, scheme.primary),
       MapMarkerKind.destination => (Icons.place, scheme.tertiary),
+      MapMarkerKind.mrtNearOrigin ||
+      MapMarkerKind.mrtNearDestination => (Icons.train, scheme.secondary),
     };
     return Tooltip(
       message: marker.label,
