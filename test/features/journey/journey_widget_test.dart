@@ -696,6 +696,16 @@ void main() {
         tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
         isSemantics(label: 'Bus F20 selected', isSelected: true),
       );
+      await select(tester, 'F10');
+      // Selecting removes the focused button, so the mark announces itself.
+      expect(
+        tester.getSemantics(find.byKey(const Key('selected-option-F10'))),
+        isSemantics(
+          label: 'Bus F10 selected',
+          isSelected: true,
+          isLiveRegion: true,
+        ),
+      );
       handle.dispose();
     });
 
@@ -709,6 +719,24 @@ void main() {
       await tester.pump();
       await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
       expect(find.byKey(const Key('select-option-F10')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      // The widest row: an alternative selected, with its steps expanded.
+      await select(tester, 'F10');
+      final showSteps = find.descendant(
+        of: find.byKey(const Key('journey-alternative-1')),
+        matching: find.text('Show steps'),
+      );
+      await tester.ensureVisible(showSteps);
+      await tester.tap(showSteps);
+      await tester.pump();
+      expect(find.byKey(const Key('selected-option-F10')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('journey-alternative-1')),
+          matching: find.text('Hide steps'),
+        ),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
   });

@@ -299,8 +299,10 @@ class _SelectControl extends StatelessWidget {
     final color = Theme.of(context).colorScheme.primary;
     return Semantics(
       key: Key('selected-option-$service'),
-      // Its own node, so a screen reader stops on it.
+      // Its own node, so a screen reader stops on it. Selecting removes the
+      // focused "Select" button, so the mark announces itself (live region).
       container: true,
+      liveRegion: true,
       selected: true,
       label: 'Bus $service selected',
       excludeSemantics: true,

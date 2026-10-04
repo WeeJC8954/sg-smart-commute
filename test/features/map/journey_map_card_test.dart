@@ -1259,10 +1259,39 @@ void main() {
       await pickDestination(tester, 'VivoCity', 'VIVOCITY');
       await openMap(tester);
       await tester.pump();
+      expect(inLegend(JourneyMap.busLegend('F20')), findsOneWidget);
       expect(inLegend(JourneyMap.walkLegend), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('selecting an option refits the camera the user had moved '
+        'away (once per scene change)', (tester) async {
+      await pumpApp(tester, app());
+      await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+      await openMap(tester);
+      await tester.pump();
+      LatLngBounds visible() =>
+          MapCamera.of(tester.element(find.byType(MarkerLayer))).visibleBounds;
+      // Pan far east: the journey leaves the view.
+      for (var i = 0; i < 4; i++) {
+        await tester.drag(find.byType(FlutterMap), const Offset(-600, 0));
+        await tester.pump();
+      }
+      final viv1 = _toMap(stops['VIV1']!.position);
+      expect(visible().contains(viv1), isFalse, reason: 'precondition: moved');
+      await selectOption(tester, 'F10');
+      for (final code in ['BSH1', 'MID1', 'MID2', 'VIV1']) {
+        expect(
+          visible().contains(_toMap(stops[code]!.position)),
+          isTrue,
+          reason: code,
+        );
+      }
+    });
+
+    // A guard, not a regression test: on flutter_map 8.3.2 a scene change
+    // cannot land before onMapReady (see the ledger / docs), so this passes on
+    // the pre-P2-M3 code too. It pins that the latest scene is the one fitted.
     testWidgets('a selection made as the map opens is the one the camera '
         'fits (the latest scene, not the first)', (tester) async {
       await pumpApp(tester, app());
