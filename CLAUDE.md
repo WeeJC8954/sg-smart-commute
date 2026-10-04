@@ -97,20 +97,27 @@ Key flows that span several files:
   not cached). Its result carries the exact plan it was fetched for, and widgets show it only against that
   plan (no stale attach). ArriveLah JSON is parsed only in `arrivelah_parser.dart`; ETAs come from `time` and
   the clock (`Arr` ≤ 1 min, else minutes rounded down), never `duration_ms`. Refresh never recomputes the plan.
-- **Map** (`features/map/`, P2-M1, ride line P2-M2): `mapSceneProvider` turns origin, destination and the current
-  `journeyPlanProvider` value into a pure `MapScene` (the suggested option's stops; only the two ends while the plan
-  loads or failed); it never plans. The map is closed by default (`mapExpandedProvider`, session UI state), so no
+- **Map** (`features/map/`, P2-M1, ride line P2-M2, option sync P2-M3): `mapSceneProvider` turns origin,
+  destination, the current `journeyPlanProvider` value, the journey card's selection and the MRT suggestion into a
+  pure `MapScene` (the selected option's stops; only the two ends while the plan loads or failed); it never plans or
+  selects. The map is closed by default (`mapExpandedProvider`, session UI state), so no
   tile is requested before "Show map". `flutter_map` / `latlong2` are imported only in `features/map/presentation/`.
-  OneMap Default/Night tiles, camera fitted before the first frame inside OneMap's bounds and z11–19, no automatic
-  tile retry, persistent linked attribution (`url_launcher`). Rules: `docs/map-feasibility.md` §4.2 and the map
-  rows of `docs/assumptions.md`. **Ride line** (P2-M2): the scene carries the suggested option's `MapRide`
+  OneMap Default/Night tiles, camera fitted before the first frame inside OneMap's bounds and z11–19 and refitted
+  once per scene change (journey, selection, MRT settling; never on a timer), no automatic tile retry, persistent linked attribution (`url_launcher`). Rules: `docs/map-feasibility.md` §4.2 and the map
+  rows of `docs/assumptions.md`. **Ride line** (P2-M2): the scene carries the selected option's `MapRide`
   (from `BusOption.boardIndex` and `BusService.sourceDirectionOf`); `routeGeometryProvider` loads busrouter
   `routes.min.json` lazily, once per session (nothing before "Show map" with a direct-bus journey; a failure is held
   with no automatic retry and `MapExpanded.show` retries a held failure only when the journey being shown has a bus ride
   (and `ref.exists`), so nothing is requested for a walk-only or no-bus journey);
   the pure `matchRide` draws the line only if **every** ride stop matches in order (all-or-nothing, doubling only
   closed lines), else markers and a note, never a straight stand-in. The camera bounds include the ride's stops.
-  Rules: the "Bus ride line" and "Route geometry load" rows of `docs/assumptions.md`.
+  Rules: the "Bus ride line" and "Route geometry load" rows of `docs/assumptions.md`. **Option sync** (P2-M3): one
+  selection, journey-owned (`optionSelectionProvider`, written by the card's "Select", read by the map), honoured
+  only for the identical plan object (`selectedOptionIndex`), so it never carries over to a new journey; selecting
+  never re-plans or touches arrivals. **Walk connectors**: `MapScene.walks`, derived from the markers (origin →
+  boarding, alighting → destination), straight and dashed, never routed. **MRT markers**: read from
+  `mrtSuggestionProvider` (settled values only), worded via the journey's `MrtWording`. Rules: the P2-M3 rows of
+  `docs/assumptions.md`.
 - **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no
   rolled-over fields; never plain `DateTime.parse`), store UTC, display at a fixed +08:00 offset (no `timezone`
   package).

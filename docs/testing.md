@@ -48,8 +48,8 @@ Why `-d web-server --browser-name=chrome --profile` and not `-d chrome` (M5, Flu
 | Test | Status |
 |---|---|
 | `integration_test/app_boot_test.dart` (harness check) | Milestone 0. See the run log |
-| `integration_test/happy_path_test.dart` (fake GPS in SG → dashboard → destination → direct bus + ETA → manual refresh) | Complete since M4: fake GPS → scoped dashboard → destination → direct bus → live ETA → manual refresh after the cache TTL shows new ETAs |
-| `integration_test/fallback_path_test.dart` (permission denied or outside SG → manual origin → provider failure → error + Retry → recovery) | Written in M1 (provider failure = 24-hr PSI `NetworkUnavailable`; also out-of-SG and timeout + late-fix cases). M4 adds: origin with a direct bus → bus-arrival `NetworkUnavailable` (route kept, unavailable + Retry) → recovery → ETA |
+| `integration_test/happy_path_test.dart` (fake GPS in SG → dashboard → destination → direct bus + ETA → manual refresh) | Complete since M4: fake GPS → scoped dashboard → destination → direct bus → live ETA → manual refresh after the cache TTL shows new ETAs. P2-M3 adds: the dashed walking connectors and both MRT markers on the open map; selecting F10 in the journey card moves the boarding marker to BSH1 and redraws the line, with one `routes.min.json` load and no arrival request |
+| `integration_test/fallback_path_test.dart` (permission denied or outside SG → manual origin → provider failure → error + Retry → recovery) | Written in M1 (provider failure = 24-hr PSI `NetworkUnavailable`; also out-of-SG and timeout + late-fix cases). M4 adds: origin with a direct bus → bus-arrival `NetworkUnavailable` (route kept, unavailable + Retry) → recovery → ETA. P2-M3 adds: on the no-direct-bus journey the map (opened, then hidden) marks the two ends and both MRT stations only: no stops, connectors, legend or `routes.min.json` request |
 
 Since M1, `app_boot_test.dart` also uses fake providers (the app now requests location and calls data.gov.sg at
 launch). Fakes live in `integration_test/fakes/` and are shared by widget and integration tests. NEA parser tests use real
