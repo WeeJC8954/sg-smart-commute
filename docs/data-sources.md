@@ -126,9 +126,13 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 - **LTA DataMall:** needs an AccountKey, and has no browser CORS support. Never called by the app. A local
   reference check is optional and needs the developer's own key (`api-feasibility.md` §5).
 - **OneMap routing:** needs a token.
-- **Phase 2 map candidates ruled out in P2-M0** (`docs/map-feasibility.md` §4, §6):
+- **Phase 2 map candidates ruled out in P2-M0 and P2-M4** (`docs/map-feasibility.md` §4, §6, §6.1):
   - CARTO basemaps now need a key; keyless tiles are watermarked "API KEY REQUIRED" (seen 2026-10-02).
-  - The OSRM demo server is car-only.
-  - FOSSGIS Valhalla is for development and testing only.
-  - BRouter has no usage policy.
+  - The OSRM demo server: its `/foot/` returns a car route (checked again in the P2-M4 discovery, 2026-10-04),
+    and its wiki limits it to reasonable, non-commercial use.
+  - FOSSGIS `routed-foot` and Valhalla (`routing.openstreetmap.de`, `valhalla1.openstreetmap.de`): keyless and
+    CORS-enabled, but their shared terms don't fit a backend-less public app (no hardcoded URLs recommended, an
+    operator email, an app User-Agent, request logging, no high-traffic sites). Not adopted in P2-M4
+    (`docs/map-feasibility.md` §6.1).
+  - BRouter has no usage policy (checked again in the P2-M4 discovery, 2026-10-04).
   - openrouteservice, GraphHopper, Mapbox, Stadia, MapTiler, Thunderforest, Esri and Google Maps need keys.

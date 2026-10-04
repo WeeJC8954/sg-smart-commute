@@ -444,7 +444,8 @@ Docs only. It starts the implementation PR.
   EOF
     echo; sleep 2
     echo "=== routing.openstreetmap.de/about.html (request logging)"
-    curl -s -m 20 -A "$UA" https://routing.openstreetmap.de/about.html | grep -o -i 'saved[^<]\{0,60\}log file'
+    curl -s -m 20 -A "$UA" https://routing.openstreetmap.de/about.html | tr -s '\r\n\t ' ' ' \
+      | grep -o -i 'is saved[^<]\{0,40\}log file'   # the page wraps this sentence across lines
   } > docs/probe-output/walking-routers-p2m4.txt
   rm -rf "$T"
   ```

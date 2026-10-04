@@ -28,7 +28,7 @@ Constraints this design keeps (guide §2, §14, §17, ADR-001):
 | Basemap | **OneMap** `Default` (light) and `Night` (dark) raster tiles, z11–19. **Decision: accepted** (§4.2) | Keyless, `Access-Control-Allow-Origin: *`, official Singapore map. The host `www.onemap.gov.sg` is **already in `connect-src`**, so the basemap needs **no CSP change**. The terms license use but give no service-level agreement and publish no volume limit, so the project sets its own reasonable-use rules (§4.2). |
 | Fallback basemap | None automatically. Keep OSM standard tiles as a documented config switch | A second provider adds a host, a policy and an attribution for a rare failure. When tiles fail, the map shows a degraded state; the journey card, which is the real answer, is unaffected. |
 | Bus ride geometry | Slice busrouter `routes.min.json`, already an allowed host, between the boarding and alighting stops | 98.5% of stop-to-stop hops and 88% of random rides can be drawn exactly. A ride that cannot be fully matched shows markers only, with a note, never a straight stand-in (§5, decided in P2-M2). |
-| Walking geometry | **Keep straight-line "est." connectors** (guide §17). No live router by default | None of the keyless routers we tested (§6) had a usage policy we could confidently adopt for app traffic. An opt-in FOSSGIS `routed-foot` experiment is possible later, only on your decision. |
+| Walking geometry | **Keep straight-line "est." connectors** (guide §17). **Decided in P2-M4 (2026-10-04): no walking router** (§6.1) | None of the keyless routers we tested (§6) had terms this app can meet without a backend; the primary FOSSGIS terms were read in P2-M4 (§6.1). |
 | Architecture | A new `features/map/` that only *reads* the plan; flutter_map imported in one widget | The planner and domain never import map code (guide §17), and the map stays removable (§8). |
 
 **Basemap decision: OneMap is accepted** (§4.2). This comes with three conditions:
@@ -256,8 +256,8 @@ are never taken from incompatible passes. The probe stays in `tool/` unchanged, 
 |---|---|---|---|---|---|
 | OneMap routing | **Token** | `*` | Yes | 401 without a token | Excluded (credential) |
 | OSRM demo `router.project-osrm.org` | None | `*` | **No.** `/foot/` returned a car route: 1,207 m in 124 s | "Reasonable, non-commercial", ≤ 1 req/s, no guarantees | Excluded (wrong profile) |
-| FOSSGIS OSRM `routing.openstreetmap.de/routed-foot/` | None | `*` | Yes: 852 m, 686 s for the probe pair | About page: ≤ 1 req/s, valid UA/Referer, attribution plus a "fix the map" link, no heavy use. Requests are logged | **Only candidate.** Off by default (below) |
-| FOSSGIS Valhalla `valhalla1.openstreetmap.de` | None | `*` | Yes (pedestrian; used in the spike) | FOSSGIS server policy (secondary source; the German terms page was unreachable) says development and testing only | Excluded for app traffic |
+| FOSSGIS OSRM `routing.openstreetmap.de/routed-foot/` | None | `*` | Yes: 852 m, 686 s for the probe pair | About page: ≤ 1 req/s, valid UA/Referer, attribution plus a "fix the map" link, no heavy use. Requests are logged | Not adopted (§6.1) |
+| FOSSGIS Valhalla `valhalla1.openstreetmap.de` | None | `*` | Yes (pedestrian; used in the spike) | Same FOSSGIS terms as `routed-foot` (primary source, read 2026-10-04). The P2-M0 wording 'development and testing only' came from a secondary source and is **not** in the primary terms | Not adopted (§6.1). It would also need a precision-6 decoder |
 | BRouter `brouter.de` | None | `*` | Hiking/trekking profiles | No published usage policy | Excluded |
 | openrouteservice, GraphHopper, Mapbox | Key | — | Yes | — | Excluded (credential) |
 | On-device routing (e.g. `geo_route_finder` 1.5.0, pure Dart, reads `.osm.pbf`) | None | n/a | Yes | n/a | Not realistic: uses `dart:io` (no Web), needs a bundled or downloaded SG extract, no adoption |
@@ -265,16 +265,16 @@ are never taken from incompatible passes. The probe stays in `tool/` unchanged, 
 **Conclusion.** None of the keyless candidates we tested (the OSRM demo, FOSSGIS `routed-foot`, FOSSGIS
 Valhalla, BRouter) had a usage policy we could confidently adopt for app traffic:
 - the OSRM demo's foot profile returned a car route;
-- Valhalla's server policy restricts it to development and testing;
+- Valhalla is under the same FOSSGIS terms as `routed-foot` (§6.1);
 - BRouter publishes no policy;
 - `routed-foot`, the closest fit, allows only light use (≤ 1 request per second, no heavy use) and logs
   requests.
 
 This is a finding about these candidates, not a claim about every possible keyless router.
 
-**Recommendation:** keep the current straight-line "est." walking connectors on the map, drawn dashed, as
-guide §17 already specifies. FOSSGIS `routed-foot` could be an opt-in experiment in P2-M4, with these
-conditions:
+**Recommendation (P2-M0, now history):** P2-M0 recommended keeping the straight-line "est." walking connectors on
+the map, drawn dashed, as guide §17 already specifies, and offered FOSSGIS `routed-foot` as an opt-in P2-M4
+experiment under the conditions below. **P2-M4 decided against it (§6.1).** The conditions were:
 - only with your explicit approval of its policy;
 - one request per walk leg, sent only when the map is shown;
 - session-cached and paced to ≤ 1 request per second;
@@ -282,6 +282,89 @@ conditions:
 
 It would also send the user's exact origin to a third party (requests are logged), which the current app
 never does beyond OneMap search text.
+
+### 6.1 Decision in P2-M4: no walking router (2026-10-04)
+
+**Decided by the user on 2026-10-04: the P2-M3 straight dashed "Walk (straight-line estimate)" connectors are
+the final Phase 2 behaviour.** No walking router is integrated: not FOSSGIS `routed-foot` or Valhalla, the OSRM
+demo, OneMap routing, BRouter, or any other. Nothing is added for it: no routing host, CSP entry, HTTP
+behaviour, credential, backend, proxy or coordinate disclosure.
+
+**Evidence** (read and probed on 2026-10-04; commands and results in the `docs/testing.md` run log, the P2-M4
+discovery row and the Task 1 re-check row, and in `docs/probe-output/walking-routers-p2m4.txt`):
+- **Primary terms:** FOSSGIS e.V., "Nutzungsbedingungen OSM-Server des FOSSGIS e.V."
+  (https://www.fossgis.de/arbeitsgruppen/osm-server/nutzungsbedingungen/, German with an English version).
+  P2-M0 could not load the page; it loads now.
+  - **One set of terms covers both `routing.openstreetmap.de` (`routed-foot`) and
+    `valhalla1.openstreetmap.de`.** The routing server's about page (https://routing.openstreetmap.de/about.html)
+    and the OSRM demo-server wiki both point to them.
+  - From the English version:
+    - "Their primary purpose is to support usage on our website and to assist OpenStreetMap contributors in
+      their work."
+    - "Explicitly recommended: The URLs of our services should not be hardcoded into the app."
+    - "For websites, an email address of the operator must be easily identifiable and directly reachable … For
+      apps, this applies to the app website and its entries in app stores."
+    - "Valid HTTP User-Agent identifying the application. User agents of libraries are not sufficient."
+    - "Websites with high traffic volumes are generally not permitted to use our services."
+    - "Commercial use is only permitted if the use of the services does not constitute a substantial part of an
+      online offering."
+    - For the routing servers: "Maximum one request per second."
+    - Attribution "as required by the license", plus a link to https://www.openstreetmap.org/fixthemap.
+    - "permission to use the services may be revoked by us at any time without stating reasons".
+    - "each service is backed by only a single server. We do not guarantee availability."
+  - The about page adds that a route request "is saved in the server log file".
+  - No clause limits the routing servers to development or testing.
+- **Technically, `routed-foot` works**: it is reachable and usable from Flutter Web.
+  - `GET https://routing.openstreetmap.de/routed-foot/route/v1/foot/{lng,lat};{lng,lat}?overview=full&geometries=polyline`
+    returns 200 with `Access-Control-Allow-Origin: *` and needs no key.
+  - A plain GET needs no CORS preflight; the preflight allows only `X-Requested-With, Content-Type`.
+  - The answer is OSRM JSON with a precision-5 Google polyline (the app's `decodePolyline` reads it), a distance
+    and a duration.
+  - For Raffles Place MRT → Fullerton Hotel (about 300 m apart): 852.5 m in 685.9 s, the same as in P2-M0.
+
+**Why it is not suitable for this app:**
+1. **Hardcoded URL.** With no backend (ADR-001) there is no remote configuration or kill switch. The URL would
+   be a constant in every APK, against FOSSGIS's explicit recommendation, and an installed APK would keep
+   calling it after a revocation or a change of terms.
+2. **Operator contact.** The terms require an operator email that is easy to find on the website and in
+   app-store entries. The project publishes none.
+3. **Android User-Agent.** Library User-Agents are not enough. On Android, `JsonHttpClient` sends Dart's
+   default, so meeting this would change the shared HTTP client or add a second one. On Web the browser's own
+   headers are acceptable, by FOSSGIS's own note.
+4. **Privacy.** Routing would send the exact origin (often the GPS position) and the destination to a third
+   party that logs requests. Today no request carries exact user coordinates: OneMap search gets typed text,
+   ArriveLah gets stop codes, and OneMap tiles reveal only the area being viewed.
+5. **Traffic.** The services are mainly for FOSSGIS's own site and OSM contributors, and high-traffic sites are
+   not allowed. A public Web/APK app with no backend and no analytics can neither bound nor observe its total
+   request volume (about 2 requests per shown option, sent again for each journey or selection).
+6. **Attribution.** A routed line needs a second attribution next to OneMap's required one: OSM (ODbL) plus a
+   "fix the map" link, whenever the line is shown.
+7. **No service commitment.** There is one server, no availability guarantee, and the permission can be
+   withdrawn at any time.
+
+Valhalla is under the same terms, and would also need a precision-6 decoder. The OSRM demo's `/foot/` returns a
+car route, and its wiki limits it to "reasonable, non-commercial use-cases". OneMap routing needs a token
+(401). BRouter publishes only a privacy policy. The keyed routers (openrouteservice, GraphHopper, Mapbox,
+Geoapify, Stadia) need credentials. A 2026-10-04 search found no new keyless walking router.
+
+**Why the estimates meet the specification.** Guide §17 allows walking-route geometry "**only** if a keyless,
+CORS-enabled routing provider is found and its policy allows client use. Otherwise keep straight-line 'est.'
+connectors." So the second branch is the specified behaviour, not a degraded one.
+- The walking times stay the planner's labelled estimate (guide §9.3, `WalkEstimate`), shown only in the journey
+  card.
+- The map draws its connectors between the same points that estimate uses, and labels them "Walk (straight-line
+  estimate)".
+- Its screen-reader summary says the walks are straight lines and estimates only.
+
+**Reopen only on a material change, and only with the user's explicit approval:**
+- a keyless, CORS-enabled walking router whose published terms explicitly allow third-party client or app
+  traffic at this app's scale, on conditions the project can meet without a backend;
+- FOSSGIS changing these terms in that direction (to re-check, use the commands in
+  `docs/p2-m4-map-hardening-implementation-plan.md`, Task 1, Step 1);
+- a change to the project's architecture (ADR-001 superseded), which is not planned;
+- on-device routing becoming practical on both Web and Android.
+
+A successful HTTP request alone is never a reason to reopen.
 
 ## 7. CSP implications
 
@@ -300,7 +383,7 @@ never does beyond OneMap search text.
   same.
 - **What would add hosts, if chosen later:**
   - OSM contingency: `https://tile.openstreetmap.org`.
-  - FOSSGIS walk: `https://routing.openstreetmap.de`.
+  - FOSSGIS walk: `https://routing.openstreetmap.de` (not chosen, §6.1).
   - MapLibre: a script origin (or self-hosting), `worker-src blob:`, and style, glyph and sprite hosts.
   - Each is a deliberate, reviewed CSP change.
 - **Android** has no CSP. The app already declares `INTERNET`.
@@ -359,7 +442,7 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
 | M6 | flutter_map maintenance or breaking 9.x | Upgrade work | Pin `^8.3`; flutter_map imported in one widget only |
 | M7 | Performance on low-end Android (overdraw, large polylines) | Jank | Ride slice only (tens of points), not whole routes; check frame times in P2-M4 |
 | M8 | Accessibility: a map is visual-only | Screen-reader users lose nothing only if the text stays complete | Journey card remains the full answer; map has one summary label; no information only on the map |
-| M9 | Privacy: tile requests reveal the viewed area to OneMap; a walking router would get exact coordinates | Data exposure | OneMap only (already used for search); walking router off by default (§6) |
+| M9 | Privacy: tile requests reveal the viewed area to OneMap; a walking router would get exact coordinates | Data exposure | OneMap only (already used for search); **no walking router** (§6.1), so no exact coordinates leave the app |
 | M10 | CARTO-style policy changes (keyless 200 with a watermark) can't be seen as HTTP errors | Silent bad map | Spot-check visually in each milestone's smoke run; not detectable automatically |
 
 ## 10. Proposed implementation sequence (one reviewable PR each)
@@ -420,8 +503,7 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    - Web drive and Android integration tests with fake tiles; manual live smoke (light, dark, 360 dp, 2×
      text).
    - Decide on HD tiles.
-   - Optional, **only if approved**: the FOSSGIS `routed-foot` experiment behind a config flag, with the
-     §6 conditions and its own CSP host.
+   - The optional FOSSGIS `routed-foot` experiment: not adopted (P2-M4 D2, 2026-10-04; §6.1).
 
 ## 11. Decisions before P2-M1
 
@@ -431,4 +513,4 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
 2. Ride lines: **decided in P2-M2 (2026-10-03).** Markers only for a ride that is not fully matched; no
    straight dashed connectors and no "approximate" label (§5 rule 2).
 3. Walking: **decided in P2-M3 (2026-10-04).** Straight-line "est." connectors, drawn dashed; no walking
-   router. Whether the FOSSGIS `routed-foot` experiment is considered stays a P2-M4 question.
+   router. **Closed in P2-M4 (2026-10-04): FOSSGIS `routed-foot` is not adopted (§6.1).**

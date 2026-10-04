@@ -314,7 +314,7 @@ a consumer: it never plans, selects, looks up stations or computes walking times
   `StrokePattern.dashed`.
 - **Decision numbers**: P2-M3's D1–D9 are its plan's own, separate from P2-M2's D1–D6 above (the plan's
   "Decision numbers" note maps them).
-- Not in P2-M3: walking routing (the `routed-foot` question stays with P2-M4), a walk-only connector, MRT
+- Not in P2-M3: walking routing (the `routed-foot` question went to P2-M4, which closed it with no router: `docs/map-feasibility.md` §6.1), a walk-only connector, MRT
   routing, lines, codes, directions or arrivals, a legend entry for MRT, choosing an option from the map,
   transfers, live vehicles.
 
