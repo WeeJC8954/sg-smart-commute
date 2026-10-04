@@ -694,7 +694,7 @@ void main() {
       expect(find.bySemanticsLabel('Select Bus F30'), findsOneWidget);
       expect(
         tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
-        containsSemantics(label: 'Bus F20 selected', isSelected: true),
+        isSemantics(label: 'Bus F20 selected', isSelected: true),
       );
       handle.dispose();
     });
