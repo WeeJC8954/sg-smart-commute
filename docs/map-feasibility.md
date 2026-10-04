@@ -181,7 +181,8 @@ onwards. The reasons:
    NE (1.494, 104.502), and to z11–19, so no tiles outside Singapore and no deep zoom.
 3. **No prefetching or bulk download.** No offline packs, warming, tile scraping or redistribution.
 4. **Cache what has been fetched.** Use the HTTP cache with OneMap's `max-age`. Cap the Android cache
-   (`MapConfig`), and check in P2-M4 that it honours `max-age=14400`.
+   (`MapConfig`). Verified in P2-M4 (2026-10-04): flutter_map serves a cached tile without a request until
+   `max-age` (minus `Age`) has passed, then revalidates. Seen offline on the AVD (`docs/testing.md`).
 5. **No automatic refresh, polling or retry loops.** The camera is fitted once per scene change (a new
    journey; since P2-M3 also the user's option selection, or the MRT suggestion settling), without animation,
    and never periodically or on a timer. When the map becomes ready it fits the latest scene. A failed tile shows the "Map tiles unavailable" overlay; there is no app-level retry loop.
@@ -423,7 +424,8 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
 - **Caching:**
   - Web: the browser HTTP cache.
   - Android: flutter_map's built-in cache (on by default off-Web since 8.2, 1 GB soft limit). Cap its size
-    in `MapConfig`; check in P2-M4 that it honours the tiles' `max-age=14400`.
+    in `MapConfig`. P2-M4 verified that it honours the tiles' `max-age=14400`: a fresh tile is shown with no
+    request, a stale one is revalidated (`docs/testing.md`, 2026-10-04).
   - No prefetch or bulk download (OneMap terms; OSM policy if ever used).
 - **Failure handling:**
   - Tile errors show a small "Map tiles unavailable" overlay.
