@@ -191,7 +191,8 @@ onwards. The reasons:
 6. **Honest identity.** No credentials, proxy or spoofed client. On Android, flutter_map sends its
    package-name `User-Agent`; on Web the browser's own headers go out.
 7. **Re-check the terms** at each map milestone (P2-M1 to P2-M4), and record the date and any change in
-   `docs/testing.md`.
+   `docs/testing.md`. Re-checked in P2-M4 (2026-10-04, 05:07 UTC): unchanged. Re-checks were not recorded for P2-M1,
+   P2-M2 or P2-M3; the P2-M0 reading (2026-10-03) was the last before P2-M4.
 
 **If OneMap refuses tiles** (a token requirement, a published limit we would exceed, 429s or a block):
 - the map shows its degraded state;
