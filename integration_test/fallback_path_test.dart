@@ -2,7 +2,10 @@
 // M1–M4: permission denied (or a fix outside Singapore, or a timeout) → the
 // manual origin prompt appears → the user searches for and selects an origin
 // → searches for and selects a destination → "No direct bus found" plus the
-// MRT alternative (fake bus network and MRT asset) → a provider fails (24-hr
+// MRT alternative (fake bus network and MRT asset) → P2-M3: the map, opened
+// on request, marks the two ends and both MRT suggestions, with no bus stops,
+// walking connectors, legend or route-geometry request, and is hidden again →
+// a provider fails (24-hr
 // PSI throws NetworkUnavailable) → a clear error with Retry and no
 // fabricated value → Retry with the recovered fake succeeds → the user
 // changes the origin to one with a direct bus → the bus-arrival provider
@@ -23,6 +26,7 @@ import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 import 'fakes/fake_bus_arrival_repository.dart';
 import 'fakes/fake_environment_repository.dart';
 import 'fakes/fake_location_service.dart';
+import 'fakes/fake_route_geometry.dart';
 import 'fakes/test_app.dart';
 import 'support.dart';
 
@@ -36,8 +40,14 @@ void main() {
       ..failPsi = const NetworkUnavailable();
     final arrivals = FakeBusArrivalRepository()
       ..failure = const NetworkUnavailable();
+    final geometry = FakeRouteGeometryRepository();
     await tester.pumpWidget(
-      buildTestApp(location: location, environment: env, busArrivals: arrivals),
+      buildTestApp(
+        location: location,
+        environment: env,
+        busArrivals: arrivals,
+        routeGeometry: geometry,
+      ),
     );
 
     // Manual prompt immediately; no position was ever requested.
@@ -86,6 +96,28 @@ void main() {
       ),
       findsOneWidget,
     );
+
+    // P2-M3: the map marks the two ends and both MRT suggestions only. No
+    // bus, so no stops, connectors, legend or routes.min.json request.
+    await scrollToAndTap(tester, find.byKey(const Key('show-map')));
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('map-marker-mrtNearOrigin')),
+    );
+    for (final kind in ['origin', 'destination', 'mrtNearDestination']) {
+      expect(find.byKey(Key('map-marker-$kind')), findsOneWidget, reason: kind);
+    }
+    for (final key in [
+      'map-marker-boarding',
+      'map-walk-connectors',
+      'map-legend',
+      'map-ride-line',
+    ]) {
+      expect(find.byKey(Key(key)), findsNothing, reason: key);
+    }
+    expect(geometry.loads, 0);
+    await scrollToAndTap(tester, find.byKey(const Key('hide-map')));
+    await tester.pump();
 
     await pumpUntilFound(tester, inTile('tile-forecast', 'Tampines area'));
 
