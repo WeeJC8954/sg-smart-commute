@@ -509,6 +509,19 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
      text).
    - Decide on HD tiles.
    - The optional FOSSGIS `routed-foot` experiment: not adopted (P2-M4 D2, 2026-10-04; §6.1).
+   - **Done in P2-M4** (2026-10-04; plan `docs/p2-m4-map-hardening-implementation-plan.md`, D1–D8, Q1–Q4, R):
+     - the Android cache cap was already done in P2-M1; P2-M4 verified that it follows `max-age` (§4.2 rule 4);
+     - frame times measured on the emulator, profile build, cold and warm cache, light and dark (`docs/testing.md`);
+       emulator evidence only, no physical device;
+     - reduced motion: under the system's setting, no fling and an instant double-tap zoom; the camera fit stays
+       unanimated;
+     - TalkBack: one attempt, Not run (the Accessibility Suite notification prompt held the input); widget and Web
+       semantics evidence stand;
+     - the integration and live regression runs on Android and Web;
+     - no HD tiles (§4.1);
+     - no walking router (§6.1).
+
+   **Phase 2 (the journey map) is complete.**
 
 ## 11. Decisions before P2-M1
 
@@ -519,3 +532,4 @@ lib/core/config/app_config.dart     // BasemapEndpoints, MapConfig (zoom 11–19
    straight dashed connectors and no "approximate" label (§5 rule 2).
 3. Walking: **decided in P2-M3 (2026-10-04).** Straight-line "est." connectors, drawn dashed; no walking
    router. **Closed in P2-M4 (2026-10-04): FOSSGIS `routed-foot` is not adopted (§6.1).**
+4. P2-M4 decisions: D1–D8, Q1–Q4 and R in `docs/p2-m4-map-hardening-implementation-plan.md`; all closed.

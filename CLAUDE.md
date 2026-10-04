@@ -10,7 +10,8 @@ alternative. The spec is `docs/singapore-smart-commute-implementation-guide.v2.m
 cite it as `§N`). Decisions live in `docs/architecture.md` (ADRs), tunable values and ambiguity resolutions in
 `docs/assumptions.md`, provider details in `docs/data-sources.md`. Work proceeds one milestone at a time
 (guide §21: M0 feasibility → M1 location + environment → M2 places → M3 bus planner + MRT → M4 live arrivals
-→ M5 hardening → Phase 2 map); don't broaden scope or start a later milestone silently.
+→ M5 hardening → Phase 2 map; Phase 2 closed in P2-M4, and a later change needs its own milestone); don't broaden
+scope or start a later milestone silently.
 
 ## Hard constraints (guide §2, §14, ADR-001)
 
@@ -116,7 +117,7 @@ Key flows that span several files:
   selection, journey-owned (`optionSelectionProvider`, written by the card's "Select", read by the map), honoured
   only for the identical plan object (`selectedOptionIndex`), so it never carries over to a new journey; selecting
   never re-plans or touches arrivals. **Walk connectors**: `MapScene.walks`, derived from the markers (origin →
-  boarding, alighting → destination), straight and dashed, never routed. **MRT markers**: read from
+  boarding, alighting → destination), straight and dashed, never routed (no walking router: `docs/map-feasibility.md` §6.1). **MRT markers**: read from
   `mrtSuggestionProvider` (settled values only), worded via the journey's `MrtWording`. Rules: the P2-M3 rows of
   `docs/assumptions.md`.
 - **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no
