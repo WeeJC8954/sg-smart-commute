@@ -335,6 +335,20 @@ Hardening checks from `docs/map-feasibility.md` §10 item 4, with decisions D1�
 - **Dev tool:** `tool/map_performance_probe.dart` (profile, Android only, live OneMap tiles, not a gate).
 - Not in P2-M4: any new map feature, routing, keyboard-animation changes, the simplification refactor, UI polish.
 
+## UI polish follow-ups (after Phase 2)
+
+`docs/ui-polish-implementation-plan.md` was implemented by PR #35, before Phase 2. This closes the drift and
+evidence gaps Phase 2 left (`docs/ui-polish-followups-implementation-plan.md`): presentation, tests and docs only.
+
+- **Colours:** only from the theme scheme. The map pins' shadow, added in P2-M1 as a fixed colour, uses
+  `colorScheme.shadow`. `test/app/app_theme_test.dart` scans `lib/`, and the teal seed is the one fixed colour.
+- **Motion:** `MotionSize` as documented. Known limitation: content changing on adjacent frames settles directly
+  to the later layout. Whole-app tests at the real 250 ms are in `test/app/home_screen_test.dart`. The map card's
+  Show/Hide stays instant (D2).
+- **Home list:** lazy, with no keep-alive. Known presentation limitation: at 2× text, a deep scroll resets open
+  alternative steps and a panned map's camera; the selection, the open map and the data are unaffected
+  (assumptions, "Home list scrolling (D3)").
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),

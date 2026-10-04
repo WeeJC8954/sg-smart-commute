@@ -7,7 +7,7 @@ nearest MRT station as an alternative. University course project.
 > **Status:** Phase 1 (M1–M5) and Phase 2 (the optional journey map, P2-M0–P2-M4) are complete: location with
 > manual fallback, the environmental dashboard, OneMap place search, a direct-bus suggestion with live arrivals
 > and an MRT alternative, and an optional map (OneMap basemap) showing the selected option's bus route, straight
-> walking estimates and the MRT suggestions. UI polish continues separately.
+> walking estimates and the MRT suggestions. UI polish is complete (PR #35, plus follow-ups after Phase 2).
 
 ## No credentials required
 
@@ -123,4 +123,4 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 
 M1 location + environment → M2 places → M3 direct-bus planner + MRT → M4 live arrivals → M5 hardening →
 Phase 2 map (P2-M0 feasibility → P2-M1 map shell → P2-M2 bus ride line → P2-M3 option sync, walk connectors, MRT
-markers → P2-M4 hardening): **complete**. UI polish continues separately.
+markers → P2-M4 hardening): **complete**. UI polish: **complete** (PR #35, plus follow-ups after Phase 2).

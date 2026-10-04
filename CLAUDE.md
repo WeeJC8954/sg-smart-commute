@@ -134,7 +134,7 @@ Key flows that span several files:
   `busArrivalCacheTtlProvider`, `mapTileProviderFactoryProvider`, `mapLogoImageProvider`, `mapLinkOpenerProvider`,
   `routeGeometryRepositoryProvider` (all faked by default in `buildTestApp`, the last with
   `FakeRouteGeometryRepository`: no test fetches a tile or `routes.min.json`, or opens a browser), `uiMotionDurationProvider` (`buildTestApp` defaults it to zero, so layout changes
-  land in one frame; `test/core/motion_test.dart` covers the animated path). `integration_test/fakes/test_app.dart`
+  land in one frame; `test/core/motion_test.dart` covers the animated path and `test/app/home_screen_test.dart` the whole app at the real duration). `integration_test/fakes/test_app.dart`
   (`buildTestApp`) builds the real app with all of them faked; the fakes are shared by widget tests and
   `integration_test/`. Widget tests importing `integration_test/fakes/` is a deliberate test-harness
   arrangement required by the Web integration build (see below), not a general `test/` → `integration_test/`
@@ -150,6 +150,7 @@ Key flows that span several files:
   builds cannot import outside it), and nothing else in `test/` should import from `integration_test/`.
 - A new provider host must be added to the CSP `connect-src` in `web/index.html`
   (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
+- Presentation colours come only from `Theme.of(context).colorScheme`; the teal seed in `lib/app/app.dart` is the one fixed colour (`test/app/app_theme_test.dart` scans `lib/`).
 - **Evidence rule:** never claim a test or gate passed unless it actually ran. Record the command and its
   real result in the run log in `docs/testing.md`; anything not run is logged as **Not run** with the reason.
 

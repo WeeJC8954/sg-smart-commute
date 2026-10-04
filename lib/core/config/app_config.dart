@@ -212,8 +212,9 @@ abstract final class AppTimings {
   static const Duration minEnvironmentRefreshInterval = Duration(seconds: 15);
 
   /// How often time-relative text is recomputed while the screen is open
-  /// ("N min ago", Stale, the UV night rule, bus ETAs). A UI-only rebuild: it
-  /// never sends a request, so there is still no automatic polling.
+  /// ("N min ago", "Out of date", the UV night rule, bus ETAs). A UI-only
+  /// rebuild: it never sends a request, so there is still no automatic
+  /// polling.
   static const Duration uiTick = Duration(seconds: 15);
 }
 
