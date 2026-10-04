@@ -109,7 +109,9 @@ All probed with `curl` and `Origin: https://example.com` (`docs/probe-output/map
   NE (1.494, 104.502).
 - **TileJSON** (`…/maps/json/raster/tilejson/2.2.0/Default.json`) gives z11–19 and points at the `Default_HD`
   tiles. On 2026-10-02 the `*_HD` tiles were also 256 px and were served as `Content-Type: image/undefined`.
-  The spike used the non-HD styles (`image/png`). Revisit HD in P2-M4.
+  The spike used the non-HD styles (`image/png`). **Decided in P2-M4 (D5, 2026-10-04): no HD tiles.** Re-probed
+  2026-10-04: the `*_HD` tiles are still 256 × 256 and served as `image/undefined`, so they add no detail. The app
+  keeps the standard `Default` / `Night` tiles, and no HD mode is added.
 - **Attribution.** The basemap docs say: "Under our Terms of Use, by using our base map services, you MUST
   include the OneMap logo and attribution". The snippet they provide
   (`https://www.onemap.gov.sg/docs/maps/resources/code-attr.txt`, re-read 2026-10-03; the older
