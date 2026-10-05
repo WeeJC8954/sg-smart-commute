@@ -226,6 +226,13 @@ abstract final class AppMotion {
   static const Duration resize = Duration(milliseconds: 250);
 }
 
+/// Colour palette (E1; docs/assumptions.md, "Palette persistence").
+abstract final class AppearanceConfig {
+  /// The longest startup waits for the stored colour palette (E1) before it
+  /// shows the default. The read is local, normally a few milliseconds.
+  static const Duration paletteLoadTimeout = Duration(milliseconds: 500);
+}
+
 /// Home-screen layout (presentation only; docs/assumptions.md, "Conditions
 /// grid"). Widths are logical pixels at text scale 1.0; the tile minimums grow
 /// with the text scale, so large text falls back to fewer columns.
