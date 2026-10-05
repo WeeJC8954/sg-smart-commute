@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
 import 'package:sg_smart_commute/core/ui/motion.dart';
+import 'package:sg_smart_commute/features/appearance/appearance_providers.dart';
+import 'package:sg_smart_commute/features/appearance/domain/app_palette.dart';
+import 'package:sg_smart_commute/features/appearance/domain/palette_store.dart';
 import 'package:sg_smart_commute/features/bus_arrival/bus_arrival_providers.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival_repository.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_repository.dart';
@@ -23,12 +26,14 @@ import 'fake_bus_arrival_repository.dart';
 import 'fake_bus_network.dart';
 import 'fake_environment_repository.dart';
 import 'fake_map.dart';
+import 'fake_palette_store.dart';
 import 'fake_place_search_repository.dart';
 import 'fake_route_geometry.dart';
 
 /// The real app with every external provider replaced by a fake (§18). The
 /// map's tiles, logo, links and bus route geometry are fakes too: no test
-/// fetches a tile or routes.min.json, or opens a browser.
+/// fetches a tile or routes.min.json, or opens a browser, and the palette store
+/// is a fake: no test touches device or browser storage.
 Widget buildTestApp({
   required LocationService location,
   required EnvironmentRepository environment,
@@ -47,6 +52,8 @@ Widget buildTestApp({
   TileProvider Function()? mapTiles,
   Future<bool> Function(Uri)? openLink,
   RouteGeometryRepository? routeGeometry,
+  PaletteStore? paletteStore,
+  AppPalette palette = AppPalette.teal,
 }) {
   return ProviderScope(
     retry: noAutomaticRetry,
@@ -72,6 +79,10 @@ Widget buildTestApp({
       routeGeometryRepositoryProvider.overrideWithValue(
         routeGeometry ?? FakeRouteGeometryRepository(),
       ),
+      paletteStoreProvider.overrideWithValue(
+        paletteStore ?? FakePaletteStore(),
+      ),
+      initialPaletteProvider.overrideWithValue(palette),
       mapTileProviderFactoryProvider.overrideWithValue(
         mapTiles ?? FakeTileProvider.new,
       ),
