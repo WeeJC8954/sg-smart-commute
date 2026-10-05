@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../features/appearance/domain/app_palette.dart';
+import '../features/appearance/presentation/palette_theme.dart';
 import 'home_screen.dart';
 
 /// Riverpod 3 retries failed providers automatically by default. That would
@@ -12,24 +14,12 @@ class SmartCommuteApp extends StatelessWidget {
 
   static const String title = 'Singapore Smart Commute';
 
-  /// Light and dark schemes from one seed, so both stay the same palette.
-  /// Widgets take colours only from the scheme, never fixed values.
-  static final ThemeData lightTheme = _theme(Brightness.light);
-  static final ThemeData darkTheme = _theme(Brightness.dark);
-
-  static ThemeData _theme(Brightness brightness) => ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.teal,
-      brightness: brightness,
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: title,
-      theme: lightTheme,
-      darkTheme: darkTheme,
+      theme: paletteTheme(AppPalette.fallback, Brightness.light),
+      darkTheme: paletteTheme(AppPalette.fallback, Brightness.dark),
       themeMode: ThemeMode.system,
       home: const HomeScreen(),
     );
