@@ -361,7 +361,7 @@ browser (plan: `docs/e1-colour-themes-implementation-plan.md`; rules: `docs/assu
 `data/shared_preferences_palette_store.dart`, `appearance_providers.dart` (`loadInitialPalette`,
 `initialPaletteProvider`, `paletteStoreProvider`, `paletteProvider`), `presentation/palette_theme.dart` and `presentation/palette_menu_button.dart`.
 
-- **ADR E1-1: one new dependency, `shared_preferences` 2.5.5 (pinned exactly).** It is the only package added. It
+- **ADR E1-1: one new dependency, `shared_preferences` 2.5.5 (pinned exactly).** It is the only direct dependency added. It
   keeps one string on the device (Android app storage, Web `localStorage` per origin), so ADR-001 holds: no server,
   account, secret, new host or CSP change, and tests use an in-memory fake. Cost: a private window forgets the choice.
 - **ADR E1-2: the stored palette is read once before `runApp`, bounded to 500 ms.** The first frame is then already in
@@ -376,7 +376,7 @@ browser (plan: `docs/e1-colour-themes-implementation-plan.md`; rules: `docs/assu
   custom code is a small `MergeSemantics(Semantics(expanded: ...))` wrapper (plain Material exposed no open or closed
   state); there is no custom focus code and no live-region announcement. Compared and rejected: `PopupMenuButton` with
   `CheckedPopupMenuItem` (checked state but not a mutually exclusive group, and the older API), a bottom sheet (odd on a
-  wide Web page, needs closing), a dialog (modal, more taps) and a drawer (unjustified for one setting). Real-browser keyboard behaviour is checked in Task 8.
+  wide Web page, needs closing), a dialog (modal, more taps) and a drawer (unjustified for one setting). Real-Chrome keyboard and semantics behaviour matched the widget tests in the E1 live checks (`docs/testing.md`).
 - **ADR E1-4: palette x brightness.** Each palette is a `ColorScheme.fromSeed` seed (default variant, no role
   hand-tuned) used for both brightnesses, and the system keeps choosing light or dark (`ThemeMode.system`; there is no
   manual dark control). Teal's seed is `Colors.teal`'s value, so the default is identical to the previous scheme.

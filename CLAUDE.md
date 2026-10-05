@@ -164,7 +164,7 @@ Key flows that span several files:
   builds cannot import outside it), and nothing else in `test/` should import from `integration_test/`.
 - A new provider host must be added to the CSP `connect-src` in `web/index.html`
   (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
-- Presentation colours come only from `Theme.of(context).colorScheme`; the five palette seeds in `lib/features/appearance/domain/app_palette.dart` are the only fixed colours, and no `Colors.*` appears in `lib/` (`test/app/app_theme_test.dart` scans `lib/`).
+- Presentation colours come only from `Theme.of(context).colorScheme`; the five palette seeds in `lib/features/appearance/domain/app_palette.dart` are the only fixed colours, and no `Colors.*` is used in `lib/` code (`test/app/app_theme_test.dart` scans `lib/`).
 - **Evidence rule:** never claim a test or gate passed unless it actually ran. Record the command and its
   real result in the run log in `docs/testing.md`; anything not run is logged as **Not run** with the reason.
 
