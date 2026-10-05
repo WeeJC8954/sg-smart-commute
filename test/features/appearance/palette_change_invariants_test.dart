@@ -153,6 +153,11 @@ void main() {
     final center = camera(tester).center;
     final zoom = camera(tester).zoom;
     var requested = tiles.requested.length;
+    expect(
+      requested,
+      greaterThan(0),
+      reason: 'the open map has requested tiles, so "unchanged" is meaningful',
+    );
     final before = (plan: plan(tester), loads: loads());
     expect(template(tester), BasemapEndpoints.defaultTiles);
 

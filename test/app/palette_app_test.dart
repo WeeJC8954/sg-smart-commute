@@ -138,6 +138,11 @@ void main() {
     await tester.pump();
     await select(tester, AppPalette.rose);
     expect(scheme(tester).primary, primaryOf(AppPalette.rose));
+    expect(
+      find.byType(SnackBar),
+      findsNothing,
+      reason: 'a failed save is silent (D6)',
+    );
     await tester.enterText(
       find.byKey(const Key('manual-origin-field')),
       'Vivo',

@@ -18,7 +18,7 @@ Future<AppPalette> loadInitialPalette(
   try {
     return AppPalette.fromId(await store.read().timeout(timeout));
   } catch (e) {
-    debugPrint('Colour palette not loaded: $e');
+    if (kDebugMode) debugPrint('Colour palette not loaded: $e');
     return AppPalette.fallback;
   }
 }
@@ -51,7 +51,7 @@ class PaletteController extends Notifier<AppPalette> {
     try {
       await ref.read(paletteStoreProvider).write(palette.id);
     } catch (e) {
-      debugPrint('Colour palette not saved: $e');
+      if (kDebugMode) debugPrint('Colour palette not saved: $e');
     }
   }
 }
