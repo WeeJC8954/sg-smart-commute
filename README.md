@@ -9,6 +9,10 @@ nearest MRT station as an alternative. University course project.
 > and an MRT alternative, and an optional map (OneMap basemap) showing the selected option's bus route, straight
 > walking estimates and the MRT suggestions. UI polish is complete (PR #35, plus follow-ups after Phase 2).
 
+Colour themes (post-submission enhancement E1): choose Teal, Blue, Rose, Purple or Orange from the palette button
+in the app bar. The app still follows your system's light or dark mode and remembers the choice on this device or
+browser.
+
 ## Screenshots
 
 The release Web build at phone width with live data: a trip from Bishan to HDB Hub, Toa Payoh (2026-10-05,
@@ -130,12 +134,14 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - Accessibility is covered by semantics tests and the Web semantics tree; it has not been checked with a real
   screen reader (TalkBack attempts on the emulator were blocked) or on a physical device. Details:
   [`docs/testing.md`](docs/testing.md).
+- The colour theme is stored per device or browser (a private window forgets it).
 
 ## Documentation
 
 - [Implementation guide v2.1](docs/singapore-smart-commute-implementation-guide.v2.md)
 - [API feasibility](docs/api-feasibility.md) · [Architecture](docs/architecture.md) ·
   [Data sources](docs/data-sources.md) · [Assumptions](docs/assumptions.md) · [Testing](docs/testing.md)
+- [Colour themes plan (E1)](docs/e1-colour-themes-implementation-plan.md)
 
 ## Roadmap
 
