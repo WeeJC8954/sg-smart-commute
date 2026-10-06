@@ -11,7 +11,8 @@ cite it as `§N`). Decisions live in `docs/architecture.md` (ADRs), tunable valu
 `docs/assumptions.md`, provider details in `docs/data-sources.md`. Work proceeds one milestone at a time
 (guide §21: M0 feasibility → M1 location + environment → M2 places → M3 bus planner + MRT → M4 live arrivals
 → M5 hardening → Phase 2 map; Phase 2 closed in P2-M4, and a later change needs its own milestone); don't broaden
-scope or start a later milestone silently.
+scope or start a later milestone silently. After submission, one enhancement was added outside the milestones: E1
+colour themes (five selectable palettes, `features/appearance/`; plan `docs/e1-colour-themes-implementation-plan.md`).
 
 ## Hard constraints (guide §2, §14, ADR-001)
 
@@ -25,6 +26,8 @@ scope or start a later milestone silently.
 - Never invent readings, arrival times, routes or stops; show a degraded/error state instead.
 - data.gov.sg anonymous limit is **6 calls / 10 s**; requests are session-cached and deduplicated, Riverpod
   auto-retry is off, and there is no automatic polling.
+- `shared_preferences` (E1) is local only: it keeps the chosen colour palette's id on the device or browser, with no
+  host, no CSP change and no secret.
 - Record new ambiguity resolutions or tunable values in `docs/assumptions.md`.
 
 ## Commands
@@ -120,6 +123,16 @@ Key flows that span several files:
   boarding, alighting → destination), straight and dashed, never routed (no walking router: `docs/map-feasibility.md` §6.1). **MRT markers**: read from
   `mrtSuggestionProvider` (settled values only), worded via the journey's `MrtWording`. Rules: the P2-M3 rows of
   `docs/assumptions.md`.
+- **Appearance** (`features/appearance/`, post-submission E1): five curated palettes (`domain/app_palette.dart`: Teal
+  the default, Blue, Rose, Purple, Orange), each theme generated only by `ColorScheme.fromSeed` from its seed
+  (`presentation/palette_theme.dart`, no hand-tuned role); brightness stays the system's. `main()` reads the stored id
+  once before `runApp` (`loadInitialPalette`, bounded by `AppearanceConfig.paletteLoadTimeout`, 500 ms; Teal on a
+  missing or unknown value, an error or a timeout; a late result is ignored) and passes it as `initialPaletteProvider`.
+  `paletteProvider` is the one source of truth: `select` changes it at once and writes the id through `PaletteStore`
+  (`shared_preferences`, key `colour_palette`); a failed write is silent and the running app never reads storage again.
+  The app-bar `PaletteMenuButton` (a `MenuAnchor` of five `RadioMenuButton`s) only calls `select`. A palette change only
+  recolours: map state, camera, plan, arrivals, geometry and selection are kept and no tile is requested
+  (`test/features/appearance/palette_change_invariants_test.dart`). Rules: the E1 rows of `docs/assumptions.md`.
 - **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no
   rolled-over fields; never plain `DateTime.parse`), store UTC, display at a fixed +08:00 offset (no `timezone`
   package).
@@ -139,7 +152,8 @@ Key flows that span several files:
   `integration_test/`. Widget tests importing `integration_test/fakes/` is a deliberate test-harness
   arrangement required by the Web integration build (see below), not a general `test/` → `integration_test/`
   dependency: the fakes are the only thing `test/` imports from there. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
-  with fake time (`tester.pump(AppTimings.uiTick)`).
+  with fake time (`tester.pump(AppTimings.uiTick)`). `paletteStoreProvider` is faked by `FakePaletteStore` in `buildTestApp` (no test touches
+  real storage) and `initialPaletteProvider` sets the starting palette (`buildTestApp(paletteStore:, palette:)`).
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual
   smoke tests and probes in `docs/testing.md`.
 - NEA parser tests use real payloads captured once in `test/fixtures/*.json`.
@@ -150,7 +164,7 @@ Key flows that span several files:
   builds cannot import outside it), and nothing else in `test/` should import from `integration_test/`.
 - A new provider host must be added to the CSP `connect-src` in `web/index.html`
   (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
-- Presentation colours come only from `Theme.of(context).colorScheme`; the teal seed in `lib/app/app.dart` is the one fixed colour (`test/app/app_theme_test.dart` scans `lib/`).
+- Presentation colours come only from `Theme.of(context).colorScheme`; the five palette seeds in `lib/features/appearance/domain/app_palette.dart` are the only fixed colours, and no `Colors.*` is used in `lib/` code (`test/app/app_theme_test.dart` scans `lib/`).
 - **Evidence rule:** never claim a test or gate passed unless it actually ran. Record the command and its
   real result in the run log in `docs/testing.md`; anything not run is logged as **Not run** with the reason.
 

@@ -351,6 +351,52 @@ evidence gaps Phase 2 left (`docs/ui-polish-followups-implementation-plan.md`): 
   alternative steps and a panned map's camera; the selection, the open map and the data are unaffected
   (assumptions, "Home list scrolling (D3)").
 
+## Post-submission enhancement E1: colour themes
+
+Added after the project was submitted; it is not a milestone, and Phase 1, Phase 2 and UI polish are not reopened.
+The user picks Teal, Blue, Rose, Purple or Orange from an app-bar button; the choice is remembered on the device or
+browser (plan: `docs/e1-colour-themes-implementation-plan.md`; rules: `docs/assumptions.md`, "Colour palettes (E1)",
+"Palette persistence (E1)", "Palette selector (E1)"). The code is `lib/features/appearance/`: `domain/app_palette.dart`
+(`AppPalette`: id, label, seed), `domain/palette_store.dart` (the store interface),
+`data/shared_preferences_palette_store.dart`, `appearance_providers.dart` (`loadInitialPalette`,
+`initialPaletteProvider`, `paletteStoreProvider`, `paletteProvider`), `presentation/palette_theme.dart` and `presentation/palette_menu_button.dart`.
+
+- **ADR E1-1: one new dependency, `shared_preferences` 2.5.5 (pinned exactly).** It is the only direct dependency added. It
+  keeps one string on the device (Android app storage, Web `localStorage` per origin), so ADR-001 holds: no server,
+  account, secret, new host or CSP change, and tests use an in-memory fake. Cost: a private window forgets the choice.
+- **ADR E1-2: the stored palette is read once before `runApp`, bounded to 500 ms.** The first frame is then already in
+  the right colours, with no flash of Teal. Trade-off: if storage hangs, startup waits up to
+  `AppearanceConfig.paletteLoadTimeout` (500 ms) and shows Teal; normally the read takes a few milliseconds. A missing
+  or unknown value, an error or a timeout gives Teal, and a result that arrives late is ignored, so the running session
+  never changes colour on its own. No splash or loading screen is added. A failed
+  write is silent: the choice stays for the session, nothing claims it was saved, and the next launch shows what
+  storage holds.
+- **ADR E1-3: `MenuAnchor` with `RadioMenuButton`s for the selector.** Stock Material gives arrow-key navigation, Enter
+  or Space to choose, Escape to close, focus back on the button, and a radio's checked state per option, so the only
+  custom code is a small `MergeSemantics(Semantics(expanded: ...))` wrapper (plain Material exposed no open or closed
+  state); there is no custom focus code and no live-region announcement. Compared and rejected: `PopupMenuButton` with
+  `CheckedPopupMenuItem` (checked state but not a mutually exclusive group, and the older API), a bottom sheet (odd on a
+  wide Web page, needs closing), a dialog (modal, more taps) and a drawer (unjustified for one setting). Real-Chrome keyboard and semantics behaviour matched the widget tests in the E1 live checks (`docs/testing.md`).
+- **ADR E1-4: palette x brightness.** Each palette is a `ColorScheme.fromSeed` seed (default variant, no role
+  hand-tuned) used for both brightnesses, and the system keeps choosing light or dark (`ThemeMode.system`; there is no
+  manual dark control). Teal's seed is `Colors.teal`'s value, so the default is identical to the previous scheme.
+  Measured during planning: 0 contrast failures over 14 pairs x 5 palettes x light and dark, the lowest 4.03:1 against
+  a 3:1 target and text pairs at 5.8:1 or more; the closest pair is Rose and Purple (delta E 25.3 light, 25.6 dark).
+- **ADR E1-5: the map-state contract and why it holds.** A palette change only recolours: the map's open state,
+  camera and pan, the plan, arrivals, route geometry and the selected option are kept, and no tile is requested. It
+  holds without a map change because only the `ThemeData` that `MaterialApp` provides changes: nothing keyed or rebuilt
+  from scratch depends on the palette, and the plan, arrivals, geometry and selection live in providers that never
+  watch `paletteProvider`. OneMap Default or Night tiles follow the brightness only, so Teal to Rose in light keeps
+  Default and a dark system keeps Night. Pinned by `test/features/appearance/palette_change_invariants_test.dart` and
+  by mutation checks (keying `FlutterMap` or `HomeScreen` by palette, or choosing the tile style from the palette)
+  that fail as required.
+- **ADR E1-6: the colour guard.** `test/app/app_theme_test.dart` allows exactly the five seed lines in
+  `lib/features/appearance/domain/app_palette.dart` and fails any other fixed colour, including any `Colors.*`, in
+  `lib/`; it replaces "the teal seed is the one fixed colour" from the UI polish follow-ups.
+- **ADR E1-7: the transition is `MaterialApp`'s existing theme cross-fade.** There is no custom colour animation. The
+  existing 200 ms cross-fade shows in-between frames under normal motion and none when the system asks for reduced
+  motion; both are tested.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),

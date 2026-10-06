@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/appearance/appearance_providers.dart';
+import '../features/appearance/presentation/palette_theme.dart';
 import 'home_screen.dart';
 
 /// Riverpod 3 retries failed providers automatically by default. That would
@@ -7,29 +10,19 @@ import 'home_screen.dart';
 /// offers explicit Retry actions instead. Pass to `ProviderScope.retry`.
 Duration? noAutomaticRetry(int retryCount, Object error) => null;
 
-class SmartCommuteApp extends StatelessWidget {
+class SmartCommuteApp extends ConsumerWidget {
   const SmartCommuteApp({super.key});
 
   static const String title = 'Singapore Smart Commute';
 
-  /// Light and dark schemes from one seed, so both stay the same palette.
-  /// Widgets take colours only from the scheme, never fixed values.
-  static final ThemeData lightTheme = _theme(Brightness.light);
-  static final ThemeData darkTheme = _theme(Brightness.dark);
-
-  static ThemeData _theme(Brightness brightness) => ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.teal,
-      brightness: brightness,
-    ),
-  );
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final palette = ref.watch(paletteProvider);
     return MaterialApp(
       title: title,
-      theme: lightTheme,
-      darkTheme: darkTheme,
+      theme: paletteTheme(palette, Brightness.light),
+      darkTheme: paletteTheme(palette, Brightness.dark),
+      // The palette is the user's; the brightness stays the system's.
       themeMode: ThemeMode.system,
       home: const HomeScreen(),
     );

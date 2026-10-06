@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/config/app_config.dart';
 import '../core/ui/motion.dart';
 import '../core/ui/section_heading.dart';
+import '../features/appearance/presentation/palette_menu_button.dart';
 import '../features/environment/environment_providers.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
 import '../features/journey/presentation/journey_card.dart';
@@ -18,7 +19,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const AppTitle()),
+      appBar: AppBar(
+        title: const AppTitle(),
+        actions: const [PaletteMenuButton()],
+      ),
       body: SafeArea(
         // The list spans the window (so it scrolls from anywhere); each
         // section is centred at its own maximum width.
