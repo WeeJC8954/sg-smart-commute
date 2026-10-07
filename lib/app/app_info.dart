@@ -9,7 +9,8 @@ class AppInfo {
   final String version;
   final String buildNumber;
 
-  /// "Version 1.0.0 (1)"; "Version 1.0.0" when the build has no number.
+  /// "Version <version> (<build>)", or "Version <version>" when the build has
+  /// no number.
   String get label => buildNumber.isEmpty
       ? 'Version $version'
       : 'Version $version ($buildNumber)';
