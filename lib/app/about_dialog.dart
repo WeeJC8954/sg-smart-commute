@@ -41,36 +41,42 @@ class AboutAppDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final info = ref.watch(appInfoProvider);
-    return AlertDialog(
-      icon: const AppLogo(size: 48),
-      title: const Text(SmartCommuteApp.title),
-      scrollable: true,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(description),
-          const SizedBox(height: 12),
-          const Text(author),
-          const SizedBox(height: 4),
-          Text(info?.label ?? versionUnavailable),
+    // Names the alert-dialog node itself. AlertDialog puts its own label on an
+    // inner route node, so on the Web the dialog had no accessible name.
+    return Semantics(
+      namesRoute: true,
+      label: SmartCommuteApp.title,
+      child: AlertDialog(
+        icon: const AppLogo(size: 48),
+        title: const Text(SmartCommuteApp.title),
+        scrollable: true,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(description),
+            const SizedBox(height: 12),
+            const Text(author),
+            const SizedBox(height: 4),
+            Text(info?.label ?? versionUnavailable),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => showLicensePage(
+              context: context,
+              applicationName: SmartCommuteApp.title,
+              applicationVersion: info?.label,
+              applicationIcon: const AppLogo(size: 48),
+            ),
+            child: const Text('View licenses'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => showLicensePage(
-            context: context,
-            applicationName: SmartCommuteApp.title,
-            applicationVersion: info?.label,
-            applicationIcon: const AppLogo(size: 48),
-          ),
-          child: const Text('View licenses'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ],
     );
   }
 }
