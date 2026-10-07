@@ -1,0 +1,31 @@
+# Quality gates on every push: format, analyze and the unit/widget test suite.
+# Added because Windows Smart App Control blocks flutter_tester.exe on the
+# development PC (docs/testing.md; Phase A plan §3). Evidence only: no build,
+# deploy, secret or write permission.
+name: flutter-test
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Flutter 3.47.2 (the project's SDK, checked by commit)
+        run: |
+          git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = d3b14c876900e553bc736ca19295fc09e3853e8e
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: flutter --version
+      - run: flutter pub get --enforce-lockfile
+      - run: dart format --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test --reporter expanded
