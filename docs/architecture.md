@@ -397,6 +397,31 @@ browser (plan: `docs/e1-colour-themes-implementation-plan.md`; rules: `docs/assu
   existing 200 ms cross-fade shows in-between frames under normal motion and none when the system asks for reduced
   motion; both are tested.
 
+## Post-submission enhancements E3 and E4: app icon and About
+
+Added after E1, outside the milestones (plan: `docs/enhancement-phase-a-identity-about-implementation-plan.md`; rules:
+`docs/assumptions.md`, "App icons (E3)", "App name and Web colours (E3)", "About (E4)"). E3 changes only platform
+resources and names; E4 lives in the app shell next to `AppTitle` and `AppLogo`: `lib/app/app_info.dart` (`AppInfo`,
+`appInfoFrom`, `appInfoProvider`) and `lib/app/about_dialog.dart` (`AboutButton`, `AboutAppDialog`).
+
+- **ADR E3-1: one master, generated platform icons, no new dependency.** The owner's original artwork is committed
+  unmodified under `tool/icon/` and every Android and Web icon is generated from it: `flutter_launcher_icons` 0.14.4 as a
+  pinned global tool (so `pubspec.yaml` and `pubspec.lock` are unchanged) plus `tool/icon/maskable_icons.dart`
+  (`dart:io` only) for the padded maskable icons. The generated files are committed; regenerating is three commands
+  (`docs/testing.md`). The in-app `assets/app_icon.png` stays as it was.
+- **ADR E3-2: safe zones are measured, not assumed.** The adaptive inset (17 %) is the smallest that keeps the bus, the
+  Singapore Flyer and the pin inside Android's 66 dp safe zone with clearance; the maskable icons get their own padding
+  (1.16×) so the same art stays inside the 40 % maskable safe zone, while the ordinary Web icons keep the whole artwork.
+- **ADR E4-1: the version comes from Flutter's compiled-in build name and number, not `package_info_plus`.** Flutter
+  3.47 exports `appBuildName`/`appBuildNumber`, which the flutter tool fills from pubspec `version` in `build`, `run`,
+  `drive` and `test`: the same values as Android `versionName`/`versionCode` and Web `version.json`. Compared with the
+  plugin (already a transitive dependency), this needs no direct dependency, no async call, no Web `version.json`
+  request and no failure handling beyond "the build carried no version", which shows "Version unavailable".
+- **ADR E4-2: a small custom `AlertDialog`, not `showAboutDialog`.** The standard dialog fixes the version line second
+  and puts the icon beside the name; the approved reading order (name, description, author, version, actions) and a
+  360 dp screen at 2× text need the icon above and the version last. It is still a plain dialog route (focus trap,
+  Escape, Back, focus returning to the button), with Flutter's own licence page behind "View licenses".
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),
