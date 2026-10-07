@@ -1,6 +1,7 @@
 // E4: the app-bar About action and its dialog. Opening and closing it
 // changes nothing else in the app.
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -153,6 +154,22 @@ void main() {
       'View licenses',
       'Close',
     ]);
+  });
+
+  testWidgets('the dialog node itself is named "Singapore Smart Commute" and '
+      'names its route', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpTall(tester, app());
+    await open(tester);
+    expect(
+      tester.getSemantics(find.byType(Dialog)),
+      isSemantics(
+        role: SemanticsRole.alertDialog,
+        label: SmartCommuteApp.title,
+        namesRoute: true,
+      ),
+    );
+    semantics.dispose();
   });
 
   testWidgets('a build without a version: "Version unavailable", the rest '
