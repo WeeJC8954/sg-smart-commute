@@ -56,6 +56,8 @@ flutter test test/features/origin/origin_controller_test.dart --plain-name "<tes
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d web-server --browser-name=chrome --profile
 ```
 
+CI (`.github/workflows/flutter-test.yml`, every push and on demand) runs `flutter pub get --enforce-lockfile`, format, analyze and `flutter test` on Ubuntu with Flutter 3.47.2. Windows Smart App Control blocks `flutter_tester.exe` on the development PC, so `flutter test` evidence comes from CI runs, never a claimed local pass.
+
 Dev-only feasibility probes (not part of the app) are in `tool/`; see `docs/testing.md`. Building the probe
 APK (`-t tool/api_probe_app.dart`) overwrites `app-debug.apk` — rebuild the real app afterwards.
 
