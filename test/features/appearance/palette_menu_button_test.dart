@@ -177,7 +177,8 @@ void main() {
       }
 
       await key(LogicalKeyboardKey.tab);
-      expect(focused(), 'button', reason: 'the first Tab stop');
+      await key(LogicalKeyboardKey.tab);
+      expect(focused(), 'button', reason: 'the second Tab stop, after About');
       await key(LogicalKeyboardKey.enter);
       expect(menuOpen(), isTrue);
       await key(LogicalKeyboardKey.arrowDown);
