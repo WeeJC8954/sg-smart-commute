@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sg_smart_commute/app/app_info.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
 import 'package:sg_smart_commute/core/ui/motion.dart';
@@ -33,7 +34,8 @@ import 'fake_route_geometry.dart';
 /// The real app with every external provider replaced by a fake (§18). The
 /// map's tiles, logo, links and bus route geometry are fakes too: no test
 /// fetches a tile or routes.min.json, or opens a browser, and the palette store
-/// is a fake: no test touches device or browser storage.
+/// is a fake: no test touches device or browser storage. The version is the
+/// fake [fakeAppInfo] (`appInfo: null` = a build with no version).
 Widget buildTestApp({
   required LocationService location,
   required EnvironmentRepository environment,
@@ -54,6 +56,7 @@ Widget buildTestApp({
   RouteGeometryRepository? routeGeometry,
   PaletteStore? paletteStore,
   AppPalette palette = AppPalette.teal,
+  AppInfo? appInfo = fakeAppInfo,
 }) {
   return ProviderScope(
     retry: noAutomaticRetry,
@@ -83,6 +86,7 @@ Widget buildTestApp({
         paletteStore ?? FakePaletteStore(),
       ),
       initialPaletteProvider.overrideWithValue(palette),
+      appInfoProvider.overrideWithValue(appInfo),
       mapTileProviderFactoryProvider.overrideWithValue(
         mapTiles ?? FakeTileProvider.new,
       ),
@@ -104,3 +108,6 @@ Widget buildTestApp({
     child: const SmartCommuteApp(),
   );
 }
+
+/// A version no real build has, so a hard-coded "1.0.0 (1)" in the UI fails.
+const fakeAppInfo = AppInfo(version: '9.8.7', buildNumber: '42');

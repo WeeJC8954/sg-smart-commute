@@ -11,8 +11,9 @@ cite it as `§N`). Decisions live in `docs/architecture.md` (ADRs), tunable valu
 `docs/assumptions.md`, provider details in `docs/data-sources.md`. Work proceeds one milestone at a time
 (guide §21: M0 feasibility → M1 location + environment → M2 places → M3 bus planner + MRT → M4 live arrivals
 → M5 hardening → Phase 2 map; Phase 2 closed in P2-M4, and a later change needs its own milestone); don't broaden
-scope or start a later milestone silently. After submission, one enhancement was added outside the milestones: E1
-colour themes (five selectable palettes, `features/appearance/`; plan `docs/e1-colour-themes-implementation-plan.md`).
+scope or start a later milestone silently. After submission, enhancements were added outside the milestones: E1
+colour themes (five selectable palettes, `features/appearance/`; plan `docs/e1-colour-themes-implementation-plan.md`),
+then E3 app icons and E4 About (plan `docs/enhancement-phase-a-identity-about-implementation-plan.md`).
 
 ## Hard constraints (guide §2, §14, ADR-001)
 
@@ -72,7 +73,12 @@ Feature-first with a pragmatic clean architecture (guide §11):
   formatting).
 - `lib/features/<feature>/` split into `data/` (DTO parsing + repository implementations), `domain/` (models,
   repository interfaces, pure logic), `presentation/` (widgets). DTOs never reach widgets.
-- `lib/app/` — app shell (`SmartCommuteApp` with `ProviderScope(retry: noAutomaticRetry)`) and home screen.
+- `lib/app/` — app shell (`SmartCommuteApp` with `ProviderScope(retry: noAutomaticRetry)`) and home screen; the app's
+  identity: `AppTitle`/`AppLogo`, and the E4 About action and dialog (`about_dialog.dart`) whose version comes from
+  `app_info.dart` (`appInfoProvider`: Flutter's compiled-in `appBuildName`/`appBuildNumber`, no plugin; "Version
+  unavailable" when a build has none). Platform icons (E3) are generated from `tool/icon/app_icon_master.png`, never
+  edited by hand: `dart pub global run flutter_launcher_icons -f tool/icon/flutter_launcher_icons.yaml` (0.14.4), then
+  `dart run tool/icon/maskable_icons.dart` (`docs/testing.md`).
 
 State is Riverpod 3 with `AsyncValue<T>`; errors inside it are typed `AppFailure`s so widgets switch on them (loads go
 through `guardAppFailure` in `core/errors/failure_guard.dart`, which also debug-logs the failure detail).
@@ -156,6 +162,8 @@ Key flows that span several files:
   dependency: the fakes are the only thing `test/` imports from there. `uiTickIntervalProvider` is injectable too; tests keep the real 15 s tick and advance it
   with fake time (`tester.pump(AppTimings.uiTick)`). `paletteStoreProvider` is faked by `FakePaletteStore` in `buildTestApp` (no test touches
   real storage) and `initialPaletteProvider` sets the starting palette (`buildTestApp(paletteStore:, palette:)`).
+  `appInfoProvider` is overridden with the fake `fakeAppInfo` (`9.8.7 (42)`, a version no real build has) by default;
+  `buildTestApp(appInfo: null)` is a build with no version.
 - Integration tests are deterministic and **never call live APIs**; live behaviour is covered by the manual
   smoke tests and probes in `docs/testing.md`.
 - NEA parser tests use real payloads captured once in `test/fixtures/*.json`.

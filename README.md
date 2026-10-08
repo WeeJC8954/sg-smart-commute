@@ -13,6 +13,10 @@ Colour themes (post-submission enhancement E1): choose Teal, Blue, Rose, Purple 
 in the app bar. The app still follows your system's light or dark mode and remembers the choice on this device or
 browser.
 
+App icon and About (post-submission enhancements E3, E4): the phone launcher, the Web favicon and the installable Web
+app use the same bus, skyline and pin artwork as the app bar, under the name "Singapore Smart Commute". The info
+button in the app bar shows what the app is, its author and the version and build it was built from.
+
 ## Screenshots
 
 The release Web build at phone width with live data: a trip from Bishan to HDB Hub, Toa Payoh (2026-10-05,
@@ -142,6 +146,7 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - [API feasibility](docs/api-feasibility.md) · [Architecture](docs/architecture.md) ·
   [Data sources](docs/data-sources.md) · [Assumptions](docs/assumptions.md) · [Testing](docs/testing.md)
 - [Colour themes plan (E1)](docs/e1-colour-themes-implementation-plan.md)
+- [App icon and About plan (E3, E4)](docs/enhancement-phase-a-identity-about-implementation-plan.md)
 
 ## Roadmap
 

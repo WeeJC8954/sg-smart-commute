@@ -1295,7 +1295,8 @@ void main() {
 
 - **Android** (`emulator-5558`; never `emulator-5554`):
   1. The launcher icon on the home screen and in the app drawer, side by side with the app-bar logo. It must be the
-     same art, not badly cropped, with no white square or padding.
+     same art, not badly cropped, with no white square or padding. *(Superseded at A7 by the owner: the tile shows
+     inside a white circular margin, which is intended; see the "App icons (E3)" row of `docs/assumptions.md`.)*
   2. The Android 12+ splash shows the new art.
   3. The label reads "Singapore Sm…" or the full name. Check App info and the location prompt (on a fresh install).
   4. About shows `Version 1.0.0 (1)`, equal to `aapt2 dump badging` `versionName='1.0.0' versionCode='1'`.
