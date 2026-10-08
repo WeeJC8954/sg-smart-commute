@@ -21,13 +21,15 @@
     Content-Security-Policy (M5). The app is static files only: it talks to
     the four public, keyless APIs below (OneMap serves both place search and
     the journey map's basemap tiles and logo), and the Flutter engine loads
-    CanvasKit (script + WebAssembly) from www.gstatic.com and fallback fonts
-    from fonts.gstatic.com. Nothing else may be loaded, posted or framed in.
+    CanvasKit (script + WebAssembly) from www.gstatic.com/flutter-canvaskit/
+    (that path only: the rest of the origin hosts other scripts, #70) and
+    fallback fonts from fonts.gstatic.com. Nothing else may be loaded, posted
+    or framed in.
     A <meta> policy cannot set frame-ancestors; static hosting would need a
     header for that. Rationale and the measured origin list:
     docs/architecture.md.
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com 'sha256-MndvH2xoJITJx1vAmJTo0n71uGBofeMZfQTpl28Jz7s='; connect-src 'self' https://api-open.data.gov.sg https://www.onemap.gov.sg https://data.busrouter.sg https://arrivelah2.busrouter.sg https://www.gstatic.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com/flutter-canvaskit/ 'sha256-MndvH2xoJITJx1vAmJTo0n71uGBofeMZfQTpl28Jz7s='; connect-src 'self' https://api-open.data.gov.sg https://www.onemap.gov.sg https://data.busrouter.sg https://arrivelah2.busrouter.sg https://www.gstatic.com/flutter-canvaskit/ https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Singapore Smart Commute">
 
