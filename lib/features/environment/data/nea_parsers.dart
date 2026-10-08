@@ -17,6 +17,9 @@ ForecastSnapshot parseTwoHourForecast(
 }) => guardAppFailureSync(context: 'two-hr-forecast', () {
   final data = _data(json);
   final areas = _list(data['area_metadata']);
+  // Like the regional datasets: no area means no forecast, a load failure
+  // (Retry, logged), never an empty snapshot the tile cannot show (#71).
+  if (areas.isEmpty) throw const InvalidApiResponse('no forecast areas');
   final item = _latest(_list(data['items']), (i) => _time(i['timestamp']));
   final conditions = <String, String>{
     for (final f in _list(item['forecasts']).cast<Map<String, dynamic>>())

@@ -39,6 +39,16 @@ void main() {
       expect(f.areas.firstWhere((a) => a.name == 'Bishan').condition, isNull);
     });
 
+    test('valid items but no areas is a load failure, not an empty forecast '
+        '(#71)', () {
+      final json = fixture('two-hr-forecast') as Map<String, dynamic>;
+      json['data']['area_metadata'] = [];
+      expect(
+        () => parseTwoHourForecast(json, fetchedAt: fetchedAt),
+        throwsA(isA<InvalidApiResponse>()),
+      );
+    });
+
     test('malformed payloads throw InvalidApiResponse', () {
       expect(
         () => parseTwoHourForecast({'code': 0}, fetchedAt: fetchedAt),

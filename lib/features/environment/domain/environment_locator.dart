@@ -1,5 +1,4 @@
 import '../../../core/config/app_config.dart';
-import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import 'environment_models.dart';
 
@@ -12,7 +11,8 @@ abstract final class EnvironmentLocator {
     ForecastSnapshot s,
     LatLng position,
   ) {
-    if (s.areas.isEmpty) throw const InvalidApiResponse('no forecast areas');
+    // The parser rejects a payload without areas.
+    assert(s.areas.isNotEmpty, 'no forecast areas');
     final area = _nearest(s.areas, (a) => a.location, position);
     return EnvironmentalReading(
       value: area.condition,
@@ -33,9 +33,8 @@ abstract final class EnvironmentLocator {
     final candidates = s.regions.entries
         .where((e) => s.values.containsKey(e.key))
         .toList();
-    if (candidates.isEmpty) {
-      throw const InvalidApiResponse('no regional readings');
-    }
+    // The parser rejects a payload without a reading for a known region.
+    assert(candidates.isNotEmpty, 'no regional readings');
     final region = _nearest(candidates, (e) => e.value, position).key;
     return EnvironmentalReading(
       value: s.values[region]!,
