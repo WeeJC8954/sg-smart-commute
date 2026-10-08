@@ -88,7 +88,7 @@ RegionalSnapshot _regional(
   }
   final values = <String, num>{
     for (final e in readings.entries)
-      if (regions.containsKey(e.key)) e.key: e.value as num,
+      if (regions.containsKey(e.key)) e.key: _finite(e.value),
   };
   if (regions.isEmpty || values.isEmpty) {
     throw InvalidApiResponse('no regions for $field');
@@ -138,7 +138,13 @@ DateTime _time(Object? value) => parseSourceTimestamp(value as String);
 LatLng _latLng(Object? value) {
   final m = value as Map<String, dynamic>;
   return LatLng(
-    (m['latitude'] as num).toDouble(),
-    (m['longitude'] as num).toDouble(),
+    _finite(m['latitude']).toDouble(),
+    _finite(m['longitude']).toDouble(),
   );
 }
+
+/// A JSON number; a literal beyond double range (`1e400`) decodes to infinity,
+/// which would break the display and the nearest-region search later (#55).
+num _finite(Object? value) => value is num && value.isFinite
+    ? value
+    : throw InvalidApiResponse('not a finite number: $value');
