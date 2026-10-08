@@ -298,6 +298,43 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('the fallback prompt\'s "Try location again" keeps focus in '
+      'the origin section, and the failure it brings back is a live region '
+      '(#65)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final location = FakeLocationService(access: LocationAccess.denied);
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, places: places),
+    );
+    final retry = find.text('Try location again');
+    // A keyboard or screen-reader user is on the button.
+    Focus.of(tester.element(retry)).requestFocus();
+    await tester.pump();
+
+    location.reset();
+    await tester.tap(retry);
+    await tester.pump();
+    // The button turned into a spinner: focus is on the section around it,
+    // not dropped back to the page.
+    final busy = find.text('Checking location permission…');
+    expect(busy, findsOneWidget);
+    expect(focusedAt(tester, busy), isTrue);
+    expect(FocusManager.instance.primaryFocus, isNot(isA<FocusScopeNode>()));
+
+    location.answer(LocationAccess.denied);
+    await tester.pump();
+    expect(focusedAt(tester, find.text(OriginCard.fallbackPrompt)), isTrue);
+    expect(
+      tester.getSemantics(find.text('Location permission was not granted.')),
+      isSemantics(
+        isLiveRegion: true,
+        label: 'Location permission was not granted.',
+      ),
+    );
+    semantics.dispose();
+  });
+
   testWidgets('a failed refresh is announced (#57)', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, gpsApp());
