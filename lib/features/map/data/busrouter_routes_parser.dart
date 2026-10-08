@@ -8,7 +8,8 @@ const StaticDataset _dataset = StaticDataset.busRouteGeometry;
 /// dir 1?]}`, one Google-encoded polyline per busrouter direction.
 ///
 /// The polylines are kept encoded: only the one a ride needs is decoded, in
-/// the matcher. An entry that is not a list of one or two strings is dropped.
+/// the matcher. An entry that is not a list of one or two strings, or has a
+/// line over [BusrouterValidation.maxEncodedLineLength], is dropped.
 /// Throws [StaticDataUnavailable] if the top level is not an object, nothing
 /// valid remains, or more than [BusrouterValidation.maxInvalidShare] of
 /// entries are invalid (same rule as the stops and services).
@@ -41,6 +42,12 @@ RouteGeometry parseBusrouterRoutes(Object? json) {
 List<String>? _lines(String service, Object? value) {
   if (service.isEmpty || value is! List) return null;
   if (value.isEmpty || value.length > 2) return null;
-  if (value.any((line) => line is! String)) return null;
+  if (value.any(
+    (line) =>
+        line is! String ||
+        line.length > BusrouterValidation.maxEncodedLineLength,
+  )) {
+    return null;
+  }
   return value.cast<String>();
 }

@@ -1,3 +1,4 @@
+import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../domain/place.dart';
@@ -26,7 +27,7 @@ List<Place> parseOneMapSearch(Object? json) {
   }
 
   final places = <Place>[];
-  for (final item in results) {
+  for (final item in results.take(PlaceSearchConfig.maxResults)) {
     if (item is! Map<String, dynamic>) continue;
     final place = _toPlace(item);
     if (place != null) places.add(place);

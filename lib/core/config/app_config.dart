@@ -55,6 +55,10 @@ abstract final class PlaceSearchConfig {
   /// At most this many queries' results are cached; the least recently used
   /// is evicted first, and expired entries are dropped on every write.
   static const int maxCachedQueries = 50;
+
+  /// Only this many results of a response are read: OneMap's page 1 has at
+  /// most 10, and every result is built into the list at once (#59).
+  static const int maxResults = 10;
 }
 
 /// Client-side pacing of OneMap requests (docs/assumptions.md, "OneMap rate
@@ -309,6 +313,17 @@ abstract final class BusrouterValidation {
   /// its entries is malformed: that points at a schema change, not a stray
   /// record.
   static const double maxInvalidShare = 0.05;
+
+  /// A direction listing more stop codes than this is an invalid entry
+  /// (#59): the planner and the ride matcher run on the UI isolate, and a
+  /// broken or hostile file could otherwise freeze them. Far above the
+  /// longest real direction (104 stops, docs/assumptions.md).
+  static const int maxStopsPerDirection = 300;
+
+  /// The same for one encoded route line, in characters, checked before it
+  /// is decoded. The longest real line has 314 points, about 4,000
+  /// characters.
+  static const int maxEncodedLineLength = 20000;
 }
 
 /// Direct-bus planner and walking estimate (guide v2.1 §9.2, §9.3). These are

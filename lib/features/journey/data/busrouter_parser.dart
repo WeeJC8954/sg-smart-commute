@@ -48,7 +48,9 @@ BusStop? _stop(String code, Object? value) {
 ///
 /// Stop codes missing from [stops] are removed from a route; a route with
 /// fewer than 2 stops left is dropped, and a service with no routes left (or
-/// a malformed entry) is invalid. Same failure rule as the stops.
+/// a malformed entry, or a direction over
+/// [BusrouterValidation.maxStopsPerDirection] codes) is invalid. Same failure
+/// rule as the stops.
 Map<String, BusService> parseBusrouterServices(
   Object? json,
   Map<String, BusStop> stops,
@@ -82,6 +84,7 @@ BusService? _service(String number, Object? value, Map<String, BusStop> stops) {
   for (var d = 0; d < routes.length; d++) {
     final route = routes[d];
     if (route is! List || route.any((c) => c is! String)) return null;
+    if (route.length > BusrouterValidation.maxStopsPerDirection) return null;
     final known = [
       for (final code in route.cast<String>())
         if (stops.containsKey(code)) code,
