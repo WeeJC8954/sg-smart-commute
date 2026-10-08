@@ -175,10 +175,11 @@ Key flows that span several files:
   builds cannot import outside it), and nothing else in `test/` should import from `integration_test/`.
 - A new provider host must be added to the CSP `connect-src` in `web/index.html`
   (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
-- A control that removes itself when pressed (a Retry, "Select", Show/Hide map) must hand focus on: to a
-  `FocusLanding` on something that stays (`ErrorRetryRow.landing`, `SectionHeading(focusNode:)`), or to its
-  replacement. A landing adds no semantics node of its own (rule: the "Screen readers and focus" row of
-  `docs/assumptions.md`).
+- A control that removes itself when pressed (a section's Retry, "Select", Show/Hide map) must hand focus on:
+  to a `FocusLanding` on something that stays (`ErrorRetryRow.landing`, `SectionHeading(focusNode:)`), or to
+  its replacement. A landing adds no semantics node of its own. The place-search Retry is the exception: its
+  only target is the search field, and focusing that would open the keyboard unasked (rule: the "Screen
+  readers and focus" row of `docs/assumptions.md`).
 - Presentation colours come only from `Theme.of(context).colorScheme`; the five palette seeds in `lib/features/appearance/domain/app_palette.dart` are the only fixed colours, and no `Colors.*` is used in `lib/` code (`test/app/app_theme_test.dart` scans `lib/`).
 - **Evidence rule:** never claim a test or gate passed unless it actually ran. Record the command and its
   real result in the run log in `docs/testing.md`; anything not run is logged as **Not run** with the reason.
