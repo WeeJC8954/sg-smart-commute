@@ -744,7 +744,16 @@ void main() {
         isSemantics(isLiveRegion: true),
       );
       // A new plan's default is quiet again, though the suggestion's state
-      // is kept across plans.
+      // is kept across plans. (Re-picking the same place keeps the same
+      // plan object, so go by another destination to get a new one.)
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await searchAndPick(
+        tester,
+        destinationField,
+        'ION Orchard',
+        'ION ORCHARD',
+      );
       await tester.tap(find.byKey(const Key('change-destination')));
       await tester.pump();
       await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
