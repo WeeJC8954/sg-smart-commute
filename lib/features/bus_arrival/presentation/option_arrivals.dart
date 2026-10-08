@@ -49,6 +49,7 @@ class OptionArrivals extends ConsumerWidget {
           error: error,
           service: option.service.number,
           landing: landing,
+          announce: identical(option, plan.options.first),
         );
       }
       return const _Checking();
@@ -59,6 +60,12 @@ class OptionArrivals extends ConsumerWidget {
         error: failure,
         service: option.service.number,
         landing: landing,
+        announce: identical(
+          option,
+          plan.options.firstWhere(
+            (o) => current.byStop[o.board.code] is StopArrivalsFailed,
+          ),
+        ),
       ),
       StopArrivalsLoaded(:final arrivals) => _loaded(
         theme,
@@ -214,6 +221,7 @@ class _ArrivalFailed extends ConsumerWidget {
     required this.error,
     required this.service,
     required this.landing,
+    required this.announce,
   });
   final Object error;
 
@@ -221,11 +229,17 @@ class _ArrivalFailed extends ConsumerWidget {
   final String service;
   final FocusNode? landing;
 
+  /// A failure arrives away from focus (after a refresh or a new journey), so
+  /// it is announced, but only on the first failed option: a failure several
+  /// options share is heard once (#66).
+  final bool announce;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) => ErrorRetryRow(
     message: 'Live arrivals: ${failureMessage(error)}',
     onRetry: () => ref.invalidate(journeyArrivalsProvider),
     retryLabel: 'Retry live arrivals for Bus $service',
     landing: landing,
+    liveRegion: announce,
   );
 }
