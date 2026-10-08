@@ -766,4 +766,92 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  // A control that removes itself when pressed leaves focus where it was, not
+  // at the top of the page (#56).
+  group('focus after a Retry or Select', () {
+    bool focusedAt(WidgetTester tester, Finder finder) =>
+        Focus.maybeOf(
+          tester.element(finder),
+          createDependency: false,
+        )?.hasPrimaryFocus ??
+        false;
+
+    testWidgets('"Retry finding a bus" → the "Suggested journey" heading', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      bus.failure = const StaticDataUnavailable(StaticDataset.busRoutes);
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      bus.failure = null;
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('journey-card')),
+          matching: find.text('Retry'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('journey-suggested')), findsOneWidget);
+      expect(focusedAt(tester, inCard('Suggested journey')), isTrue);
+      expect(
+        tester.getSemantics(inCard('Suggested journey')),
+        isSemantics(isHeader: true, isFocused: true),
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('the MRT Retry → the "MRT alternative" heading', (
+      tester,
+    ) async {
+      await pumpApp(tester, gpsApp(mrtFails: true));
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('journey-mrt')),
+          matching: find.text('Retry'),
+        ),
+      );
+      await tester.pump();
+      expect(focusedAt(tester, inCard('MRT alternative')), isTrue);
+    });
+
+    testWidgets('a live-arrivals Retry → its option\'s "Take Bus" line', (
+      tester,
+    ) async {
+      arrivals.failure = const NetworkUnavailable();
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await tester.pump();
+      arrivals.failure = null;
+      final retry = find.descendant(
+        of: find.byKey(const Key('journey-alternative-1')),
+        matching: find.text('Retry'),
+      );
+      await tester.ensureVisible(retry);
+      await tester.pump();
+      await tester.tap(retry);
+      await tester.pump();
+      expect(
+        focusedAt(
+          tester,
+          inKey('journey-alternative-1', 'Take Bus F10 toward VivoCity (fake)'),
+        ),
+        isTrue,
+      );
+    });
+
+    testWidgets('Select → the new "Selected" mark', (tester) async {
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await select(tester, 'F10');
+      expect(
+        focusedAt(tester, inKey('journey-alternative-1', 'Selected')),
+        isTrue,
+      );
+      await select(tester, 'F20');
+      expect(focusedAt(tester, inKey('journey-suggested', 'Selected')), isTrue);
+    });
+  });
 }

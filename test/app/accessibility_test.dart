@@ -1,6 +1,7 @@
 // Screen-reader and keyboard behaviour of the home screen (guide v2.1 §16,
 // accessibility): headings, button labels, live regions and focus.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
@@ -50,6 +51,14 @@ bool fieldFocused(WidgetTester tester, Key field) => tester
 
 bool buttonFocused(WidgetTester tester, String key) =>
     tester.widget<TextButton>(find.byKey(Key(key))).focusNode!.hasFocus;
+
+/// The nearest [Focus] above [finder]'s widget has the primary focus.
+bool focusedAt(WidgetTester tester, Finder finder) =>
+    Focus.maybeOf(
+      tester.element(finder),
+      createDependency: false,
+    )?.hasPrimaryFocus ??
+    false;
 
 void main() {
   late FakePlaceSearchRepository places;
@@ -207,5 +216,103 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(buttonFocused(tester, 'change-destination'), isTrue);
+  });
+
+  testWidgets('a tile Retry that removes itself leaves focus on the tile '
+      'title, which Tab does not stop at (#56)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    env.failPm25 = const NetworkUnavailable();
+    await pumpApp(tester, gpsApp());
+    await tester.pump();
+    final title = find.descendant(
+      of: find.byKey(const Key('tile-pm25')),
+      matching: find.text('1-hr PM2.5'),
+    );
+    expect(focusedAt(tester, title), isFalse);
+
+    env.failPm25 = null;
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('tile-pm25')),
+        matching: find.text('Retry'),
+      ),
+    );
+    await tester.pump();
+    expect(focusedAt(tester, title), isTrue);
+    expect(tester.getSemantics(title), isSemantics(isFocused: true));
+    await tester.pump();
+    expect(find.textContaining('µg/m³'), findsOneWidget);
+    expect(focusedAt(tester, title), isTrue, reason: 'kept once it loads');
+
+    // Never a Tab stop of its own: Tab moves on and does not come back.
+    for (var i = 0; i < 30; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusedAt(tester, title), isFalse);
+    }
+    semantics.dispose();
+  });
+
+  testWidgets('the result of "Try location again" is announced (#57)', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final location = FakeLocationService(access: LocationAccess.denied);
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, places: places),
+    );
+    await type(tester, originField, 'Tampines Hub');
+    await pick(tester, 'OUR TAMPINES HUB');
+
+    location.reset();
+    await tester.tap(find.byKey(const Key('retry-location')));
+    await tester.pump();
+    location.answer(LocationAccess.denied);
+    await tester.pump();
+    expect(
+      tester.getSemantics(find.byKey(const Key('background-location-failure'))),
+      isSemantics(
+        isLiveRegion: true,
+        label:
+            '${const LocationPermissionDenied().message} '
+            'Your chosen origin is kept.',
+      ),
+    );
+
+    location.reset();
+    await tester.tap(find.byKey(const Key('retry-location')));
+    await tester.pump();
+    location
+      ..grant()
+      ..fix(bishan);
+    await tester.pump();
+    expect(
+      tester.getSemantics(find.byKey(const Key('use-current-location'))),
+      isSemantics(
+        isLiveRegion: true,
+        isButton: true,
+        label: 'Use my current location',
+      ),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('a failed refresh is announced (#57)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, gpsApp());
+    await tester.pump();
+    await tester.pump();
+    env.failPsi = const NetworkUnavailable();
+    await tester.tap(find.byKey(const Key('refresh-conditions')));
+    await tester.pump();
+    await tester.pump();
+    expect(
+      tester.getSemantics(
+        find.text("Couldn't refresh: ${const NetworkUnavailable().message}"),
+      ),
+      isSemantics(isLiveRegion: true),
+    );
+    semantics.dispose();
   });
 }

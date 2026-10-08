@@ -196,6 +196,26 @@ void main() {
       );
     });
 
+    test('a direction of more than 300 stop codes is invalid (#59)', () {
+      final stops = parseBusrouterStops({
+        'A': [103.8, 1.3, 'A', 'R'],
+        'B': [103.81, 1.3, 'B', 'R'],
+      });
+      Map<String, Object?> service(int codes) => {
+        'S': {
+          'name': 'S',
+          'routes': [
+            [for (var i = 0; i < codes; i++) i.isEven ? 'A' : 'B'],
+          ],
+        },
+      };
+      expect(
+        parseBusrouterServices(service(300), stops)['S']!.directions.single,
+        hasLength(300),
+      );
+      expect(() => parseBusrouterServices(service(301), stops), unavailable());
+    });
+
     test('a dropped direction keeps the source index of the next one', () {
       final stops = parseBusrouterStops({
         '11111': [103.8, 1.30, 'One', 'Rd'],

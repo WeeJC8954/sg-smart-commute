@@ -57,6 +57,22 @@ void main() {
       expect(geometry.encoded('S0', 0), 'abc0');
     });
 
+    test('an encoded line of more than 20,000 characters is invalid (#59)', () {
+      final atCap = 'a' * 20000;
+      expect(
+        parseBusrouterRoutes({
+          'S': [atCap],
+        }).encoded('S', 0),
+        atCap,
+      );
+      expect(
+        () => parseBusrouterRoutes({
+          'S': ['a' * 20001],
+        }),
+        unavailable(),
+      );
+    });
+
     test('exactly the allowed invalid share passes, one more fails', () {
       // 1 of 20 is 5 %, which is not more than maxInvalidShare.
       expect(parseBusrouterRoutes({...good(19), 'BAD': 1}).serviceCount, 19);

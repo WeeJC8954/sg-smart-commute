@@ -229,4 +229,41 @@ void main() {
       );
     });
   });
+
+  // A number literal beyond double range decodes to infinity (#55).
+  group('a non-finite number → InvalidApiResponse, never a crash later', () {
+    Object? withLiteral(String name, String from, String to) {
+      final text = File('test/fixtures/$name.json').readAsStringSync();
+      expect(text, contains(from));
+      return jsonDecode(text.replaceFirst(from, to));
+    }
+
+    test('a reading of 1e400', () {
+      expect(
+        () => parsePm25(
+          withLiteral('pm25', '"west":34', '"west":1e400'),
+          fetchedAt: fetchedAt,
+        ),
+        throwsA(isA<InvalidApiResponse>()),
+      );
+    });
+
+    test('a region or area location of 1e400', () {
+      expect(
+        () => parsePm25(
+          withLiteral('pm25', '"latitude":1.41803', '"latitude":1e400'),
+          fetchedAt: fetchedAt,
+        ),
+        throwsA(isA<InvalidApiResponse>()),
+      );
+      final forecast = fixture('two-hr-forecast') as Map<String, dynamic>;
+      ((forecast['data']['area_metadata'] as List).first['label_location']
+              as Map<String, dynamic>)['longitude'] =
+          double.infinity;
+      expect(
+        () => parseTwoHourForecast(forecast, fetchedAt: fetchedAt),
+        throwsA(isA<InvalidApiResponse>()),
+      );
+    });
+  });
 }
