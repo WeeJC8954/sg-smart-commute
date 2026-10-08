@@ -346,54 +346,51 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
           ),
         // Below the map, not over it, so it never hides a marker.
         if (_tilesFailed)
-          Semantics(
-            liveRegion: true,
-            child: Padding(
-              key: const Key('map-tiles-unavailable'),
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.cloud_off,
-                    size: 18,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      JourneyMap.tilesUnavailable,
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          const _MapNote(
+            noteKey: Key('map-tiles-unavailable'),
+            icon: Icons.cloud_off,
+            text: JourneyMap.tilesUnavailable,
           ),
         if (rideUnavailable)
-          Semantics(
-            liveRegion: true,
-            child: Padding(
-              key: const Key('map-ride-unavailable'),
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.route_outlined,
-                    size: 18,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      JourneyMap.rideLineUnavailable,
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          const _MapNote(
+            noteKey: Key('map-ride-unavailable'),
+            icon: Icons.route_outlined,
+            text: JourneyMap.rideLineUnavailable,
           ),
       ],
+    );
+  }
+}
+
+/// A degraded-map note below the map, announced when it appears.
+class _MapNote extends StatelessWidget {
+  const _MapNote({
+    required this.noteKey,
+    required this.icon,
+    required this.text,
+  });
+
+  /// On the padded row, where the tests look for it.
+  final Key noteKey;
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      liveRegion: true,
+      child: Padding(
+        key: noteKey,
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
+          ],
+        ),
+      ),
     );
   }
 }
