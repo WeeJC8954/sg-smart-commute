@@ -28,7 +28,7 @@ Map<String, BusStop> parseBusrouterStops(Object? json) {
       stops[code] = stop;
     }
   });
-  _checkShare('stops', invalid, json.length, stops.isEmpty);
+  checkInvalidShare(_dataset, 'stops', invalid, json.length, stops.isEmpty);
   return stops;
 }
 
@@ -68,7 +68,13 @@ Map<String, BusService> parseBusrouterServices(
       services[number] = service;
     }
   });
-  _checkShare('services', invalid, json.length, services.isEmpty);
+  checkInvalidShare(
+    _dataset,
+    'services',
+    invalid,
+    json.length,
+    services.isEmpty,
+  );
   return services;
 }
 
@@ -103,13 +109,22 @@ BusService? _service(String number, Object? value, Map<String, BusStop> stops) {
   );
 }
 
-void _checkShare(String what, int invalid, int total, bool nothingValid) {
+/// The failure rule of every busrouter file: [dataset] is unavailable if
+/// nothing in it is valid, or more than [BusrouterValidation.maxInvalidShare]
+/// of its [total] entries are invalid.
+void checkInvalidShare(
+  StaticDataset dataset,
+  String what,
+  int invalid,
+  int total,
+  bool nothingValid,
+) {
   if (nothingValid) {
-    throw StaticDataUnavailable(_dataset, '$what: no valid entries');
+    throw StaticDataUnavailable(dataset, '$what: no valid entries');
   }
   if (invalid / total > BusrouterValidation.maxInvalidShare) {
     throw StaticDataUnavailable(
-      _dataset,
+      dataset,
       '$what: $invalid of $total entries invalid',
     );
   }

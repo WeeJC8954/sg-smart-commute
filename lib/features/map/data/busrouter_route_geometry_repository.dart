@@ -10,32 +10,17 @@ import 'busrouter_routes_parser.dart';
 ///
 /// - Lazy: nothing is fetched until the first [load] (the map opened with a
 ///   direct-bus journey).
-/// - Session cache: the first successful load is kept for the session, and
-///   concurrent callers share the same in-flight load.
-/// - Any network, HTTP or schema problem is [StaticDataUnavailable]. A failed
-///   load is not cached, so the next [load] fetches again.
+/// - Each [load] downloads and parses the file. `routeGeometryProvider` holds
+///   the result for the session, and [JsonHttpClient] merges concurrent
+///   identical requests.
+/// - Any network, HTTP or schema problem is [StaticDataUnavailable].
 class BusrouterRouteGeometryRepository implements RouteGeometryRepository {
   BusrouterRouteGeometryRepository(this._http);
 
   final JsonHttpClient _http;
-  Future<RouteGeometry>? _geometry;
 
   @override
-  Future<RouteGeometry> load() {
-    final existing = _geometry;
-    if (existing != null) return existing;
-    final loading = _fetch();
-    _geometry = loading;
-    loading.then<void>(
-      (_) {},
-      onError: (Object _) {
-        if (identical(_geometry, loading)) _geometry = null;
-      },
-    );
-    return loading;
-  }
-
-  Future<RouteGeometry> _fetch() async {
+  Future<RouteGeometry> load() async {
     final Object? json;
     try {
       json = await _http.getJson(BusrouterEndpoints.routes);

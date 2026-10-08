@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -13,6 +14,8 @@ import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/http/json_http_client.dart';
 import 'package:sg_smart_commute/features/map/data/busrouter_route_geometry_repository.dart';
 import 'package:sg_smart_commute/features/map/data/busrouter_routes_parser.dart';
+import 'package:sg_smart_commute/features/map/map_providers.dart';
+import 'package:sg_smart_commute/main.dart' show noAutomaticRetry;
 
 final String routesBody = File('test/fixtures/busrouter/geometry/routes.json')
     .readAsStringSync();
@@ -138,18 +141,23 @@ void main() {
       expect(urls.single, BusrouterEndpoints.routes);
     });
 
-    test('concurrent loads share one request', () async {
-      final r = repo(ok);
-      final results = await Future.wait([r.load(), r.load(), r.load()]);
-      expect(identical(results[0], results[2]), isTrue);
-      expect(calls, 1);
-    });
-
-    test('a success is reused for the session', () async {
-      final r = repo(ok);
-      final a = await r.load();
-      final b = await r.load();
-      expect(identical(a, b), isTrue);
+    // The provider is the only session cache (#60).
+    test('routeGeometryProvider holds one download for the session, shared '
+        'by concurrent and later reads', () async {
+      final c = ProviderContainer(
+        retry: noAutomaticRetry,
+        overrides: [
+          routeGeometryRepositoryProvider.overrideWithValue(repo(ok)),
+        ],
+      );
+      addTearDown(c.dispose);
+      final first = await Future.wait([
+        c.read(routeGeometryProvider.future),
+        c.read(routeGeometryProvider.future),
+      ]);
+      final later = await c.read(routeGeometryProvider.future);
+      expect(identical(first[0], first[1]), isTrue);
+      expect(identical(first[0], later), isTrue);
       expect(calls, 1);
     });
 

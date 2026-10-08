@@ -1,5 +1,6 @@
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../journey/data/busrouter_parser.dart';
 import '../domain/route_geometry.dart';
 
 const StaticDataset _dataset = StaticDataset.busRouteGeometry;
@@ -27,15 +28,7 @@ RouteGeometry parseBusrouterRoutes(Object? json) {
       encoded[service] = lines;
     }
   });
-  if (encoded.isEmpty) {
-    throw const StaticDataUnavailable(_dataset, 'routes: no valid entries');
-  }
-  if (invalid / json.length > BusrouterValidation.maxInvalidShare) {
-    throw StaticDataUnavailable(
-      _dataset,
-      'routes: $invalid of ${json.length} entries invalid',
-    );
-  }
+  checkInvalidShare(_dataset, 'routes', invalid, json.length, encoded.isEmpty);
   return RouteGeometry(encoded);
 }
 
