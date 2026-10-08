@@ -145,7 +145,6 @@ void main() {
       final ride = sceneTo(vivoCity.position, plan: plan, stops: stops).ride!;
       final codes = network.services['F20']!.directions[0];
       expect(ride.service, 'F20');
-      expect(ride.boardIndex, option.boardIndex);
       expect(ride.sourceDirection, 0);
       expect(ride.stops, [
         for (final c in codes.sublist(
@@ -273,13 +272,11 @@ void main() {
       const rideA = MapRide(
         service: 'F20',
         sourceDirection: 0,
-        boardIndex: 0,
         stops: [LatLng(1.35, 103.848), LatLng(1.30, 103.85)],
       );
       const rideB = MapRide(
         service: 'F20',
         sourceDirection: 0,
-        boardIndex: 0,
         stops: [LatLng(1.35, 103.848), LatLng(1.31, 103.85)],
       );
       expect(
@@ -368,13 +365,12 @@ void main() {
         plan: DirectBusOptions([repeated], radiusMeters: 400),
         stops: {'A': a, 'B': b, 'C': c},
       );
-      expect(scene.ride!.boardIndex, 3);
       expect(scene.ride!.stops, [a.position, b.position]);
       expect(scene.ride!.leadingStops, [c.position]);
     });
 
-    test('the planner boards a later occurrence: its boardIndex reaches the '
-        'ride, with the leading stops that pin it', () {
+    test('the planner boards a later occurrence: the ride gets the leading '
+        'stops that pin it', () {
       BusStop s(String code, double lat, double lng) => BusStop(
         code: code,
         position: LatLng(lat, lng),
@@ -414,7 +410,6 @@ void main() {
         plan: plan,
         stops: repeated.stops,
       ).ride!;
-      expect(ride.boardIndex, 4);
       expect(ride.stops, [a.position, b.position]);
       expect(ride.leadingStops, [c.position]);
     });
@@ -439,7 +434,6 @@ void main() {
       expect(pos(s1, MapMarkerKind.boarding), stops['BSH1']!.position);
       expect(pos(s1, MapMarkerKind.alighting), stops['VIV1']!.position);
       expect(s1.ride!.service, 'F10');
-      expect(s1.ride!.boardIndex, plan.options[1].boardIndex);
     });
 
     test('two options with the same stops are different scenes (F10, F30)', () {

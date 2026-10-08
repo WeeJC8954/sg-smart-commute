@@ -34,7 +34,6 @@ MapRide ride(String service, int direction, int from, int to) {
   return MapRide(
     service: service,
     sourceDirection: direction,
-    boardIndex: from,
     stops: [for (final c in codes.sublist(from, to + 1)) stopAt(c)],
   );
 }
@@ -117,13 +116,11 @@ void main() {
     final noService = MapRide(
       service: 'NOPE',
       sourceDirection: 0,
-      boardIndex: 0,
       stops: r.stops,
     );
     final noDirection = MapRide(
       service: '10',
       sourceDirection: 5,
-      boardIndex: 0,
       stops: r.stops,
     );
     for (final x in [noService, noDirection]) {
@@ -173,7 +170,7 @@ void main() {
       'S': [line],
     });
     MapRide on(List<LatLng> stops) =>
-        MapRide(service: 'S', sourceDirection: 0, boardIndex: 0, stops: stops);
+        MapRide(service: 'S', sourceDirection: 0, stops: stops);
 
     test('the straight line literal decodes to its points', () {
       expectDecodesTo(line, const [
@@ -227,7 +224,6 @@ void main() {
       final r = MapRide(
         service: 'U',
         sourceDirection: 0,
-        boardIndex: 0,
         stops: const [LatLng(1.3, 103.80), LatLng(1.3009, 103.80)],
       );
       expect(
@@ -250,7 +246,7 @@ void main() {
       'L': [outAndBack],
     });
     MapRide onLoop(List<LatLng> stops) =>
-        MapRide(service: 'L', sourceDirection: 0, boardIndex: 0, stops: stops);
+        MapRide(service: 'L', sourceDirection: 0, stops: stops);
 
     test('the out-and-back literal decodes to its points', () {
       expectDecodesTo(outAndBack, const [
@@ -330,7 +326,6 @@ void main() {
       final r = MapRide(
         service: 'T',
         sourceDirection: 0,
-        boardIndex: 3,
         stops: const [a, b],
         leadingStops: const [c],
       );
@@ -342,12 +337,7 @@ void main() {
     });
 
     test('without leadingStops the same ride is drawn on pass 1', () {
-      final r = MapRide(
-        service: 'T',
-        sourceDirection: 0,
-        boardIndex: 3,
-        stops: const [a, b],
-      );
+      final r = MapRide(service: 'T', sourceDirection: 0, stops: const [a, b]);
       final drawn = matchRide(r, g) as RideLineDrawn;
       for (final p in drawn.points) {
         expect(p.latitude, closeTo(1.3, 1e-5));
@@ -356,12 +346,7 @@ void main() {
 
     test('the first occurrence (no unique context) is drawn on pass 1', () {
       expect(leadingStopCount(codes, 0, 1), 0);
-      final r = MapRide(
-        service: 'T',
-        sourceDirection: 0,
-        boardIndex: 0,
-        stops: const [a, b],
-      );
+      final r = MapRide(service: 'T', sourceDirection: 0, stops: const [a, b]);
       final drawn = matchRide(r, g) as RideLineDrawn;
       for (final p in drawn.points) {
         expect(p.latitude, closeTo(1.3, 1e-5));
@@ -373,7 +358,6 @@ void main() {
       final r = MapRide(
         service: 'T',
         sourceDirection: 0,
-        boardIndex: 3,
         stops: const [a, b],
         leadingStops: const [LatLng(1.302, 103.805)],
       );
@@ -395,7 +379,6 @@ void main() {
       MapRide withLeading(List<LatLng> leading) => MapRide(
         service: 'U',
         sourceDirection: 0,
-        boardIndex: 1,
         stops: stops,
         leadingStops: leading,
       );
@@ -421,7 +404,7 @@ void main() {
     const m1 = LatLng(1.30, 103.8045), m2 = LatLng(1.3045, 103.809);
     const m3 = LatLng(1.309, 103.8045), m4 = LatLng(1.3045, 103.80);
     MapRide on(List<LatLng> stops) =>
-        MapRide(service: 'Q', sourceDirection: 0, boardIndex: 0, stops: stops);
+        MapRide(service: 'Q', sourceDirection: 0, stops: stops);
 
     test('the square literal decodes to its points', () {
       expectDecodesTo(square, const [
@@ -453,13 +436,11 @@ void main() {
     MapRide base({
       String service = 'S',
       int sourceDirection = 0,
-      int boardIndex = 1,
       List<LatLng> stops = const [LatLng(1.3, 103.80), LatLng(1.3, 103.81)],
       List<LatLng> leadingStops = const [LatLng(1.3, 103.79)],
     }) => MapRide(
       service: service,
       sourceDirection: sourceDirection,
-      boardIndex: boardIndex,
       stops: stops,
       leadingStops: leadingStops,
     );
@@ -473,7 +454,6 @@ void main() {
       final variants = [
         base(service: 'T'),
         base(sourceDirection: 1),
-        base(boardIndex: 2),
         base(stops: const [LatLng(1.3, 103.80), LatLng(1.3, 103.82)]),
         base(leadingStops: const []),
         base(leadingStops: const [LatLng(1.3, 103.78)]),
@@ -549,12 +529,7 @@ void main() {
               l0.longitude + 0.1 * (l0.longitude - l1.longitude),
             ),
           ];
-          final r = MapRide(
-            service: 'W',
-            sourceDirection: 0,
-            boardIndex: 0,
-            stops: stops,
-          );
+          final r = MapRide(service: 'W', sourceDirection: 0, stops: stops);
           final result = matchRide(
             r,
             RouteGeometry({

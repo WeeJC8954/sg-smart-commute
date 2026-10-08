@@ -836,18 +836,8 @@ void main() {
       tester,
     ) async {
       const a = LatLng(1.35, 103.85), b = LatLng(1.36, 103.86);
-      const rideA = MapRide(
-        service: 'F20',
-        sourceDirection: 0,
-        boardIndex: 0,
-        stops: [a, b],
-      );
-      const rideB = MapRide(
-        service: 'F30',
-        sourceDirection: 0,
-        boardIndex: 0,
-        stops: [a, b],
-      );
+      const rideA = MapRide(service: 'F20', sourceDirection: 0, stops: [a, b]);
+      const rideB = MapRide(service: 'F30', sourceDirection: 0, stops: [a, b]);
       const scene = MapScene(
         [
           MapMarker(MapMarkerKind.origin, a, 'Start'),
