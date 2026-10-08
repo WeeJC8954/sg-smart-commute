@@ -99,7 +99,7 @@ abstract final class BasemapEndpoints {
   );
 
   /// Attribution links, from OneMap's snippet
-  /// (`docs/maps/resources/code-attr.txt`).
+  /// (https://www.onemap.gov.sg/docs/maps/resources/code-attr.txt).
   static final Uri oneMapSite = Uri.https(host, '/');
   static final Uri slaSite = Uri.https('www.sla.gov.sg', '/');
 }
@@ -111,7 +111,6 @@ abstract final class BasemapAttribution {
   static const String oneMap = 'OneMap';
   static const String contributors = ' © contributors | ';
   static const String sla = 'Singapore Land Authority';
-  static const String full = '$oneMap$contributors$sla';
 }
 
 /// Journey map (P2-M1; docs/map-feasibility.md §4.2 reasonable-use rules,
