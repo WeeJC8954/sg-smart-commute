@@ -35,7 +35,7 @@ Future<void> searchAndPick(
   Key field = const Key('manual-origin-field'),
 }) async {
   await tester.enterText(find.byKey(field), query);
-  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump(pastSearchDebounce);
   await tester.pump();
   final hit = find.text(result);
   await tester.ensureVisible(hit);
@@ -265,7 +265,7 @@ void main() {
       find.byKey(const Key('manual-origin-field')),
       'Tampines Hub',
     );
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(pastSearchDebounce);
     location.fix(bishan);
     await tester.pump();
 

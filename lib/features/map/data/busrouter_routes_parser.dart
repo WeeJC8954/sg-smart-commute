@@ -1,5 +1,6 @@
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../journey/data/busrouter_parser.dart';
 import '../domain/route_geometry.dart';
 
 const StaticDataset _dataset = StaticDataset.busRouteGeometry;
@@ -8,7 +9,8 @@ const StaticDataset _dataset = StaticDataset.busRouteGeometry;
 /// dir 1?]}`, one Google-encoded polyline per busrouter direction.
 ///
 /// The polylines are kept encoded: only the one a ride needs is decoded, in
-/// the matcher. An entry that is not a list of one or two strings is dropped.
+/// the matcher. An entry that is not a list of one or two strings, or has a
+/// line over [BusrouterValidation.maxEncodedLineLength], is dropped.
 /// Throws [StaticDataUnavailable] if the top level is not an object, nothing
 /// valid remains, or more than [BusrouterValidation.maxInvalidShare] of
 /// entries are invalid (same rule as the stops and services).
@@ -26,21 +28,19 @@ RouteGeometry parseBusrouterRoutes(Object? json) {
       encoded[service] = lines;
     }
   });
-  if (encoded.isEmpty) {
-    throw const StaticDataUnavailable(_dataset, 'routes: no valid entries');
-  }
-  if (invalid / json.length > BusrouterValidation.maxInvalidShare) {
-    throw StaticDataUnavailable(
-      _dataset,
-      'routes: $invalid of ${json.length} entries invalid',
-    );
-  }
+  checkInvalidShare(_dataset, 'routes', invalid, json.length, encoded.isEmpty);
   return RouteGeometry(encoded);
 }
 
 List<String>? _lines(String service, Object? value) {
   if (service.isEmpty || value is! List) return null;
   if (value.isEmpty || value.length > 2) return null;
-  if (value.any((line) => line is! String)) return null;
+  if (value.any(
+    (line) =>
+        line is! String ||
+        line.length > BusrouterValidation.maxEncodedLineLength,
+  )) {
+    return null;
+  }
   return value.cast<String>();
 }

@@ -1,6 +1,7 @@
 // P2-M0 feasibility probe: how much of a planned bus ride can be drawn from
-// busrouter's routes.min.json? Dart VM, not shipped; the app does not load
-// routes.min.json yet. Results: docs/map-feasibility.md §5.
+// busrouter's routes.min.json? Dart VM, not shipped. Written before the app
+// loaded routes.min.json (it has since P2-M2, routeGeometryProvider).
+// Results: docs/map-feasibility.md §5.
 //
 //   dart run tool/route_geometry_probe.dart              # download the 3 files
 //   dart run tool/route_geometry_probe.dart --dir <dir>  # use local copies

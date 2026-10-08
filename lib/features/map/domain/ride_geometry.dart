@@ -38,29 +38,25 @@ class MapRide {
       other.service == service &&
       other.sourceDirection == sourceDirection &&
       other.boardIndex == boardIndex &&
-      _samePoints(other.stops, stops) &&
-      _samePoints(other.leadingStops, leadingStops);
+      sameElements(other.stops, stops) &&
+      sameElements(other.leadingStops, leadingStops);
 
   @override
   int get hashCode => Object.hash(
     service,
     sourceDirection,
     boardIndex,
-    Object.hashAll([
-      for (final p in stops) Object.hash(p.latitude, p.longitude),
-    ]),
-    Object.hashAll([
-      for (final p in leadingStops) Object.hash(p.latitude, p.longitude),
-    ]),
+    Object.hashAll(stops),
+    Object.hashAll(leadingStops),
   );
 }
 
-bool _samePoints(List<LatLng> a, List<LatLng> b) {
+/// Element-wise list equality for the map domain's value types. Pure Dart,
+/// so not `foundation.listEquals`.
+bool sameElements<T>(List<T> a, List<T> b) {
   if (a.length != b.length) return false;
   for (var i = 0; i < a.length; i++) {
-    if (a[i].latitude != b[i].latitude || a[i].longitude != b[i].longitude) {
-      return false;
-    }
+    if (a[i] != b[i]) return false;
   }
   return true;
 }

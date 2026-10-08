@@ -41,6 +41,7 @@ class ErrorRetryRow extends StatelessWidget {
     this.onRetry,
     this.retryLabel,
     this.liveRegion = false,
+    this.landing,
   });
 
   final String message;
@@ -48,13 +49,18 @@ class ErrorRetryRow extends StatelessWidget {
   /// Null when retrying cannot help: no button is shown.
   final VoidCallback? onRetry;
 
+  /// Retry replaces this row with a spinner, so focus moves here first: the
+  /// node of a `FocusLanding` on something that stays, such as the section's
+  /// title (#56).
+  final FocusNode? landing;
+
   /// What screen readers say for the button, e.g. "Retry 1-hr PM2.5": with
   /// several failures on screen, a bare "Retry" doesn't say which one it
   /// retries. The visible text stays "Retry".
   final String? retryLabel;
 
   /// Announce [message] when it appears, for a failure of something the
-  /// user just did (a search).
+  /// user just did (a search, a refresh).
   final bool liveRegion;
 
   @override
@@ -69,7 +75,10 @@ class ErrorRetryRow extends StatelessWidget {
       ),
       if (onRetry != null)
         TextButton(
-          onPressed: onRetry,
+          onPressed: () {
+            landing?.requestFocus();
+            onRetry!();
+          },
           child: Text('Retry', semanticsLabel: retryLabel),
         ),
     ],

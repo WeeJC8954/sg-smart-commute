@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/focus_landing.dart';
 import '../../../core/ui/section_heading.dart';
 import '../../../core/ui/status_rows.dart';
 import '../../bus_arrival/presentation/option_arrivals.dart';
@@ -21,14 +22,33 @@ import 'distance_text.dart';
 /// With two or more options the user can select one (P2-M3): the selected
 /// option is the one the journey map shows. Selecting never re-plans, never
 /// reorders the options or moves "Suggested", and never touches arrivals.
-class JourneyCard extends ConsumerWidget {
+///
+/// A Retry or "Select" removes itself when pressed, so it leaves focus on
+/// something that stays (#56): its section's heading, its option's "Take
+/// Bus" line, or the new "Selected" mark.
+class JourneyCard extends ConsumerStatefulWidget {
   const JourneyCard({super.key});
 
   static const String estimateNote =
       'Walking times are straight-line estimates, not routes.';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JourneyCard> createState() => _JourneyCardState();
+}
+
+class _JourneyCardState extends ConsumerState<JourneyCard> {
+  final _heading = FocusNode(debugLabel: 'journey-heading');
+  final _mrtHeading = FocusNode(debugLabel: 'mrt-heading');
+
+  @override
+  void dispose() {
+    _heading.dispose();
+    _mrtHeading.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ready = ref.watch(
       originControllerProvider.select((s) => s.origin != null),
     );
@@ -52,6 +72,7 @@ class JourneyCard extends ConsumerWidget {
             SectionHeading(
               'Suggested journey',
               style: theme.textTheme.titleMedium,
+              focusNode: _heading,
             ),
             const SizedBox(height: 8),
             switch (plan) {
@@ -64,6 +85,7 @@ class JourneyCard extends ConsumerWidget {
                   ..invalidate(busNetworkProvider)
                   ..invalidate(journeyPlanProvider),
                 retryLabel: 'Retry finding a bus',
+                landing: _heading,
               ),
               AsyncValue(:final value) => _Plan(
                 plan: value,
@@ -76,9 +98,10 @@ class JourneyCard extends ConsumerWidget {
               mrt: mrt,
               maxMeters: ref.watch(mrtMaxDistanceMetersProvider),
               onRetry: () => ref.invalidate(mrtSuggestionProvider),
+              heading: _mrtHeading,
             ),
             const SizedBox(height: 8),
-            Text(estimateNote, style: theme.textTheme.bodySmall),
+            Text(JourneyCard.estimateNote, style: theme.textTheme.bodySmall),
           ],
         ),
       ),
@@ -205,6 +228,26 @@ class _Option extends StatefulWidget {
 class _OptionState extends State<_Option> {
   late bool _expanded = !widget.collapsible;
 
+  /// Where a live-arrivals Retry leaves focus: the "Take Bus" line.
+  final _title = FocusNode(debugLabel: 'option-title');
+
+  /// The "Selected" mark, focused once "Select" has turned into it.
+  final _mark = FocusNode(debugLabel: 'option-selected');
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _mark.dispose();
+    super.dispose();
+  }
+
+  void _select() {
+    widget.onSelect!();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _mark.requestFocus();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -228,15 +271,19 @@ class _OptionState extends State<_Option> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Take Bus ${o.service.number} toward '
-                      '${o.towardName}$loop',
-                      style: theme.textTheme.titleSmall,
+                    FocusLanding(
+                      focusNode: _title,
+                      child: Text(
+                        'Take Bus ${o.service.number} toward '
+                        '${o.towardName}$loop',
+                        style: theme.textTheme.titleSmall,
+                      ),
                     ),
                     OptionArrivals(
                       key: Key('arrivals-${o.board.code}-${o.service.number}'),
                       plan: widget.plan,
                       option: o,
+                      landing: _title,
                     ),
                   ],
                 ),
@@ -254,7 +301,8 @@ class _OptionState extends State<_Option> {
                   _SelectControl(
                     service: o.service.number,
                     selected: widget.selected,
-                    onSelect: widget.onSelect!,
+                    onSelect: _select,
+                    markFocus: _mark,
                   ),
                 if (widget.collapsible)
                   TextButton(
@@ -283,10 +331,12 @@ class _SelectControl extends StatelessWidget {
     required this.service,
     required this.selected,
     required this.onSelect,
+    required this.markFocus,
   });
   final String service;
   final bool selected;
   final VoidCallback onSelect;
+  final FocusNode markFocus;
 
   @override
   Widget build(BuildContext context) {
@@ -301,23 +351,28 @@ class _SelectControl extends StatelessWidget {
     return Semantics(
       key: Key('selected-option-$service'),
       // Its own node, so a screen reader stops on it. Selecting removes the
-      // focused "Select" button, so the mark announces itself (live region).
+      // focused "Select" button: focus moves here, and the mark announces
+      // itself (live region).
       container: true,
       liveRegion: true,
       selected: true,
       label: 'Bus $service selected',
-      excludeSemantics: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, size: 18, color: color),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text('Selected', style: TextStyle(color: color)),
+      child: FocusLanding(
+        focusNode: markFocus,
+        child: ExcludeSemantics(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle, size: 18, color: color),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text('Selected', style: TextStyle(color: color)),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -419,6 +474,7 @@ class _Mrt extends StatelessWidget {
     required this.mrt,
     required this.maxMeters,
     required this.onRetry,
+    required this.heading,
   });
   final AsyncValue<
     ({MrtSuggestion? nearOrigin, MrtSuggestion? nearDestination})?
@@ -429,6 +485,9 @@ class _Mrt extends StatelessWidget {
   final double maxMeters;
   final VoidCallback onRetry;
 
+  /// The heading's focus node: where Retry leaves focus.
+  final FocusNode heading;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -436,7 +495,11 @@ class _Mrt extends StatelessWidget {
       key: const Key('journey-mrt'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeading('MRT alternative', style: theme.textTheme.titleSmall),
+        SectionHeading(
+          'MRT alternative',
+          style: theme.textTheme.titleSmall,
+          focusNode: heading,
+        ),
         switch (mrt) {
           AsyncValue(isLoading: true) => const BusyRow(
             'Finding the nearest MRT…',
@@ -445,6 +508,7 @@ class _Mrt extends StatelessWidget {
             message: failureMessage(error),
             onRetry: onRetry,
             retryLabel: 'Retry finding the nearest MRT',
+            landing: heading,
           ),
           AsyncValue(:final value) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,

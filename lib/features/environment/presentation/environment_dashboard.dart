@@ -5,6 +5,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/geo/geo.dart';
 import '../../../core/time/clock.dart';
+import '../../../core/ui/focus_landing.dart';
 import '../../../core/ui/status_rows.dart';
 import '../../origin/domain/origin.dart';
 import '../../origin/domain/origin_controller.dart';
@@ -188,7 +189,7 @@ IconData forecastIcon(String? condition) {
   return Icons.cloud_outlined;
 }
 
-class _SnapshotTile<T> extends ConsumerWidget {
+class _SnapshotTile<T> extends ConsumerStatefulWidget {
   const _SnapshotTile({
     super.key,
     required this.title,
@@ -207,7 +208,23 @@ class _SnapshotTile<T> extends ConsumerWidget {
   final Widget Function(T snapshot, LatLng? position) builder;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SnapshotTile<T>> createState() => _SnapshotTileState<T>();
+}
+
+class _SnapshotTileState<T> extends ConsumerState<_SnapshotTile<T>> {
+  /// Where a Retry leaves focus: the title, which stays (#56).
+  final _title = FocusNode(debugLabel: 'tile-title');
+
+  @override
+  void dispose() {
+    _title.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final _SnapshotTile<T>(:title, :provider, :needsPosition, :position) =
+        widget;
     final value = ref.watch(provider);
     void retry() => ref.invalidate(provider);
     // Riverpod keeps the previous value when a refresh fails: that reading
@@ -222,6 +239,7 @@ class _SnapshotTile<T> extends ConsumerWidget {
         message: failureMessage(value.error),
         onRetry: retry,
         retryLabel: 'Retry $title',
+        landing: _title,
       );
     } else if (needsPosition && position == null) {
       // "Waiting" only while the app waits for a fix (checking permission,
@@ -246,8 +264,10 @@ class _SnapshotTile<T> extends ConsumerWidget {
           ErrorRetryRow(
             key: const Key('refresh-failed'),
             message: "Couldn't refresh: ${failureMessage(value.error)}",
+            liveRegion: true,
             onRetry: retry,
             retryLabel: 'Retry $title',
+            landing: _title,
           ),
         ],
       );
@@ -266,13 +286,16 @@ class _SnapshotTile<T> extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20),
+                Icon(widget.icon, size: 20),
                 const SizedBox(width: 8),
                 // Wraps in a narrow tile: "24-hr" / "1-hr" must stay visible.
                 Flexible(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleSmall,
+                  child: FocusLanding(
+                    focusNode: _title,
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                   ),
                 ),
                 if (value.isLoading && value.hasValue) ...[
@@ -294,7 +317,7 @@ class _SnapshotTile<T> extends ConsumerWidget {
 
   Widget _guardBuild(BuildContext context, T snapshot) {
     try {
-      return builder(snapshot, position);
+      return widget.builder(snapshot, widget.position);
     } on AppFailure catch (f) {
       return ErrorRetryRow(message: f.message);
     }

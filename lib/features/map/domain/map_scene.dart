@@ -29,13 +29,11 @@ class MapMarker {
   bool operator ==(Object other) =>
       other is MapMarker &&
       other.kind == kind &&
-      other.position.latitude == position.latitude &&
-      other.position.longitude == position.longitude &&
+      other.position == position &&
       other.label == label;
 
   @override
-  int get hashCode =>
-      Object.hash(kind, position.latitude, position.longitude, label);
+  int get hashCode => Object.hash(kind, position, label);
 
   @override
   String toString() => 'MapMarker(${kind.name}, $label)';
@@ -169,19 +167,11 @@ class MapScene {
       other.serviceNumber == serviceNumber &&
       other.ride == ride &&
       other.isAlternative == isAlternative &&
-      _listEquals(other.markers, markers);
+      sameElements(other.markers, markers);
 
   @override
   int get hashCode =>
       Object.hash(serviceNumber, ride, isAlternative, Object.hashAll(markers));
-
-  static bool _listEquals(List<MapMarker> a, List<MapMarker> b) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
 }
 
 /// The scene for a journey from [origin] to [destination]. [plan] is the

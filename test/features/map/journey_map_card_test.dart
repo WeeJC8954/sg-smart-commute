@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,7 +50,7 @@ Future<void> pickDestination(
   String result,
 ) async {
   await tester.enterText(find.byKey(destinationField), query);
-  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump(pastSearchDebounce);
   await tester.pump();
   await tester.tap(find.text(result));
   await tester.pump();
@@ -63,6 +64,14 @@ Future<void> openMap(WidgetTester tester) async {
 }
 
 Finder marker(String kind) => find.byKey(Key('map-marker-$kind'));
+
+/// The nearest [Focus] above [finder]'s widget has the primary focus.
+bool focusedAt(WidgetTester tester, Finder finder) =>
+    Focus.maybeOf(
+      tester.element(finder),
+      createDependency: false,
+    )?.hasPrimaryFocus ??
+    false;
 
 /// The drawn position of the marker of [kind].
 LatLng pointOf(WidgetTester tester, String kind) {
@@ -409,6 +418,60 @@ void main() {
     expect(find.byType(FlutterMap), findsNothing);
     expect(find.byKey(showMap), findsOneWidget);
     expect(tiles.disposed, isTrue, reason: 'closing the map ends its tiles');
+  });
+
+  testWidgets('"Show map" moves focus to "Hide map", and back (#56)', (
+    tester,
+  ) async {
+    await pumpApp(tester, app());
+    await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+    await openMap(tester);
+    expect(focusedAt(tester, find.text('Hide map')), isTrue);
+    await tester.tap(find.byKey(hideMap));
+    await tester.pump();
+    await tester.pump();
+    expect(focusedAt(tester, find.text('Show map')), isTrue);
+  });
+
+  testWidgets('the map never takes focus by itself; focused, it has a ring '
+      'and reads as its summary (#58)', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pumpApp(tester, app());
+    await pickDestination(tester, 'VivoCity', 'VIVOCITY');
+    await openMap(tester);
+    final keyboard = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .options
+        .interactionOptions
+        .keyboardOptions;
+    expect(keyboard.autofocus, isFalse);
+    expect(keyboard.focusNode, isNotNull);
+    expect(keyboard.focusNode!.hasFocus, isFalse);
+    // Keyboard panning stays (docs/assumptions.md, map gestures).
+    expect(keyboard.enableArrowKeysPanning, isTrue);
+
+    final summary = find.bySemanticsLabel(
+      RegExp(r'^Map of the suggested journey'),
+    );
+    final ring = find.ancestor(
+      of: find.byType(FlutterMap),
+      matching: find.byWidgetPredicate(
+        (w) =>
+            w is DecoratedBox &&
+            w.decoration is BoxDecoration &&
+            (w.decoration as BoxDecoration).border != null,
+      ),
+    );
+    expect(ring, findsNothing);
+    expect(tester.getSemantics(summary), isNot(isSemantics(isFocused: true)));
+
+    // As a keyboard user reaches it.
+    await tester.sendKeyEvent(LogicalKeyboardKey.shift);
+    keyboard.focusNode!.requestFocus();
+    await tester.pump();
+    expect(ring, findsOneWidget);
+    expect(tester.getSemantics(summary), isSemantics(isFocused: true));
+    handle.dispose();
   });
 
   testWidgets('the map is one summary for screen readers', (tester) async {

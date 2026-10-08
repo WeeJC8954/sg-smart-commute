@@ -76,7 +76,7 @@ the "Left alone" items**: each has a reason that still holds.
 | `StopArrivalsResult` / `Loaded` / `Failed` is a hand-made `AsyncValue` (CLAUDE.md: "Don't add a parallel `LoadState` type") | Task 4 |
 | `_Checking` widget wraps one const `BusyRow` | Task 4 |
 | `plannerConfigProvider`, `uiTickIntervalProvider`, `environmentRefreshIntervalProvider`: nothing overrides them | Task 5 |
-| `AppLogo.size`: no caller sets it | Task 6 |
+| `AppLogo.size`: no caller sets it | **Void since E4** (#62): `lib/app/about_dialog.dart` passes `const AppLogo(size: 48)`, so the parameter stays. Task 6 Step 1 is skipped |
 | `_typeOf(block:)` in `onemap_parser.dart`: never read | Task 6 |
 | `_Received` class in `json_http_client.dart` | Task 6: use a record |
 | `SpatialScope.station`, unproduced `PlaceType` values, `PlaceSource` extra values, `SearchMode` on `search()`, `reverseGeocode` | **Left alone:** they are the guide's model (§6.2, §8.1) |
@@ -894,16 +894,17 @@ git commit -m "refactor: drop providers that nothing overrides (planner config, 
 ### Task 6: Dead parameters and a class that should be a record
 
 **Files:**
-- Modify: `lib/app/app_logo.dart:23-45`
+- ~~Modify: `lib/app/app_logo.dart:23-45`~~ (void, see Step 1)
 - Modify: `lib/features/places/data/onemap_parser.dart:44-72`
 - Modify: `lib/core/http/json_http_client.dart:136,146,201-206`
 - Modify: `docs/data-sources.md:63`
 
 **Interfaces:**
-- Produces: `AppLogo({Key? key})` (no `size` parameter; `AppLogo.size` is a `static const double = 32`).
-  `_typeOf({required String name, required String? building})`. `_Received` is a private record typedef.
+- Produces: `_typeOf({required String name, required String? building})`. `_Received` is a private record typedef.
 
-- [ ] **Step 1: `AppLogo`.** In `lib/app/app_logo.dart`, replace:
+- [ ] **Step 1: `AppLogo`. VOID, skip it (#62).** Since E4 the About dialog passes `const AppLogo(size: 48)`
+  (`lib/app/about_dialog.dart`), so removing `size` would break the build. Kept only as a record of the
+  original step: in `lib/app/app_logo.dart`, replace:
 
 ```dart
 /// [asset] is cropped to its rounded tile with transparent corners, 192 px
@@ -996,8 +997,8 @@ Expected: PASS. In particular `test/core/json_http_client_test.dart`, the OneMap
 ```bash
 dart format --set-exit-if-changed .
 flutter analyze
-git add lib/app/app_logo.dart lib/features/places/data/onemap_parser.dart lib/core/http/json_http_client.dart docs/data-sources.md
-git commit -m "refactor: drop unused AppLogo.size and BLK_NO read; _Received as a record"
+git add lib/features/places/data/onemap_parser.dart lib/core/http/json_http_client.dart docs/data-sources.md
+git commit -m "refactor: drop the unused BLK_NO read; _Received as a record"
 ```
 
 ---

@@ -337,7 +337,7 @@ void main() {
       find.byKey(const Key('destination-field')),
       'VivoCity',
     );
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(pastSearchDebounce);
     await tester.pump();
     await tester.tap(find.text('VIVOCITY'));
     await tester.pump();

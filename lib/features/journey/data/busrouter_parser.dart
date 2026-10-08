@@ -28,7 +28,7 @@ Map<String, BusStop> parseBusrouterStops(Object? json) {
       stops[code] = stop;
     }
   });
-  _checkShare('stops', invalid, json.length, stops.isEmpty);
+  checkInvalidShare(_dataset, 'stops', invalid, json.length, stops.isEmpty);
   return stops;
 }
 
@@ -48,7 +48,9 @@ BusStop? _stop(String code, Object? value) {
 ///
 /// Stop codes missing from [stops] are removed from a route; a route with
 /// fewer than 2 stops left is dropped, and a service with no routes left (or
-/// a malformed entry) is invalid. Same failure rule as the stops.
+/// a malformed entry, or a direction over
+/// [BusrouterValidation.maxStopsPerDirection] codes) is invalid. Same failure
+/// rule as the stops.
 Map<String, BusService> parseBusrouterServices(
   Object? json,
   Map<String, BusStop> stops,
@@ -66,7 +68,13 @@ Map<String, BusService> parseBusrouterServices(
       services[number] = service;
     }
   });
-  _checkShare('services', invalid, json.length, services.isEmpty);
+  checkInvalidShare(
+    _dataset,
+    'services',
+    invalid,
+    json.length,
+    services.isEmpty,
+  );
   return services;
 }
 
@@ -82,6 +90,7 @@ BusService? _service(String number, Object? value, Map<String, BusStop> stops) {
   for (var d = 0; d < routes.length; d++) {
     final route = routes[d];
     if (route is! List || route.any((c) => c is! String)) return null;
+    if (route.length > BusrouterValidation.maxStopsPerDirection) return null;
     final known = [
       for (final code in route.cast<String>())
         if (stops.containsKey(code)) code,
@@ -100,13 +109,22 @@ BusService? _service(String number, Object? value, Map<String, BusStop> stops) {
   );
 }
 
-void _checkShare(String what, int invalid, int total, bool nothingValid) {
+/// The failure rule of every busrouter file: [dataset] is unavailable if
+/// nothing in it is valid, or more than [BusrouterValidation.maxInvalidShare]
+/// of its [total] entries are invalid.
+void checkInvalidShare(
+  StaticDataset dataset,
+  String what,
+  int invalid,
+  int total,
+  bool nothingValid,
+) {
   if (nothingValid) {
-    throw StaticDataUnavailable(_dataset, '$what: no valid entries');
+    throw StaticDataUnavailable(dataset, '$what: no valid entries');
   }
   if (invalid / total > BusrouterValidation.maxInvalidShare) {
     throw StaticDataUnavailable(
-      _dataset,
+      dataset,
       '$what: $invalid of $total entries invalid',
     );
   }

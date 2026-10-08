@@ -165,6 +165,15 @@ void main() {
       );
     });
 
+    test('only the first 10 results (page 1) are read (#59)', () {
+      final places = parseOneMapSearch(
+        jsonDecode(body([for (var i = 0; i < 11; i++) row('P$i')])),
+      );
+      expect(places.map((p) => p.displayName), [
+        for (var i = 0; i < 10; i++) 'P$i',
+      ]);
+    });
+
     test('non-object rows are skipped', () {
       final places = parseOneMapSearch({
         'results': ['x', 42, row('OK')],

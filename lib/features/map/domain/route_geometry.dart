@@ -16,7 +16,7 @@ class RouteGeometry {
 }
 
 abstract interface class RouteGeometryRepository {
-  /// The whole file, loaded once per session. Throws
-  /// `StaticDataUnavailable(StaticDataset.busRouteGeometry)`.
+  /// The whole file, fetched on every call (the provider holds it for the
+  /// session). Throws `StaticDataUnavailable(StaticDataset.busRouteGeometry)`.
   Future<RouteGeometry> load();
 }
