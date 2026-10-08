@@ -69,12 +69,10 @@ class _JourneyCardState extends ConsumerState<JourneyCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FocusLanding(
+            SectionHeading(
+              'Suggested journey',
+              style: theme.textTheme.titleMedium,
               focusNode: _heading,
-              child: SectionHeading(
-                'Suggested journey',
-                style: theme.textTheme.titleMedium,
-              ),
             ),
             const SizedBox(height: 8),
             switch (plan) {
@@ -350,29 +348,30 @@ class _SelectControl extends StatelessWidget {
       );
     }
     final color = Theme.of(context).colorScheme.primary;
-    // Selecting removes the focused "Select" button: focus moves here, and
-    // the mark announces itself (live region).
-    return FocusLanding(
-      focusNode: markFocus,
-      child: Semantics(
-        key: Key('selected-option-$service'),
-        // Its own node, so a screen reader stops on it.
-        container: true,
-        liveRegion: true,
-        selected: true,
-        label: 'Bus $service selected',
-        excludeSemantics: true,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.check_circle, size: 18, color: color),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text('Selected', style: TextStyle(color: color)),
-              ),
-            ],
+    return Semantics(
+      key: Key('selected-option-$service'),
+      // Its own node, so a screen reader stops on it. Selecting removes the
+      // focused "Select" button: focus moves here, and the mark announces
+      // itself (live region).
+      container: true,
+      liveRegion: true,
+      selected: true,
+      label: 'Bus $service selected',
+      child: FocusLanding(
+        focusNode: markFocus,
+        child: ExcludeSemantics(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle, size: 18, color: color),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text('Selected', style: TextStyle(color: color)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -496,12 +495,10 @@ class _Mrt extends StatelessWidget {
       key: const Key('journey-mrt'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FocusLanding(
+        SectionHeading(
+          'MRT alternative',
+          style: theme.textTheme.titleSmall,
           focusNode: heading,
-          child: SectionHeading(
-            'MRT alternative',
-            style: theme.textTheme.titleSmall,
-          ),
         ),
         switch (mrt) {
           AsyncValue(isLoading: true) => const BusyRow(

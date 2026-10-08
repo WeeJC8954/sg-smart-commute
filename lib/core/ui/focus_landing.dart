@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 /// Retry that turns into a spinner, "Select" that turns into "Selected"
 /// (#56). Wraps something that stays, such as the section's title. Tab never
 /// stops here, but from here the next Tab moves on in place (not from the
-/// top), and a screen reader reads [child]. A ring shows while it has focus.
+/// top). A ring shows while it has focus. It adds no screen-reader node of
+/// its own: the node [child] belongs to (a tile, a heading) is the focused
+/// one, so a screen reader moves there and its content is unchanged.
 class FocusLanding extends StatelessWidget {
   const FocusLanding({super.key, required this.focusNode, required this.child});
 
@@ -20,13 +22,10 @@ class FocusLanding extends StatelessWidget {
       listenable: focusNode,
       builder: (context, child) {
         final focused = focusNode.hasPrimaryFocus;
-        // One node, so the focused node is the one that has the label.
-        // `focused: false` would make it focusable (a Tab stop on Web).
-        return MergeSemantics(
-          child: Semantics(
-            focused: focused ? true : null,
-            child: FocusRing(focused: focused, child: child!),
-          ),
+        // `focused: false` would make that node focusable (a Tab stop on Web).
+        return Semantics(
+          focused: focused ? true : null,
+          child: FocusRing(focused: focused, child: child!),
         );
       },
       child: child,
