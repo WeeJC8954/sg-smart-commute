@@ -234,6 +234,17 @@ class _OptionState extends State<_Option> {
   /// The "Selected" mark, focused once "Select" has turned into it.
   final _mark = FocusNode(debugLabel: 'option-selected');
 
+  /// Set by this option's own "Select": only then does the mark announce
+  /// itself. A new plan's default selection is not something the user did,
+  /// so it is not announced (#67).
+  bool _userSelected = false;
+
+  @override
+  void didUpdateWidget(_Option oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.plan, widget.plan)) _userSelected = false;
+  }
+
   @override
   void dispose() {
     _title.dispose();
@@ -242,6 +253,7 @@ class _OptionState extends State<_Option> {
   }
 
   void _select() {
+    _userSelected = true;
     widget.onSelect!();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _mark.requestFocus();
@@ -303,6 +315,7 @@ class _OptionState extends State<_Option> {
                     selected: widget.selected,
                     onSelect: _select,
                     markFocus: _mark,
+                    announce: _userSelected,
                   ),
                 if (widget.collapsible)
                   TextButton(
@@ -332,11 +345,15 @@ class _SelectControl extends StatelessWidget {
     required this.selected,
     required this.onSelect,
     required this.markFocus,
+    required this.announce,
   });
   final String service;
   final bool selected;
   final VoidCallback onSelect;
   final FocusNode markFocus;
+
+  /// The mark is a live region only after the user's own "Select".
+  final bool announce;
 
   @override
   Widget build(BuildContext context) {
@@ -352,9 +369,9 @@ class _SelectControl extends StatelessWidget {
       key: Key('selected-option-$service'),
       // Its own node, so a screen reader stops on it. Selecting removes the
       // focused "Select" button: focus moves here, and the mark announces
-      // itself (live region).
+      // itself (live region), but only then (#67).
       container: true,
-      liveRegion: true,
+      liveRegion: announce,
       selected: true,
       label: 'Bus $service selected',
       child: FocusLanding(

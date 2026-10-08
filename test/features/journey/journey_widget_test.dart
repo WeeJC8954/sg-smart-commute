@@ -718,9 +718,15 @@ void main() {
       await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
       expect(find.bySemanticsLabel('Select Bus F10'), findsOneWidget);
       expect(find.bySemanticsLabel('Select Bus F30'), findsOneWidget);
+      // The default selection is not something the user did: it is not
+      // announced (#67).
       expect(
         tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
-        isSemantics(label: 'Bus F20 selected', isSelected: true),
+        isSemantics(
+          label: 'Bus F20 selected',
+          isSelected: true,
+          isLiveRegion: false,
+        ),
       );
       await select(tester, 'F10');
       // Selecting removes the focused button, so the mark announces itself.
@@ -731,6 +737,20 @@ void main() {
           isSelected: true,
           isLiveRegion: true,
         ),
+      );
+      await select(tester, 'F20');
+      expect(
+        tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
+        isSemantics(isLiveRegion: true),
+      );
+      // A new plan's default is quiet again, though the suggestion's state
+      // is kept across plans.
+      await tester.tap(find.byKey(const Key('change-destination')));
+      await tester.pump();
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      expect(
+        tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
+        isSemantics(isSelected: true, isLiveRegion: false),
       );
       handle.dispose();
     });

@@ -374,6 +374,14 @@ void main() {
 
     expect(find.byKey(const Key('map-tiles-unavailable')), findsOneWidget);
     expect(find.text(JourneyMap.tilesUnavailable), findsOneWidget);
+    // Announced as itself, not as the whole map card it sits in (#67).
+    final handle = tester.ensureSemantics();
+    await tester.pump();
+    expect(
+      tester.getSemantics(find.text(JourneyMap.tilesUnavailable)),
+      isSemantics(label: JourneyMap.tilesUnavailable, isLiveRegion: true),
+    );
+    handle.dispose();
     // Below the map, never over a marker.
     expect(
       tester.getTopLeft(find.byKey(const Key('map-tiles-unavailable'))).dy,
