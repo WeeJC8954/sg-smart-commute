@@ -119,6 +119,11 @@ class _PlaceSearchFieldState extends ConsumerState<PlaceSearchField> {
               widget.onEditingStarted?.call();
               _session.onChanged(text);
             },
+            // A non-null onEditingComplete keeps focus in the field after
+            // Enter / Search; onSubmitted still searches (#68).
+            onEditingComplete: ref.read(placeSearchKeepsFocusOnSubmitProvider)
+                ? () {}
+                : null,
             onSubmitted: _session.submit,
           ),
         ),
