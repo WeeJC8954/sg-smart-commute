@@ -89,13 +89,15 @@ final journeyArrivalsProvider = FutureProvider<JourneyArrivals?>((ref) async {
   final plan = await ref.watch(journeyPlanProvider.future);
   if (plan is! DirectBusOptions) return null;
   final cache = ref.watch(busArrivalCacheProvider);
+  // Read before the await: a superseded build's ref is unmounted (#72).
+  final clock = ref.read(clockProvider);
   final stops = {for (final o in plan.options) o.board.code}.toList();
   final results = await Future.wait([
     for (final stop in stops) _load(cache, stop),
   ]);
   return JourneyArrivals(
     plan: plan,
-    checkedAt: ref.read(clockProvider)(),
+    checkedAt: clock(),
     byStop: {for (var i = 0; i < stops.length; i++) stops[i]: results[i]},
   );
 });
