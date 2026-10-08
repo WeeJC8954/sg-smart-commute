@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sg_smart_commute/app/app_info.dart';
+import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/time/clock.dart';
 import 'package:sg_smart_commute/core/ui/motion.dart';
@@ -30,6 +31,12 @@ import 'fake_map.dart';
 import 'fake_palette_store.dart';
 import 'fake_place_search_repository.dart';
 import 'fake_route_geometry.dart';
+
+/// How long a test waits after typing for the place search to have run: just
+/// past [PlaceSearchConfig.debounce], so tuning that value never breaks
+/// unrelated tests (#63).
+final Duration pastSearchDebounce =
+    PlaceSearchConfig.debounce + const Duration(milliseconds: 50);
 
 /// The real app with every external provider replaced by a fake (§18). The
 /// map's tiles, logo, links and bus route geometry are fakes too: no test

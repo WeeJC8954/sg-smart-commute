@@ -35,7 +35,7 @@ Future<void> pumpApp(WidgetTester tester, Widget app) async {
 
 Future<void> type(WidgetTester tester, Key field, String text) async {
   await tester.enterText(find.byKey(field), text);
-  await tester.pump(const Duration(milliseconds: 400)); // past the debounce
+  await tester.pump(pastSearchDebounce);
   await tester.pump();
 }
 

@@ -69,7 +69,7 @@ void main() {
     Duration settle = Duration.zero,
   }) async {
     await tester.enterText(find.byKey(destinationField), 'VivoCity');
-    await tester.pump(const Duration(milliseconds: 400)); // search debounce
+    await tester.pump(pastSearchDebounce);
     await tester.pump();
     await tester.pump(settle);
     await tester.tap(find.text('VIVOCITY'));

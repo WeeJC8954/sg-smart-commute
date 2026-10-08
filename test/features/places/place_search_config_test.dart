@@ -187,8 +187,12 @@ void main() {
       );
 
       await tester.enterText(find.byKey(field), 'VivoCity');
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(places.queries, isEmpty, reason: 'the 350 ms default is not used');
+      await tester.pump(pastSearchDebounce);
+      expect(
+        places.queries,
+        isEmpty,
+        reason: 'the default debounce is not used',
+      );
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump();
       expect(places.queries, ['vivocity']);

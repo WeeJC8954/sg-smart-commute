@@ -41,7 +41,7 @@ Future<void> searchAndPick(
   String result,
 ) async {
   await tester.enterText(find.byKey(field), query);
-  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump(pastSearchDebounce);
   await tester.pump();
   await tester.tap(find.text(result));
   await tester.pump();
