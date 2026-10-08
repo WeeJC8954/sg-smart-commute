@@ -84,14 +84,20 @@ class _OriginCardState extends ConsumerState<OriginCard> {
         if (manual && state.locatingInBackground) {
           children.add(const BusyRow('Finding your location…', compact: true));
         }
+        // The outcome of "Try location again" arrives later, away from
+        // focus, so it is announced (#57), as is the chip below.
         final failure = state.backgroundFailure;
         if (manual && failure != null) {
           children.add(
-            Text(
-              '${locationFailureText(failure, isWeb: kIsWeb)} '
-              'Your chosen origin is kept.',
-              key: const Key('background-location-failure'),
-              style: theme.textTheme.bodySmall,
+            Semantics(
+              container: true,
+              liveRegion: true,
+              child: Text(
+                '${locationFailureText(failure, isWeb: kIsWeb)} '
+                'Your chosen origin is kept.',
+                key: const Key('background-location-failure'),
+                style: theme.textTheme.bodySmall,
+              ),
             ),
           );
         }
@@ -160,11 +166,18 @@ class _OriginCardState extends ConsumerState<OriginCard> {
       children.add(
         Align(
           alignment: Alignment.centerLeft,
-          child: ActionChip(
-            key: const Key('use-current-location'),
-            avatar: const Icon(Icons.my_location, size: 18),
-            label: const Text('Use my current location'),
-            onPressed: controller.useCurrentLocation,
+          // Merged, so the live region carries the chip's label: that is
+          // what is announced.
+          child: MergeSemantics(
+            child: Semantics(
+              liveRegion: true,
+              child: ActionChip(
+                key: const Key('use-current-location'),
+                avatar: const Icon(Icons.my_location, size: 18),
+                label: const Text('Use my current location'),
+                onPressed: controller.useCurrentLocation,
+              ),
+            ),
           ),
         ),
       );

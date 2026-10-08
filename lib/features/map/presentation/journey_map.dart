@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart' as ll;
 
 import '../../../core/config/app_config.dart';
 import '../../../core/geo/geo.dart';
+import '../../../core/ui/focus_landing.dart';
 import '../domain/map_scene.dart';
 import '../domain/ride_geometry.dart';
 import '../map_providers.dart';
@@ -65,22 +66,35 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
     ),
   );
 
+  /// The map's keyboard focus (arrow keys pan). Only Tab reaches it, never
+  /// the map itself; while it has focus the map shows a ring and screen
+  /// readers are on its summary (#58).
+  final _mapFocus = FocusNode(debugLabel: 'journey-map');
+
+  /// flutter_map focuses the map as it appears by default.
+  late final _keyboard = KeyboardOptions(
+    autofocus: false,
+    focusNode: _mapFocus,
+  );
+
   /// Every gesture but rotation (P2-M1), with flutter_map's motion: the map
   /// glides on after a quick swipe and a double tap zooms over 200 ms.
-  static const _interaction = InteractionOptions(
+  late final _interaction = InteractionOptions(
     flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+    keyboardOptions: _keyboard,
   );
 
   /// The same gestures for the system's reduce-motion setting (P2-M4): the
   /// map stops where the finger lifts, and a double-tap zoom lands at once.
   /// Under that setting the framework would otherwise play a fling 200×
   /// faster, so the map jumped on release.
-  static const _reducedMotionInteraction = InteractionOptions(
+  late final _reducedMotionInteraction = InteractionOptions(
     flags:
         InteractiveFlag.all &
         ~InteractiveFlag.rotate &
         ~InteractiveFlag.flingAnimation,
     doubleTapZoomDuration: Duration.zero,
+    keyboardOptions: _keyboard,
   );
 
   static ll.LatLng _toMap(LatLng p) => ll.LatLng(p.latitude, p.longitude);
@@ -145,6 +159,7 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
   void dispose() {
     // The tile layer disposes the tile provider (and its HTTP client).
     _controller.dispose();
+    _mapFocus.dispose();
     super.dispose();
   }
 
@@ -195,9 +210,19 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
       children: [
         SizedBox(
           height: MapConfig.height,
-          child: Semantics(
-            container: true,
-            label: widget.scene.summary,
+          child: ListenableBuilder(
+            listenable: _mapFocus,
+            builder: (context, map) => FocusRing(
+              focused: _mapFocus.hasFocus,
+              child: Semantics(
+                container: true,
+                label: widget.scene.summary,
+                // The map's own focus node is excluded below. `focused: false`
+                // would make it focusable (a Tab stop on Web).
+                focused: _mapFocus.hasFocus ? true : null,
+                child: map,
+              ),
+            ),
             // Visual only: the journey card above is the accessible answer.
             child: ExcludeSemantics(
               child: LayoutBuilder(

@@ -14,12 +14,20 @@ import '../domain/bus_arrival.dart';
 /// ETAs ("Arr", "N min"), optional details of the next bus, or a clear
 /// unavailable state with Retry. The static option above it always stays.
 class OptionArrivals extends ConsumerWidget {
-  const OptionArrivals({super.key, required this.plan, required this.option});
+  const OptionArrivals({
+    super.key,
+    required this.plan,
+    required this.option,
+    this.landing,
+  });
 
   /// The plan currently displayed. Arrivals fetched for any other plan are
   /// never shown here.
   final DirectBusOptions plan;
   final BusOption option;
+
+  /// Where Retry leaves focus (see [ErrorRetryRow.landing]).
+  final FocusNode? landing;
 
   static const String noArrival = 'No live arrival available';
   static const String checking = 'Checking live arrivals…';
@@ -37,7 +45,11 @@ class OptionArrivals extends ConsumerWidget {
 
     if (current == null) {
       if (async case AsyncValue(:final error?, isLoading: false)) {
-        return _ArrivalFailed(error: error, service: option.service.number);
+        return _ArrivalFailed(
+          error: error,
+          service: option.service.number,
+          landing: landing,
+        );
       }
       return const _Checking();
     }
@@ -46,6 +58,7 @@ class OptionArrivals extends ConsumerWidget {
       StopArrivalsFailed(:final failure) => _ArrivalFailed(
         error: failure,
         service: option.service.number,
+        landing: landing,
       ),
       StopArrivalsLoaded(:final arrivals) => _loaded(
         theme,
@@ -197,16 +210,22 @@ class _Checking extends StatelessWidget {
 }
 
 class _ArrivalFailed extends ConsumerWidget {
-  const _ArrivalFailed({required this.error, required this.service});
+  const _ArrivalFailed({
+    required this.error,
+    required this.service,
+    required this.landing,
+  });
   final Object error;
 
   /// The bus this row is under: each option can show its own Retry.
   final String service;
+  final FocusNode? landing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => ErrorRetryRow(
     message: 'Live arrivals: ${failureMessage(error)}',
     onRetry: () => ref.invalidate(journeyArrivalsProvider),
     retryLabel: 'Retry live arrivals for Bus $service',
+    landing: landing,
   );
 }

@@ -11,11 +11,37 @@ import 'journey_map.dart';
 /// opens it is the map (and so any tile request) built. It stays open across
 /// journeys, following the current one, until "Hide map". The journey card
 /// never depends on it.
-class JourneyMapCard extends ConsumerWidget {
+///
+/// Each of "Show map" and "Hide map" replaces itself with the other, so
+/// focus moves to the other one (#56).
+class JourneyMapCard extends ConsumerStatefulWidget {
   const JourneyMapCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JourneyMapCard> createState() => _JourneyMapCardState();
+}
+
+class _JourneyMapCardState extends ConsumerState<JourneyMapCard> {
+  final _show = FocusNode(debugLabel: 'show-map');
+  final _hide = FocusNode(debugLabel: 'hide-map');
+
+  @override
+  void dispose() {
+    _show.dispose();
+    _hide.dispose();
+    super.dispose();
+  }
+
+  /// Runs [toggle], then focuses [next] once the rebuild has shown it.
+  void _toggle(VoidCallback toggle, FocusNode next) {
+    toggle();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) next.requestFocus();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final scene = ref.watch(mapSceneProvider);
     if (scene == null) return const SizedBox.shrink();
     final expanded = ref.watch(mapExpandedProvider);
@@ -29,7 +55,8 @@ class JourneyMapCard extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: OutlinedButton.icon(
             key: const Key('show-map'),
-            onPressed: controls.show,
+            focusNode: _show,
+            onPressed: () => _toggle(controls.show, _hide),
             icon: const Icon(Icons.map_outlined),
             label: const Text('Show map'),
           ),
@@ -56,7 +83,8 @@ class JourneyMapCard extends ConsumerWidget {
                 ),
                 TextButton.icon(
                   key: const Key('hide-map'),
-                  onPressed: controls.hide,
+                  focusNode: _hide,
+                  onPressed: () => _toggle(controls.hide, _show),
                   icon: const Icon(Icons.expand_less),
                   label: const Text('Hide map'),
                 ),
