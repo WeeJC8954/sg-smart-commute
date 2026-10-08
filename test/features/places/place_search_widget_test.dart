@@ -483,4 +483,67 @@ void main() {
     await pick(tester, 'VIVOCITY');
     expect(haptics, ['HapticFeedbackType.selectionClick']);
   });
+
+  // Enter (the keyboard's Search action) searches at once, once. On the Web
+  // the field keeps focus, so a keyboard user carries on from it rather than
+  // from the top of the page; on Android it loses focus, so the soft keyboard
+  // closes and the results show (#68).
+  group('Enter / Search', () {
+    Widget app({required bool keepsFocus}) => buildTestApp(
+      location: FakeLocationService(access: LocationAccess.denied),
+      environment: FakeEnvironmentRepository(),
+      places: places,
+      placeSearchKeepsFocusOnSubmit: keepsFocus,
+    );
+
+    /// Types [text] (its type-ahead search is still waiting for the
+    /// debounce), then presses Enter / Search.
+    Future<void> submit(WidgetTester tester, String text) async {
+      await tester.enterText(find.byKey(originField), text);
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    bool fieldFocused(WidgetTester tester) => tester
+        .widget<EditableText>(
+          find.descendant(
+            of: find.byKey(originField),
+            matching: find.byType(EditableText),
+          ),
+        )
+        .focusNode
+        .hasFocus;
+
+    testWidgets('Web: searches at once and once, and keeps focus in the '
+        'field', (tester) async {
+      await pumpApp(tester, app(keepsFocus: true));
+      await submit(tester, 'VivoCity');
+      expect(find.text('VIVOCITY'), findsOneWidget);
+      expect(places.queries, ['vivocity']);
+      expect(fieldFocused(tester), isTrue);
+
+      // The pending type-ahead search was replaced, not sent as well.
+      await tester.pump(pastSearchDebounce);
+      expect(places.queries, ['vivocity']);
+      // A result is still chosen with a tap.
+      await pick(tester, 'VIVOCITY');
+      expect(find.text('From: VIVOCITY'), findsOneWidget);
+    });
+
+    testWidgets('Android: searches at once and once, and drops focus, so the '
+        'keyboard closes', (tester) async {
+      await pumpApp(tester, app(keepsFocus: false));
+      await submit(tester, 'VivoCity');
+      expect(find.text('VIVOCITY'), findsOneWidget);
+      expect(places.queries, ['vivocity']);
+      expect(fieldFocused(tester), isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+
+      await tester.pump(pastSearchDebounce);
+      expect(places.queries, ['vivocity']);
+      await pick(tester, 'VIVOCITY');
+      expect(find.text('From: VIVOCITY'), findsOneWidget);
+    });
+  });
 }
