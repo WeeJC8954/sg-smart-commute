@@ -30,6 +30,7 @@ jobs:
       - run: flutter analyze
       - run: flutter test --reporter expanded
       # The decoder's negative-delta guard only matters where bitwise ops are
-      # 32-bit (#73): on the VM that test cannot fail. Pure-Dart file only;
-      # tests importing integration_test/fakes do not compile for Chrome.
-      - run: flutter test --platform chrome test/features/map/polyline_codec_test.dart
+      # 32-bit (#73): on the VM that test cannot fail. The E2 estimator test
+      # checks that dart2js rounds and guards the same way. Pure-Dart files
+      # only; tests importing integration_test/fakes do not compile for Chrome.
+      - run: flutter test --platform chrome test/features/map/polyline_codec_test.dart test/features/journey/journey_estimate_test.dart
