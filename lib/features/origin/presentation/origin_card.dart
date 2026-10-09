@@ -33,8 +33,13 @@ class _OriginCardState extends ConsumerState<OriginCard> {
   /// section itself, which stays while the prompt turns into a spinner (#65).
   final _section = FocusNode(debugLabel: 'origin-section');
 
-  /// Set by that "Try location again" until its attempt settles, so a fix it
-  /// gets is announced once (#65). A failure is announced by its own line.
+  /// Set by that "Try location again", so the GPS fix its attempt gets is
+  /// announced once (#65). It stays set when the attempt times out into
+  /// manual entry: the attempt goes on, and a late fix can still fill the
+  /// origin. Cleared once that fix is shown, or when the user starts entering
+  /// a place (a late fix is then only offered, by the announced chip). A
+  /// superseded attempt's fix never arrives: the controller drops it. A
+  /// failure is announced by its own line.
   bool _announceFix = false;
 
   @override
@@ -50,6 +55,11 @@ class _OriginCardState extends ConsumerState<OriginCard> {
     ref.read(originControllerProvider.notifier).retryLocation();
   }
 
+  void _beginManualEntry() {
+    _announceFix = false;
+    ref.read(originControllerProvider.notifier).beginManualEntry();
+  }
+
   /// Focuses "Change" once the rebuild that shows it has run.
   void _focusChangeAfterRebuild() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -62,9 +72,13 @@ class _OriginCardState extends ConsumerState<OriginCard> {
     final state = ref.watch(originControllerProvider);
     final controller = ref.read(originControllerProvider.notifier);
     final theme = Theme.of(context);
-    final announceFix = _announceFix && state.phase == OriginPhase.ready;
-    if (state.phase case OriginPhase.ready || OriginPhase.needsManual) {
-      _announceFix = false; // settled: once only
+    final announceFix =
+        _announceFix &&
+        state.phase == OriginPhase.ready &&
+        state.origin?.provenance == OriginProvenance.gps;
+    if (announceFix) {
+      // Once only: the line built again later is not announced again.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _announceFix = false);
     }
 
     final children = <Widget>[];
@@ -164,7 +178,7 @@ class _OriginCardState extends ConsumerState<OriginCard> {
             // Focused only when the user asked for it; the launch fallback
             // prompt doesn't pop the keyboard unasked.
             autofocus: changing,
-            onEditingStarted: controller.beginManualEntry,
+            onEditingStarted: _beginManualEntry,
             onSelected: (place) {
               controller.selectManualOrigin(
                 place.displayName,
