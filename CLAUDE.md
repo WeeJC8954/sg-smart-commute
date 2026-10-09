@@ -13,7 +13,9 @@ cite it as `§N`). Decisions live in `docs/architecture.md` (ADRs), tunable valu
 → M5 hardening → Phase 2 map; Phase 2 closed in P2-M4, and a later change needs its own milestone); don't broaden
 scope or start a later milestone silently. After submission, enhancements were added outside the milestones: E1
 colour themes (five selectable palettes, `features/appearance/`; plan `docs/e1-colour-themes-implementation-plan.md`),
-then E3 app icons and E4 About (plan `docs/enhancement-phase-a-identity-about-implementation-plan.md`).
+then E3 app icons and E4 About (plan `docs/enhancement-phase-a-identity-about-implementation-plan.md`), then E2 a
+static estimated trip time on each direct-bus option (display-only; plan
+`docs/e2-static-journey-time-implementation-plan.md`).
 
 ## Hard constraints (guide §2, §14, ADR-001)
 
@@ -57,7 +59,7 @@ flutter test test/features/origin/origin_controller_test.dart --plain-name "<tes
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d web-server --browser-name=chrome --profile
 ```
 
-CI (`.github/workflows/flutter-test.yml`, every push and on demand) runs `flutter pub get --enforce-lockfile`, format, analyze and `flutter test` on Ubuntu with Flutter 3.47.2, then `flutter test --platform chrome test/features/map/polyline_codec_test.dart` (#73: the decoder's Web-only guard cannot fail on the VM; only pure-Dart files compile for Chrome). The Chrome runner still fails on Windows (flutter_tools path bugs, `docs/testing.md`). Windows Smart App Control blocks `flutter_tester.exe` on the development PC, so `flutter test` evidence comes from CI runs, never a claimed local pass.
+CI (`.github/workflows/flutter-test.yml`, every push and on demand) runs `flutter pub get --enforce-lockfile`, format, analyze and `flutter test` on Ubuntu with Flutter 3.47.2, then `flutter test --platform chrome test/features/map/polyline_codec_test.dart test/features/journey/journey_estimate_test.dart` (#73: the decoder's Web-only guard cannot fail on the VM; E2: the estimator rounds and guards the same on dart2js; only pure-Dart files compile for Chrome). The Chrome runner still fails on Windows (flutter_tools path bugs, `docs/testing.md`). Windows Smart App Control blocks `flutter_tester.exe` on the development PC, so `flutter test` evidence comes from CI runs, never a claimed local pass.
 
 Dev-only feasibility probes (not part of the app) are in `tool/`; see `docs/testing.md`. Building the probe
 APK (`-t tool/api_probe_app.dart`) overwrites `app-debug.apk` — rebuild the real app afterwards.
@@ -103,7 +105,13 @@ Key flows that span several files:
   `walk + walk + 1.5 × stops`) on busrouter data loaded once per session (`busNetworkProvider`). Stops are
   `[lng, lat, name, road]` — converted only in `busrouter_parser.dart`. The MRT alternative uses the bundled
   `assets/mrt_stations.json` (regenerate with `tool/build_mrt_asset.dart`; code-only station names map only
-  through the cited table in `mrt_grouping.dart`).
+  through the cited table in `mrt_grouping.dart`). **E2 trip estimate** (`domain/journey_estimate.dart`,
+  post-submission): display-only, computed in the journey card from the settled `busNetworkProvider` value, for a
+  direct-bus plan only (walk-only never loads bus data). Ride = `2.85 × km + 0.35 × stops` over the ride's own
+  consecutive stops from `boardIndex` (omitted, never clamped, when invalid, non-finite, negative or over 300 min),
+  shown rounded up to a minute; total = the displayed walks + ride, rounded up to a multiple of 5. Never in the
+  planner score; the planner, providers, arrivals and map are untouched. Rules: the "Estimated trip time (E2)" row
+  of `docs/assumptions.md`.
 - **Bus arrival** (`features/bus_arrival/`): `journeyArrivalsProvider` runs only after the plan exists and
   requests each displayed boarding stop once through `BusArrivalCache` (15 s TTL, in-flight dedup, failures
   not cached). Its result carries the exact plan it was fetched for, and widgets show it only against that

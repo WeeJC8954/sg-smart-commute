@@ -9,6 +9,7 @@ import '../../bus_arrival/presentation/option_arrivals.dart';
 import '../../destination/domain/destination_controller.dart';
 import '../../origin/domain/origin_controller.dart';
 import '../domain/direct_bus_planner.dart';
+import '../domain/journey_estimate.dart';
 import '../domain/mrt.dart';
 import '../domain/option_selection.dart';
 import '../journey_providers.dart';
@@ -31,6 +32,25 @@ class JourneyCard extends ConsumerStatefulWidget {
 
   static const String estimateNote =
       'Walking times are straight-line estimates, not routes.';
+
+  /// E2 (docs/assumptions.md "Estimated trip time (E2)"): under
+  /// [estimateNote] whenever at least one option shows an estimate.
+  static const String tripEstimateNote =
+      'Trip times are rough estimates based on scheduled early/late bus '
+      'timings. They exclude waiting and live traffic conditions.';
+
+  /// An option's estimated trip, below its live arrivals.
+  static String tripLine(int minutes) => 'About $minutes min · excl. waiting';
+
+  static String tripSemantics(int minutes) =>
+      'Estimated trip, about $minutes minutes, not including waiting';
+
+  /// The estimated ride, after the stop count on the bus step.
+  static String rideDetail(int minutes) => '· ~$minutes min ride (est.)';
+
+  static String rideSemantics(int stops, int minutes) =>
+      '${_stopsText(stops)}, about $minutes '
+      '${minutes == 1 ? 'minute' : 'minutes'} on the bus, estimated';
 
   @override
   ConsumerState<JourneyCard> createState() => _JourneyCardState();
@@ -61,6 +81,16 @@ class _JourneyCardState extends ConsumerState<JourneyCard> {
     final plan = ref.watch(journeyPlanProvider);
     final mrt = ref.watch(mrtSuggestionProvider);
     final selection = ref.watch(optionSelectionProvider);
+    // E2: estimates for a settled direct-bus plan only. The bus network is
+    // read only then (already loaded for that plan), so a walk-only journey
+    // never loads bus data. Display-only: the plan is never touched.
+    final settled = plan.isLoading || plan.hasError ? null : plan.value;
+    final network = settled is DirectBusOptions
+        ? ref.watch(busNetworkProvider).value
+        : null;
+    final estimates = settled is DirectBusOptions && network != null
+        ? [for (final o in settled.options) estimateDirectJourney(o, network)]
+        : const <DirectJourneyEstimate?>[];
 
     return Card(
       key: const Key('journey-card'),
@@ -89,6 +119,7 @@ class _JourneyCardState extends ConsumerState<JourneyCard> {
               ),
               AsyncValue(:final value) => _Plan(
                 plan: value,
+                estimates: estimates,
                 selection: selection,
                 onSelect: ref.read(optionSelectionProvider.notifier).select,
               ),
@@ -102,6 +133,14 @@ class _JourneyCardState extends ConsumerState<JourneyCard> {
             ),
             const SizedBox(height: 8),
             Text(JourneyCard.estimateNote, style: theme.textTheme.bodySmall),
+            if (estimates.any((e) => e != null)) ...[
+              const SizedBox(height: 4),
+              Text(
+                JourneyCard.tripEstimateNote,
+                key: const Key('trip-estimate-note'),
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
           ],
         ),
       ),
@@ -112,10 +151,14 @@ class _JourneyCardState extends ConsumerState<JourneyCard> {
 class _Plan extends StatelessWidget {
   const _Plan({
     required this.plan,
+    required this.estimates,
     required this.selection,
     required this.onSelect,
   });
   final JourneyPlan? plan;
+
+  /// E2: one estimate (or null) per option of a direct-bus [plan].
+  final List<DirectJourneyEstimate?> estimates;
 
   /// The user's selection; it applies only to the plan it was made for.
   final OptionSelection? selection;
@@ -163,6 +206,7 @@ class _Plan extends StatelessWidget {
           key: const Key('journey-suggested'),
           plan: direct,
           option: direct.options.first,
+          estimate: estimates.elementAtOrNull(0),
           heading: 'Suggested',
           selected: shown == 0,
           onSelect: selectable(0),
@@ -182,6 +226,7 @@ class _Plan extends StatelessWidget {
                 key: Key('journey-alternative-$i'),
                 plan: direct,
                 option: direct.options[i],
+                estimate: estimates.elementAtOrNull(i),
                 collapsible: true,
                 selected: shown == i,
                 onSelect: selectable(i),
@@ -205,6 +250,7 @@ class _Option extends StatefulWidget {
     super.key,
     required this.plan,
     required this.option,
+    this.estimate,
     this.heading,
     this.collapsible = false,
     this.selected = false,
@@ -212,6 +258,9 @@ class _Option extends StatefulWidget {
   });
   final DirectBusOptions plan;
   final BusOption option;
+
+  /// E2: this option's estimated trip; null shows none.
+  final DirectJourneyEstimate? estimate;
   final String? heading;
   final bool collapsible;
 
@@ -297,12 +346,32 @@ class _OptionState extends State<_Option> {
                       option: o,
                       landing: _title,
                     ),
+                    if (widget.estimate case final e?)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        // Its own node, read after the live arrivals, in
+                        // words: never an ETA, never announced.
+                        child: Semantics(
+                          key: Key(
+                            'trip-estimate-${o.board.code}-${o.service.number}',
+                          ),
+                          container: true,
+                          label: JourneyCard.tripSemantics(e.shownMinutes),
+                          excludeSemantics: true,
+                          child: Text(
+                            JourneyCard.tripLine(e.shownMinutes),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ],
           ),
-          _Steps(option: o, full: _expanded),
+          _Steps(option: o, estimate: widget.estimate, full: _expanded),
           if (widget.onSelect != null || widget.collapsible)
             // Wraps below each other at large text or in a narrow card.
             Wrap(
@@ -430,9 +499,12 @@ class _ServiceBadge extends StatelessWidget {
 /// Walk, ride, alight, walk: the rider's order (§5.6). Without [full], only
 /// the walk to the boarding stop.
 class _Steps extends StatelessWidget {
-  const _Steps({required this.option, required this.full});
+  const _Steps({required this.option, required this.full, this.estimate});
   final BusOption option;
   final bool full;
+
+  /// E2: adds the estimated ride to the bus step.
+  final DirectJourneyEstimate? estimate;
 
   @override
   Widget build(BuildContext context) {
@@ -448,10 +520,19 @@ class _Steps extends StatelessWidget {
             '${o.board.name}',
           ),
           if (full) ...[
-            _Step(
-              Icons.directions_bus_outlined,
-              '${o.stops} ${o.stops == 1 ? 'stop' : 'stops'}',
-            ),
+            if (estimate case final e?)
+              _Step(
+                Icons.directions_bus_outlined,
+                _stopsText(o.stops),
+                key: Key('ride-step-${o.board.code}-${o.service.number}'),
+                detail: JourneyCard.rideDetail(e.rideMinutes),
+                semanticsLabel: JourneyCard.rideSemantics(
+                  o.stops,
+                  e.rideMinutes,
+                ),
+              )
+            else
+              _Step(Icons.directions_bus_outlined, _stopsText(o.stops)),
             _Step(
               Icons.place_outlined,
               'Alight at ${o.alight.code} — ${o.alight.name}',
@@ -467,23 +548,55 @@ class _Steps extends StatelessWidget {
   }
 }
 
+String _stopsText(int stops) => '$stops ${stops == 1 ? 'stop' : 'stops'}';
+
 class _Step extends StatelessWidget {
-  const _Step(this.icon, this.text);
+  const _Step(
+    this.icon,
+    this.text, {
+    super.key,
+    this.detail,
+    this.semanticsLabel,
+  });
   final IconData icon;
   final String text;
 
+  /// E2: the estimated ride, after [text] on the same line. Two texts, so the
+  /// stop count stays exactly as without an estimate; they wrap at large
+  /// text.
+  final String? detail;
+
+  /// Read instead of the visible texts, as one node.
+  final String? semanticsLabel;
+
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 8),
-        Expanded(child: Text(text)),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final extra = detail;
+    final step = Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: extra == null
+                ? Text(text)
+                : Wrap(spacing: 4, children: [Text(text), Text(extra)]),
+          ),
+        ],
+      ),
+    );
+    final label = semanticsLabel;
+    return label == null
+        ? step
+        : Semantics(
+            container: true,
+            label: label,
+            excludeSemantics: true,
+            child: step,
+          );
+  }
 }
 
 class _Mrt extends StatelessWidget {

@@ -58,6 +58,8 @@ Future<void> pickDestination(
 }
 
 Future<void> openMap(WidgetTester tester) async {
+  await tester.ensureVisible(find.byKey(showMap));
+  await tester.pump();
   await tester.tap(find.byKey(showMap));
   await tester.pump();
   await tester.pump();

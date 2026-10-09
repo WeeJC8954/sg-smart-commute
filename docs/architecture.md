@@ -425,6 +425,16 @@ resources and names; E4 lives in the app shell next to `AppTitle` and `AppLogo`:
   360 dp screen at 2× text need the icon above and the version last. It is still a plain dialog route (focus trap,
   Escape, Back, focus returning to the button), with Flutter's own licence page behind "View licenses".
 
+## Post-submission enhancement E2: estimated trip time
+
+Added after Phase A, outside the milestones (plan: `docs/e2-static-journey-time-implementation-plan.md`; rules: `docs/assumptions.md`, "Estimated trip time (E2)"). Each direct-bus option shows `About N min · excl. waiting` below its live arrivals and the estimated ride on its bus step. The code is `lib/features/journey/domain/journey_estimate.dart` and the journey card.
+
+- **ADR E2-1: model C on data the planner already holds.** Ride minutes = 2.85 × straight-line km between consecutive stops of the ride + 0.35 × stops travelled. No in-vehicle time exists in any keyless source; the two rates were fitted offline on LTA's scheduled first and last trips (`data-sources.md`, calibration evidence); the app's code reproduces that fit to within 1e-11 min. No new asset, host, request, dependency or CSP change, and no `routes.min.json`: the E2 discovery (2026-10-06) measured road distance improving the median relative error by only 1–3 points.
+- **ADR E2-2: display-only.** The planner, its score and order, Suggested, candidate stops, arrivals, selection and the map are unchanged; `direct_bus_planner.dart` and the providers do not import the estimator (`test/features/journey/journey_estimate_invariants_test.dart`).
+- **ADR E2-3: computed in the journey card, no provider.** For a settled `DirectBusOptions` the card reads `busNetworkProvider`'s value (already loaded for that plan; the `mapSceneProvider` pattern, so walk-only never loads bus data) and calls the pure `estimateDirectJourney` per option, at most 3 × 104 haversines. A pure function of the displayed plan's own options cannot attach to another plan, so no identity tagging is needed.
+- **ADR E2-4: rounding and wording.** The ride is rounded up to a minute and the total (the displayed walks + ride) up to a multiple of 5, so the total is never below its displayed parts and equals the exact sum rounded up. An estimate that is invalid, non-finite, negative or over 300 min is omitted, never clamped. The ride step keeps its `N stops` text and adds the ride as a second text on the same line, so an option without an estimate looks exactly as before.
+- **ADR E2-5: a per-leg function.** `estimateBusMinutes(network, service:, direction:, boardIndex:, stopCount:)` takes exactly a bus leg's fields, ready for a future E5 leg; E2 adds no leg type, rail type or transfer total.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),
