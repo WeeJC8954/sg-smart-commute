@@ -57,7 +57,7 @@ flutter test test/features/origin/origin_controller_test.dart --plain-name "<tes
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d web-server --browser-name=chrome --profile
 ```
 
-CI (`.github/workflows/flutter-test.yml`, every push and on demand) runs `flutter pub get --enforce-lockfile`, format, analyze and `flutter test` on Ubuntu with Flutter 3.47.2. Windows Smart App Control blocks `flutter_tester.exe` on the development PC, so `flutter test` evidence comes from CI runs, never a claimed local pass.
+CI (`.github/workflows/flutter-test.yml`, every push and on demand) runs `flutter pub get --enforce-lockfile`, format, analyze and `flutter test` on Ubuntu with Flutter 3.47.2, then `flutter test --platform chrome test/features/map/polyline_codec_test.dart` (#73: the decoder's Web-only guard cannot fail on the VM; only pure-Dart files compile for Chrome). The Chrome runner still fails on Windows (flutter_tools path bugs, `docs/testing.md`). Windows Smart App Control blocks `flutter_tester.exe` on the development PC, so `flutter test` evidence comes from CI runs, never a claimed local pass.
 
 Dev-only feasibility probes (not part of the app) are in `tool/`; see `docs/testing.md`. Building the probe
 APK (`-t tool/api_probe_app.dart`) overwrites `app-debug.apk` — rebuild the real app afterwards.
@@ -150,7 +150,9 @@ Key flows that span several files:
 - Test seams overridden via providers: `locationServiceProvider`, `environmentRepositoryProvider`,
   `locationTimeoutProvider`, `locationPermissionTimeoutProvider`, `clockProvider`,
   `placeSearchRepositoryProvider` (plus
-  `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider`), `busNetworkRepositoryProvider`,
+  `placeSearchDebounceProvider` / `placeSearchMinQueryLengthProvider` / `placeSearchKeepsFocusOnSubmitProvider`,
+  which is `kIsWeb`: `buildTestApp(placeSearchKeepsFocusOnSubmit:)` tests the Web and Android Enter behaviour on
+  the VM), `busNetworkRepositoryProvider`,
   `mrtRepositoryProvider`, `mrtMaxDistanceMetersProvider`, `busArrivalRepositoryProvider`,
   `busArrivalCacheTtlProvider`, `mapTileProviderFactoryProvider`, `mapLogoImageProvider`, `mapLinkOpenerProvider`,
   `routeGeometryRepositoryProvider` (all faked by default in `buildTestApp`, the last with

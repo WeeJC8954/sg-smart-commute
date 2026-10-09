@@ -160,10 +160,12 @@ lib/
 - **Content-Security-Policy** (`web/index.html`, a `<meta>`, since static hosting such as GitHub Pages cannot
   set headers). Measured in Chrome on 2026-10-02 over a full journey, the app contacts only itself, the four
   keyless APIs (`api-open.data.gov.sg`, `www.onemap.gov.sg`, `data.busrouter.sg`, `arrivelah2.busrouter.sg`), and
-  the Flutter engine's CDN (`www.gstatic.com` for CanvasKit script + WebAssembly, `fonts.gstatic.com` for
-  fallback fonts). The policy allows exactly those:
-  - `connect-src` = self + those six origins; `script-src` = self + `www.gstatic.com` + `'wasm-unsafe-eval'`
-    (CanvasKit is WebAssembly) + one `sha256-` hash; no `'unsafe-eval'`, no `'unsafe-inline'` scripts;
+  the Flutter engine's CDN (`www.gstatic.com/flutter-canvaskit/` for CanvasKit script + WebAssembly,
+  `fonts.gstatic.com` for fallback fonts). The policy allows exactly those:
+  - `connect-src` = self + those six sources; `script-src` = self + `https://www.gstatic.com/flutter-canvaskit/`
+    (the path, not the origin: `www.gstatic.com` also hosts an AngularJS copy, a known CSP bypass, #70) +
+    `'wasm-unsafe-eval'` (CanvasKit is WebAssembly) + one `sha256-` hash; no `'unsafe-eval'`, no
+    `'unsafe-inline'` scripts;
   - the hash is the inline snippet that the **debug** web loader (Flutter 3.47.2) runs; without it `flutter run`
     on Web shows a blank page. Release builds never run it. After a Flutter upgrade, a blank debug page plus a
     console line "Executing inline script violates … a hash ('sha256-…')" means: replace the hash;
@@ -235,7 +237,7 @@ never plans and never changes the service, direction, boarding or alighting stop
     (the P2-M0 spike hit this on Web only).
   - `domain/route_geometry.dart`: `RouteGeometry` (service → encoded polyline per busrouter direction, kept
     encoded) and the `RouteGeometryRepository` interface.
-  - `domain/ride_geometry.dart` (pure Dart): `MapRide` (service, `sourceDirection`, `boardIndex`, the ride's
+  - `domain/ride_geometry.dart` (pure Dart): `MapRide` (service, `sourceDirection`, the ride's
     `stops`, `leadingStops`), `leadingStopCount`, the sealed `RideLine` (`RideLineDrawn` with the points, or
     `RideLineUnavailable` with a `RideLineGap`: `noGeometry`, `malformedGeometry`, `notMatched`),
     `RideMatchConfig` (defaults from `MapConfig`) and `matchRide`.
@@ -243,7 +245,8 @@ never plans and never changes the service, direction, boarding or alighting stop
     ride's stops.
   - `data/busrouter_routes_parser.dart` (`parseBusrouterRoutes`: `{service: [dir 0, dir 1?]}`, invalid entries
     dropped, the same 5 % rule as the other busrouter files) and `data/busrouter_route_geometry_repository.dart`
-    (`JsonHttpClient`, one session-held load shared by concurrent callers, a failure not cached).
+    (`JsonHttpClient`, which merges concurrent identical requests; it fetches on every call since #60, and
+    `routeGeometryProvider` holds the session copy).
   - `map_providers.dart`: `routeGeometryRepositoryProvider`, `routeGeometryProvider` (a `FutureProvider`, a
     failure held) and `rideLineProvider`.
   - `presentation/journey_map.dart`: a `PolylineLayer` (key `map-ride-line`) before the `MarkerLayer`, so the

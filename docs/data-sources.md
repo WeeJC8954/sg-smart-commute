@@ -61,7 +61,7 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 |---|---|
 | Owner | Singapore Land Authority |
 | Endpoint | `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=…&returnGeom=Y&getAddrDetails=Y&pageNum=1` |
-| Data used (M2) | `SEARCHVAL` (name), `ADDRESS`, `POSTAL` (a string; `"NIL"` → none), `BUILDING` / `BLK_NO` (type inference only), `LATITUDE`, `LONGITUDE` (strings, parsed; out-of-SG or invalid rows are dropped). `X`/`Y` (SVY21) unused. Only page 1 (≤ 10 results) |
+| Data used (M2) | `SEARCHVAL` (name), `ADDRESS`, `POSTAL` (a string; `"NIL"` → none), `BUILDING` (type inference only), `LATITUDE`, `LONGITUDE` (strings, parsed; out-of-SG or invalid rows are dropped). `X`/`Y` (SVY21) unused. Only page 1 (≤ 10 results) |
 | Auth | Documented as token-required. Currently answers without a token (HTTP 200, CORS `*`), with an `error` message in every body, including empty ones (fixtures in `test/fixtures/onemap/`, captured 2026-10-01) |
 | Reverse geocode | `/api/public/revgeocode` → **401 Unauthorized** without a token (2026-10-01). Not used |
 | Licence / attribution | OneMap terms of use. The app shows "Place search: OneMap © Singapore Land Authority" under every result list and in the footer |
