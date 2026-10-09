@@ -121,6 +121,16 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 | Why | OneMap's attribution snippet links "OneMap" and "Singapore Land Authority"; user decision, 2026-10-03 |
 | Platform notes | Web: a new browser tab (no CSP change). Android: `launchUrl` starts the browser activity directly, so no `<queries>` entry is needed (only `canLaunchUrl` would need one, and the app does not call it) |
 
+## Calibration evidence for E2 (offline only, not a runtime source)
+
+| | |
+|---|---|
+| What | LTA DataMall BusRoutes: the scheduled arrival of the first and last bus of the day at each stop (`WD_FirstBus`, `WD_LastBus`), per service, direction and stop sequence |
+| How it was read | Once, offline, on 2026-10-06, through busrouter's keyless copy `https://data.busrouter.sg/v1/raw/bus-routes.datamall.json` (an undocumented intermediate file of the sgbusdata pipeline). No AccountKey was used. The analysis scripts are not in the repository |
+| What ships | Only two constants, 2.85 min per straight-line km and 0.35 min per stop (`JourneyConfig`). The app never loads this file or any other new data for E2 |
+| Licence / attribution | DataMall datasets are under the Singapore Open Data Licence (DataMall API terms, clause 1); the derived constants credit LTA |
+| Limits | Off-peak only (first and last trips); only 462 weekday-first and 730 weekday-last directions of 798 were usable; see the "Estimated trip time (E2)" row of `assumptions.md` for the error and the extrapolation |
+
 ## Excluded
 
 - **LTA DataMall:** needs an AccountKey, and has no browser CORS support. Never called by the app. A local

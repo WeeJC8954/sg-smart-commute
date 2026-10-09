@@ -17,6 +17,10 @@ App icon and About (post-submission enhancements E3, E4): the phone launcher, th
 app use the same bus, skyline and pin artwork as the app bar, under the name "Singapore Smart Commute". The info
 button in the app bar shows what the app is, its author and the version and build it was built from.
 
+Estimated trip time (post-submission enhancement E2): each direct-bus option shows "About N min · excl. waiting", a
+rough static estimate of walking plus riding, rounded up to 5 minutes, and the estimated ride on its bus step. It
+is not a live ETA.
+
 ## Screenshots
 
 The release Web build at phone width with live data: a trip from Bishan to HDB Hub, Toa Payoh (2026-10-05,
@@ -115,6 +119,8 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - Phase 1 suggests **direct buses only** (no transfers), ranked by a documented heuristic, not "the best"
   route. MRT is shown as information only: the nearest station name and an estimated walk, with no lines,
   codes, routes or arrivals.
+- Trip times (E2) are rough estimates based on scheduled early/late bus timings, rounded up to 5 minutes. They
+  exclude waiting and live traffic conditions, and are not calibrated for daytime or rush-hour traffic.
 - Bus stop data comes from busrouter.sg and is loaded on the first journey request (about 570 KB).
 - Tokenless OneMap search can rate-limit (HTTP 429 after a few quick calls was seen in M3 testing).
 - busrouter, ArriveLah and tokenless OneMap search are third-party services with no SLA.
@@ -147,6 +153,7 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
   [Data sources](docs/data-sources.md) · [Assumptions](docs/assumptions.md) · [Testing](docs/testing.md)
 - [Colour themes plan (E1)](docs/e1-colour-themes-implementation-plan.md)
 - [App icon and About plan (E3, E4)](docs/enhancement-phase-a-identity-about-implementation-plan.md)
+- [Estimated trip time plan (E2)](docs/e2-static-journey-time-implementation-plan.md)
 
 ## Roadmap
 
