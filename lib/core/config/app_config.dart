@@ -351,6 +351,22 @@ abstract final class JourneyConfig {
 
   /// Beyond this, no MRT station is suggested as "nearest".
   static const double mrtMaxDistanceMeters = 1500;
+
+  /// E2 estimated trip time (docs/assumptions.md "Estimated trip time
+  /// (E2)"): bus minutes = this × straight-line km between consecutive stops
+  /// of the ride + [busMinutesPerStop] × stops travelled. Fitted offline on
+  /// LTA's scheduled first and last trips (off-peak only).
+  static const double busMinutesPerKm = 2.85;
+
+  /// See [busMinutesPerKm].
+  static const double busMinutesPerStop = 0.35;
+
+  /// A bus estimate above this is omitted, never clamped. Above every real
+  /// ride (the longest full direction, 858, is about 216 min).
+  static const double busEstimateMaxMinutes = 300;
+
+  /// The estimated trip total is rounded up to a multiple of this.
+  static const int estimateRoundingMinutes = 5;
 }
 
 /// ArriveLah live bus arrivals (guide v2.1 §10; docs/data-sources.md). A
