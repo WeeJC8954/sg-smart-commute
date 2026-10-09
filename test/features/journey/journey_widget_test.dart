@@ -738,28 +738,59 @@ void main() {
           isLiveRegion: true,
         ),
       );
+      handle.dispose();
+    });
+
+    testWidgets('a new plan starts quiet at its suggestion: a Select made on '
+        'the previous plan is not carried over (#67)', (tester) async {
+      final handle = tester.ensureSemantics();
+      await pumpApp(tester, gpsApp());
+      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await select(tester, 'F10');
       await select(tester, 'F20');
       expect(
         tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
         isSemantics(isLiveRegion: true),
       );
-      // A new plan's default is quiet again, though the suggestion's state
-      // is kept across plans. (Re-picking the same place keeps the same
-      // plan object, so go by another destination to get a new one.)
-      await tester.tap(find.byKey(const Key('change-destination')));
-      await tester.pump();
-      await searchAndPick(
-        tester,
-        destinationField,
-        'ION Orchard',
-        'ION ORCHARD',
+      final suggested = tester.state(
+        find.byKey(const Key('journey-suggested')),
       );
-      await tester.tap(find.byKey(const Key('change-destination')));
-      await tester.pump();
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+
+      // Re-picking the same place keeps the same plan object, so go by
+      // another destination: two new plans. pump(Duration.zero) lets the
+      // re-plan finish before the frame, as in the app, so the card goes
+      // straight to the new plan and keeps the suggestion's state: the reset
+      // on a new plan is what keeps its mark quiet.
+      Future<void> replanTo(String query, String result) async {
+        await tester.tap(find.byKey(const Key('change-destination')));
+        await tester.pump();
+        await tester.enterText(find.byKey(destinationField), query);
+        await tester.pump(pastSearchDebounce);
+        await tester.pump();
+        await tester.tap(find.text(result));
+        await tester.pump(Duration.zero);
+        await tester.pump();
+      }
+
+      await replanTo('ION Orchard', 'ION ORCHARD');
+      await replanTo('VivoCity', 'VIVOCITY');
+
+      expect(
+        tester.state(find.byKey(const Key('journey-suggested'))),
+        same(suggested),
+        reason: 'the suggestion keeps its state across plans',
+      );
+      // The normal start: the suggestion selected, the others selectable,
+      // and the mark not announced as if the user had selected it.
+      expect(find.byKey(const Key('select-option-F10')), findsOneWidget);
+      expect(find.byKey(const Key('select-option-F30')), findsOneWidget);
       expect(
         tester.getSemantics(find.byKey(const Key('selected-option-F20'))),
-        isSemantics(isSelected: true, isLiveRegion: false),
+        isSemantics(
+          label: 'Bus F20 selected',
+          isSelected: true,
+          isLiveRegion: false,
+        ),
       );
       handle.dispose();
     });
