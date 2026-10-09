@@ -397,7 +397,8 @@ void main() {
         final line = tester.getSize(
           inKey(tripKey('BSH2', 'F20'), find.byType(Text)),
         );
-        expect(line.height, greaterThan(2 * 14 * 2)); // > one 28 px line
+        // One 28 px line is about 40 px tall; two or more exceed 56 px.
+        expect(line.height, greaterThan(2 * 14 * 2));
       });
     }
   }

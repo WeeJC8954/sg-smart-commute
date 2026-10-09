@@ -285,6 +285,17 @@ void main() {
       expect(meridianRide(86), isNull); // about 302.6
     });
 
+    test('a ride may end at the last stop of its direction', () {
+      expect(
+        ride(meridian, meridianService, boardIndex: 89, stopCount: 1),
+        closeTo(3.519055409369927, 1e-6),
+      );
+      expect(
+        ride(meridian, meridianService, boardIndex: 88, stopCount: 2),
+        closeTo(7.03811081873985, 1e-6),
+      );
+    });
+
     test('exactly 300 minutes is valid', () {
       expect(
         ride(meridian, meridianService, minutesPerKm: 0, minutesPerStop: 300),
@@ -340,6 +351,26 @@ void main() {
       expect(parts(to: 100), base + 2);
       expect(parts(from: 300), base + 5);
       expect(parts(stops: 10), 36);
+    });
+
+    test('a direction or alighting index outside the service: none', () {
+      final o = optionOn(meridian, meridianService, boardIndex: 0, stops: 3);
+      BusOption copy({int? direction, int? stops}) => BusOption(
+        service: o.service,
+        direction: direction ?? o.direction,
+        board: o.board,
+        boardIndex: o.boardIndex,
+        alight: o.alight,
+        stops: stops ?? o.stops,
+        walkToStop: o.walkToStop,
+        walkFromStop: o.walkFromStop,
+        score: o.score,
+        towardName: o.towardName,
+        isLoop: o.isLoop,
+      );
+      expect(estimateDirectJourney(copy(direction: 1), meridian), isNull);
+      expect(estimateDirectJourney(copy(direction: -1), meridian), isNull);
+      expect(estimateDirectJourney(copy(stops: 91), meridian), isNull);
     });
 
     test('board or alight codes that disagree with the network: none', () {
