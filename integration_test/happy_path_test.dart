@@ -10,7 +10,9 @@
 // drawn from fake route geometry (no live routes.min.json request) → P2-M3:
 // the dashed walking connectors and both MRT suggestion markers; selecting
 // another option in the journey card moves the map to it, with no second
-// routes.min.json load and no arrival request.
+// routes.min.json load and no arrival request. E2: the static trip estimate
+// below the live arrivals, the ride on the bus step and the trip-time footer,
+// unchanged by an arrivals refresh.
 //
 // Every provider is a fake and the clock is injected; no live API is called.
 import 'package:flutter/widgets.dart';
@@ -126,6 +128,22 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('journey-alternative-1')), findsOneWidget);
+    // E2: F20 walks 2 + 1 min and a ~31 min ride (30.77), about 35 min.
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.text('About 35 min · excl. waiting'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.text('· ~31 min ride (est.)'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('trip-estimate-note')), findsOneWidget);
 
     // M4: live ETAs for the displayed option's boarding stop and service.
     final eta = find.byKey(const Key('arrivals-BSH2-F20'));
@@ -156,6 +174,14 @@ void main() {
       find.descendant(
         of: suggested,
         matching: find.text('Take Bus F20 toward VivoCity (fake)'),
+      ),
+      findsOneWidget,
+    );
+    // E2: a refresh changes the ETAs only, never the estimate.
+    expect(
+      find.descendant(
+        of: suggested,
+        matching: find.text('About 35 min · excl. waiting'),
       ),
       findsOneWidget,
     );
