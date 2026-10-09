@@ -10,7 +10,6 @@ class MapRide {
   const MapRide({
     required this.service,
     required this.sourceDirection,
-    required this.boardIndex,
     required this.stops,
     this.leadingStops = const [],
   });
@@ -19,9 +18,6 @@ class MapRide {
 
   /// busrouter's direction index (BusService.sourceDirectionOf).
   final int sourceDirection;
-
-  /// The planner's boarding occurrence (BusOption.boardIndex).
-  final int boardIndex;
 
   /// Boarding … alighting stop positions, in ride order (at least 2).
   final List<LatLng> stops;
@@ -37,7 +33,6 @@ class MapRide {
       other is MapRide &&
       other.service == service &&
       other.sourceDirection == sourceDirection &&
-      other.boardIndex == boardIndex &&
       sameElements(other.stops, stops) &&
       sameElements(other.leadingStops, leadingStops);
 
@@ -45,7 +40,6 @@ class MapRide {
   int get hashCode => Object.hash(
     service,
     sourceDirection,
-    boardIndex,
     Object.hashAll(stops),
     Object.hashAll(leadingStops),
   );

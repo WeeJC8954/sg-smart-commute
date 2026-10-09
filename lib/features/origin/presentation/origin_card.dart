@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/focus_landing.dart';
 import '../../../core/ui/section_heading.dart';
 import '../../../core/ui/status_rows.dart';
 import '../../places/presentation/place_search_field.dart';
@@ -28,10 +29,35 @@ class OriginCard extends ConsumerStatefulWidget {
 class _OriginCardState extends ConsumerState<OriginCard> {
   final _changeButton = FocusNode(debugLabel: 'change-origin');
 
+  /// Where the fallback prompt's "Try location again" leaves focus: the
+  /// section itself, which stays while the prompt turns into a spinner (#65).
+  final _section = FocusNode(debugLabel: 'origin-section');
+
+  /// Set by that "Try location again", so the GPS fix its attempt gets is
+  /// announced once (#65). It stays set when the attempt times out into
+  /// manual entry: the attempt goes on, and a late fix can still fill the
+  /// origin. Cleared once that fix is shown, or when the user starts entering
+  /// a place (a late fix is then only offered, by the announced chip). A
+  /// superseded attempt's fix never arrives: the controller drops it. A
+  /// failure is announced by its own line.
+  bool _announceFix = false;
+
   @override
   void dispose() {
     _changeButton.dispose();
+    _section.dispose();
     super.dispose();
+  }
+
+  void _retryFromFallback() {
+    _section.requestFocus();
+    _announceFix = true;
+    ref.read(originControllerProvider.notifier).retryLocation();
+  }
+
+  void _beginManualEntry() {
+    _announceFix = false;
+    ref.read(originControllerProvider.notifier).beginManualEntry();
   }
 
   /// Focuses "Change" once the rebuild that shows it has run.
@@ -46,6 +72,14 @@ class _OriginCardState extends ConsumerState<OriginCard> {
     final state = ref.watch(originControllerProvider);
     final controller = ref.read(originControllerProvider.notifier);
     final theme = Theme.of(context);
+    final announceFix =
+        _announceFix &&
+        state.phase == OriginPhase.ready &&
+        state.origin?.provenance == OriginProvenance.gps;
+    if (announceFix) {
+      // Once only: the line built again later is not announced again.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _announceFix = false);
+    }
 
     final children = <Widget>[];
     switch (state.phase) {
@@ -56,7 +90,7 @@ class _OriginCardState extends ConsumerState<OriginCard> {
       case OriginPhase.ready:
         final origin = state.origin!;
         final manual = origin.provenance == OriginProvenance.manual;
-        children.add(_OriginLine(origin: origin));
+        children.add(_OriginLine(origin: origin, announce: announceFix));
         children.add(
           Wrap(
             spacing: 8,
@@ -111,8 +145,18 @@ class _OriginCardState extends ConsumerState<OriginCard> {
                 style: theme.textTheme.titleMedium,
               ),
             )
-            ..add(Text(locationFailureText(reason, isWeb: kIsWeb)))
-            ..add(_FallbackActions(reason: reason));
+            // Also the outcome of "Try location again", which arrives away
+            // from focus, so it is announced (#65).
+            ..add(
+              Semantics(
+                container: true,
+                liveRegion: true,
+                child: Text(locationFailureText(reason, isWeb: kIsWeb)),
+              ),
+            )
+            ..add(
+              _FallbackActions(reason: reason, onRetry: _retryFromFallback),
+            );
         } else {
           children.add(
             SectionHeading(
@@ -134,7 +178,7 @@ class _OriginCardState extends ConsumerState<OriginCard> {
             // Focused only when the user asked for it; the launch fallback
             // prompt doesn't pop the keyboard unasked.
             autofocus: changing,
-            onEditingStarted: controller.beginManualEntry,
+            onEditingStarted: _beginManualEntry,
             onSelected: (place) {
               controller.selectManualOrigin(
                 place.displayName,
@@ -183,16 +227,22 @@ class _OriginCardState extends ConsumerState<OriginCard> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: children,
+    return FocusLanding(
+      focusNode: _section,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
     );
   }
 }
 
 class _OriginLine extends StatelessWidget {
-  const _OriginLine({required this.origin});
+  const _OriginLine({required this.origin, this.announce = false});
   final Origin origin;
+
+  /// Announce the line when it appears (a fix after "Try location again").
+  final bool announce;
 
   @override
   Widget build(BuildContext context) {
@@ -216,13 +266,18 @@ class _OriginLine extends StatelessWidget {
       ],
     );
     final detail = origin.detail;
-    if (detail == null) return line;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        line,
-        Text(detail, style: Theme.of(context).textTheme.bodySmall),
-      ],
+    return Semantics(
+      container: announce,
+      liveRegion: announce,
+      child: detail == null
+          ? line
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                line,
+                Text(detail, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
     );
   }
 }
@@ -240,8 +295,12 @@ String locationFailureText(LocationFailure reason, {required bool isWeb}) =>
     };
 
 class _FallbackActions extends ConsumerWidget {
-  const _FallbackActions({required this.reason});
+  const _FallbackActions({required this.reason, required this.onRetry});
   final LocationFailure reason;
+
+  /// "Try location again": it turns the prompt into a spinner, so focus is
+  /// handed on first (`_retryFromFallback`).
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -258,10 +317,7 @@ class _FallbackActions extends ConsumerWidget {
             onPressed: controller.openSettings,
             child: const Text('Open settings'),
           ),
-        TextButton(
-          onPressed: controller.retryLocation,
-          child: const Text('Try location again'),
-        ),
+        TextButton(onPressed: onRetry, child: const Text('Try location again')),
       ],
     );
   }

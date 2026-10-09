@@ -86,6 +86,9 @@ extension ArrivalsForPlan on AsyncValue<JourneyArrivals?> {
 /// Manual refresh invalidates this provider only. The static plan is not
 /// recomputed, and stops fetched within the cache TTL are not requested again.
 final journeyArrivalsProvider = FutureProvider<JourneyArrivals?>((ref) async {
+  // Read before the first await: a superseded build's ref is unmounted, and
+  // reading it then throws (#72).
+  final clock = ref.read(clockProvider);
   final plan = await ref.watch(journeyPlanProvider.future);
   if (plan is! DirectBusOptions) return null;
   final cache = ref.watch(busArrivalCacheProvider);
@@ -95,7 +98,7 @@ final journeyArrivalsProvider = FutureProvider<JourneyArrivals?>((ref) async {
   ]);
   return JourneyArrivals(
     plan: plan,
-    checkedAt: ref.read(clockProvider)(),
+    checkedAt: clock(),
     byStop: {for (var i = 0; i < stops.length; i++) stops[i]: results[i]},
   );
 });

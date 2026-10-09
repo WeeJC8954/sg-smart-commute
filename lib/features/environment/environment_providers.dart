@@ -47,11 +47,6 @@ final psiSnapshotProvider = FutureProvider<RegionalSnapshot>(
   ),
 );
 
-/// Minimum refresh interval, injectable for tests.
-final environmentRefreshIntervalProvider = Provider<Duration>(
-  (ref) => AppTimings.minEnvironmentRefreshInterval,
-);
-
 final environmentRefresherProvider =
     NotifierProvider<EnvironmentRefresher, DateTime?>(EnvironmentRefresher.new);
 
@@ -84,7 +79,7 @@ class EnvironmentRefresher extends Notifier<DateTime?> {
     final now = ref.read(clockProvider)();
     final last = state;
     if (last != null &&
-        now.difference(last) < ref.read(environmentRefreshIntervalProvider) &&
+        now.difference(last) < AppTimings.minEnvironmentRefreshInterval &&
         !datasets.any((d) => d.hasError)) {
       return RefreshAllResult.justUpdated;
     }

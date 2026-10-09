@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
@@ -26,3 +27,9 @@ final placeSearchDebounceProvider = Provider<Duration>(
 final placeSearchMinQueryLengthProvider = Provider<int>(
   (ref) => PlaceSearchConfig.minQueryLength,
 );
+
+/// Whether Enter (the keyboard's Search action) leaves focus in the search
+/// field: on the Web, so a keyboard user carries on from the field instead of
+/// the top of the page; elsewhere focus goes, so the soft keyboard closes and
+/// the results show (#68). Injectable for tests (`kIsWeb` is a constant).
+final placeSearchKeepsFocusOnSubmitProvider = Provider<bool>((ref) => kIsWeb);

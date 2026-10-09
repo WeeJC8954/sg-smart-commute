@@ -298,6 +298,142 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('the fallback prompt\'s "Try location again" keeps focus in '
+      'the origin section, and the failure it brings back is a live region '
+      '(#65)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final location = FakeLocationService(access: LocationAccess.denied);
+    await pumpApp(
+      tester,
+      buildTestApp(location: location, environment: env, places: places),
+    );
+    final retry = find.text('Try location again');
+    // A keyboard or screen-reader user is on the button.
+    Focus.of(tester.element(retry)).requestFocus();
+    await tester.pump();
+
+    location.reset();
+    await tester.tap(retry);
+    await tester.pump();
+    // The button turned into a spinner: focus is on the section around it,
+    // not dropped back to the page.
+    final busy = find.text('Checking location permission…');
+    expect(busy, findsOneWidget);
+    expect(focusedAt(tester, busy), isTrue);
+    expect(FocusManager.instance.primaryFocus, isNot(isA<FocusScopeNode>()));
+
+    location.answer(LocationAccess.denied);
+    await tester.pump();
+    expect(focusedAt(tester, find.text(OriginCard.fallbackPrompt)), isTrue);
+    expect(
+      tester.getSemantics(find.text('Location permission was not granted.')),
+      isSemantics(
+        isLiveRegion: true,
+        label: 'Location permission was not granted.',
+      ),
+    );
+    semantics.dispose();
+  });
+
+  // The fallback prompt's "Try location again" and the fix it gets (#65).
+  // Its 10 s timeout falls back to manual entry, but the attempt goes on.
+  group('a fix after the fallback "Try location again"', () {
+    Future<FakeLocationService> fallback(WidgetTester tester) async {
+      final location = FakeLocationService(access: LocationAccess.denied);
+      await pumpApp(
+        tester,
+        buildTestApp(location: location, environment: env, places: places),
+      );
+      return location;
+    }
+
+    /// Presses "Try location again"; permission is granted, and no fix
+    /// arrives within the timeout.
+    Future<void> retryAndTimeOut(
+      WidgetTester tester,
+      FakeLocationService location,
+    ) async {
+      location.reset();
+      await tester.tap(find.text('Try location again'));
+      await tester.pump();
+      location.grant();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 10));
+      expect(find.text('Finding your location took too long.'), findsOneWidget);
+    }
+
+    testWidgets('a late fix, after the timeout, is announced, and only once', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final location = await fallback(tester);
+      await retryAndTimeOut(tester, location);
+
+      location.fix(bishan);
+      await tester.pump();
+      expect(
+        tester.getSemantics(find.text('From: Current location')),
+        isSemantics(isLiveRegion: true, label: 'From: Current location'),
+      );
+
+      // The same line built again later is not announced again.
+      await tester.tap(find.byKey(const Key('change-origin')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('keep-origin')));
+      await tester.pump();
+      await tester.pump();
+      expect(
+        tester.getSemantics(find.text('From: Current location')),
+        isNot(isSemantics(isLiveRegion: true)),
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('a late fix never replaces a place the user is entering; it '
+        'is only offered', (tester) async {
+      final semantics = tester.ensureSemantics();
+      final location = await fallback(tester);
+      await retryAndTimeOut(tester, location);
+
+      await type(tester, originField, 'Tampines Hub');
+      location.fix(bishan);
+      await tester.pump();
+      expect(find.text('From: Current location'), findsNothing);
+      expect(find.byKey(const Key('use-current-location')), findsOneWidget);
+
+      await pick(tester, 'OUR TAMPINES HUB');
+      expect(
+        tester.getSemantics(find.text('From: OUR TAMPINES HUB')),
+        isNot(isSemantics(isLiveRegion: true)),
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('a superseded attempt\'s late fix is dropped and announces '
+        'nothing; the current attempt\'s fix is announced', (tester) async {
+      final semantics = tester.ensureSemantics();
+      final location = await fallback(tester);
+      await retryAndTimeOut(tester, location); // attempt 1
+
+      location.reset(); // attempt 2
+      await tester.tap(find.text('Try location again'));
+      await tester.pump();
+      location.fixAttempt(1, bishan);
+      await tester.pump();
+      expect(find.text('From: Current location'), findsNothing);
+
+      location
+        ..grant()
+        ..fix(bishan);
+      await tester.pump();
+      expect(
+        tester.getSemantics(find.text('From: Current location')),
+        isSemantics(isLiveRegion: true, label: 'From: Current location'),
+      );
+      semantics.dispose();
+    });
+  });
+
   testWidgets('a failed refresh is announced (#57)', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, gpsApp());

@@ -263,7 +263,6 @@ MapRide? _rideOf(BusOption option, Map<String, BusStop> stops) {
   return MapRide(
     service: option.service.number,
     sourceDirection: option.service.sourceDirectionOf(option.direction),
-    boardIndex: from,
     stops: ride,
     leadingStops: positions(codes.sublist(from - leading, from)),
   );

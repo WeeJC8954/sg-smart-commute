@@ -219,6 +219,15 @@ void main() {
       find.bySemanticsLabel('Retry live arrivals for Bus F10'),
       findsOneWidget,
     );
+    // One shared failure is announced once, on the first option (#66).
+    expect(
+      tester.getSemantics(inKey(f20, message)),
+      isSemantics(isLiveRegion: true),
+    );
+    expect(
+      tester.getSemantics(inKey(f10, message)),
+      isNot(isSemantics(isLiveRegion: true)),
+    );
     semantics.dispose();
 
     arrivals.failure = null;
@@ -245,6 +254,39 @@ void main() {
       findsOneWidget,
     );
     expect(inKey(f30, 'Next buses: 2 min'), findsOneWidget);
+  });
+
+  testWidgets('a refresh that fails for a stop replaces its ETAs and is '
+      'announced once, on the first failed option (#66)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, app());
+    await pick(tester, 'VivoCity', 'VIVOCITY');
+    expect(
+      inKey(f10, 'Next buses: 4 min · 12 min (scheduled)'),
+      findsOneWidget,
+    );
+
+    // Past the cache TTL, so both stops are asked again; BSH1 (F10 and F30,
+    // after the suggested F20) fails.
+    now = now.add(const Duration(minutes: 2));
+    arrivals
+      ..stops = fakeStopArrivals(from: now)
+      ..failures['BSH1'] = const NetworkUnavailable();
+    await tester.tap(find.byKey(const Key('arrivals-refresh')));
+    await tester.pump();
+    await tester.pump();
+
+    final message = 'Live arrivals: ${const NetworkUnavailable().message}';
+    expect(
+      tester.getSemantics(inKey(f10, message)),
+      isSemantics(isLiveRegion: true),
+    );
+    expect(
+      tester.getSemantics(inKey(f30, message)),
+      isNot(isSemantics(isLiveRegion: true)),
+    );
+    expect(inKey(f20, 'Next buses: Arr · 7 min · 19 min'), findsOneWidget);
+    semantics.dispose();
   });
 
   testWidgets('manual refresh: inside the cache TTL no request is made; '

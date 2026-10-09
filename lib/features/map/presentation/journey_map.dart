@@ -379,6 +379,9 @@ class _MapNote extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
+      // Its own node: without it the flag merges into the map card, and the
+      // whole card (legend, logo, attribution) is announced (#67).
+      container: true,
       liveRegion: true,
       child: Padding(
         key: noteKey,

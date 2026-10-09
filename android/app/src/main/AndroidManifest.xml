@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Required in release builds: the app calls public HTTPS APIs. Flutter's templates add
          this permission only to the debug and profile manifests. -->
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -6,6 +7,12 @@
          together so Android 12+ users can choose approximate location. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- geolocator_android declares this for its optional background stream; the
+         app only takes one foreground fix (getCurrentPosition), so it is removed
+         (#69). Its service stays: the plugin always binds it. -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_LOCATION"
+        tools:node="remove"/>
     <application
         android:label="Singapore Smart Commute"
         android:name="${applicationName}"

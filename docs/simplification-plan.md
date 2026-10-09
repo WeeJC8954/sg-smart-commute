@@ -75,9 +75,9 @@ the "Left alone" items**: each has a reason that still holds.
 | `MrtAssetRepository` hand-rolls a session cache | Task 3: move it to a `FutureProvider` |
 | `StopArrivalsResult` / `Loaded` / `Failed` is a hand-made `AsyncValue` (CLAUDE.md: "Don't add a parallel `LoadState` type") | Task 4 |
 | `_Checking` widget wraps one const `BusyRow` | Task 4 |
-| `plannerConfigProvider`, `uiTickIntervalProvider`, `environmentRefreshIntervalProvider`: nothing overrides them | Task 5 |
+| `plannerConfigProvider`, `uiTickIntervalProvider`, `environmentRefreshIntervalProvider`: nothing overrides them | Task 5. **`environmentRefreshIntervalProvider` done in #74**; the other two remain |
 | `AppLogo.size`: no caller sets it | **Void since E4** (#62): `lib/app/about_dialog.dart` passes `const AppLogo(size: 48)`, so the parameter stays. Task 6 Step 1 is skipped |
-| `_typeOf(block:)` in `onemap_parser.dart`: never read | Task 6 |
+| `_typeOf(block:)` in `onemap_parser.dart`: never read | **Done in #74** (Task 6 Step 2) |
 | `_Received` class in `json_http_client.dart` | Task 6: use a record |
 | `SpatialScope.station`, unproduced `PlaceType` values, `PlaceSource` extra values, `SearchMode` on `search()`, `reverseGeocode` | **Left alone:** they are the guide's model (§6.2, §8.1) |
 | `EnvironmentalReading.fetchedAt`/`source`, `Place.source`, `BusArrival.busStopCode`/`source` | **Left alone:** kept by the earlier issue #32 decision (guide model) |

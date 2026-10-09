@@ -260,7 +260,7 @@ class _SnapshotTileState<T> extends ConsumerState<_SnapshotTile<T>> {
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _guardBuild(context, value.requireValue),
+          widget.builder(value.requireValue, widget.position),
           ErrorRetryRow(
             key: const Key('refresh-failed'),
             message: "Couldn't refresh: ${failureMessage(value.error)}",
@@ -272,7 +272,7 @@ class _SnapshotTileState<T> extends ConsumerState<_SnapshotTile<T>> {
         ],
       );
     } else {
-      body = _guardBuild(context, value.requireValue);
+      body = widget.builder(value.requireValue, widget.position);
     }
 
     // Outlined: lighter than the elevated route and journey cards, since
@@ -313,14 +313,6 @@ class _SnapshotTileState<T> extends ConsumerState<_SnapshotTile<T>> {
         ),
       ),
     );
-  }
-
-  Widget _guardBuild(BuildContext context, T snapshot) {
-    try {
-      return widget.builder(snapshot, widget.position);
-    } on AppFailure catch (f) {
-      return ErrorRetryRow(message: f.message);
-    }
   }
 }
 

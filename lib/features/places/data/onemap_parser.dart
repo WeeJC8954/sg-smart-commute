@@ -44,7 +44,6 @@ Place? _toPlace(Map<String, dynamic> r) {
 
   final postal = _clean(r['POSTAL']);
   final building = _clean(r['BUILDING']);
-  final block = _clean(r['BLK_NO']);
   return Place(
     id: 'onemap:$name@$lat,$lng',
     displayName: name,
@@ -52,18 +51,14 @@ Place? _toPlace(Map<String, dynamic> r) {
     postalCode: postal != null && isPostalCode(postal) ? postal : null,
     latitude: lat,
     longitude: lng,
-    type: _typeOf(name: name, building: building, block: block),
+    type: _typeOf(name: name, building: building),
     source: PlaceSource.oneMap,
   );
 }
 
 /// OneMap does not say what a result is. Only what the fields show reliably
 /// is inferred; malls and POIs are not told apart from other buildings.
-PlaceType _typeOf({
-  required String name,
-  required String? building,
-  required String? block,
-}) {
+PlaceType _typeOf({required String name, required String? building}) {
   final upper = name.toUpperCase();
   if (upper.contains('MRT STATION') || upper.contains('LRT STATION')) {
     return PlaceType.mrtStation;

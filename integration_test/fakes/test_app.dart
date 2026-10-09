@@ -54,6 +54,7 @@ Widget buildTestApp({
   Duration? busArrivalCacheTtl,
   Duration? placeSearchDebounce,
   int? placeSearchMinQueryLength,
+  bool? placeSearchKeepsFocusOnSubmit,
   Duration locationTimeout = const Duration(seconds: 10),
   Duration locationPermissionTimeout = const Duration(seconds: 10),
   Clock? clock,
@@ -110,6 +111,10 @@ Widget buildTestApp({
       if (placeSearchMinQueryLength != null)
         placeSearchMinQueryLengthProvider.overrideWithValue(
           placeSearchMinQueryLength,
+        ),
+      if (placeSearchKeepsFocusOnSubmit != null)
+        placeSearchKeepsFocusOnSubmitProvider.overrideWithValue(
+          placeSearchKeepsFocusOnSubmit,
         ),
     ],
     child: const SmartCommuteApp(),

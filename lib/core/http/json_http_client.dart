@@ -30,8 +30,6 @@ class JsonHttpClient {
   JsonHttpClient(
     this._client, {
     this.timeout = AppTimings.httpTimeout,
-    this.maxRetries = AppTimings.httpMaxRetries,
-    this.baseBackoff = AppTimings.httpBaseBackoff,
     this.maxResponseBytes = AppTimings.httpMaxResponseBytes,
     Future<void> Function(Duration)? delay,
     this.rateLimiterFor,
@@ -41,8 +39,6 @@ class JsonHttpClient {
 
   final http.Client _client;
   final Duration timeout;
-  final int maxRetries;
-  final Duration baseBackoff;
   final int maxResponseBytes;
   final Future<void> Function(Duration) _delay;
   final RequestRateLimiter? Function(Uri uri)? rateLimiterFor;
@@ -70,8 +66,8 @@ class JsonHttpClient {
       try {
         return await _getOnce(uri);
       } on _Retryable catch (e) {
-        if (attempt >= maxRetries) throw e.failure;
-        await _delay(baseBackoff * (1 << attempt));
+        if (attempt >= AppTimings.httpMaxRetries) throw e.failure;
+        await _delay(AppTimings.httpBaseBackoff * (1 << attempt));
       }
     }
   }

@@ -1,6 +1,6 @@
 /// Typed failures carried in `AsyncValue.error` (guide v2.1 §13).
 ///
-/// Only the failures Milestones 1–4 can produce are defined here. An empty
+/// Only the failures the app can produce are defined here. An empty
 /// place search is an empty result list, not a failure.
 sealed class AppFailure implements Exception {
   const AppFailure();

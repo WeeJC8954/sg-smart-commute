@@ -23,6 +23,11 @@ Map<String, List<String>> _policy() {
   };
 }
 
+/// The path Flutter's loader fetches CanvasKit from (flutter.js:
+/// `https://www.gstatic.com/flutter-canvaskit/<engine revision>`). The trailing
+/// slash makes it a path-prefix source.
+const canvasKit = 'https://www.gstatic.com/flutter-canvaskit/';
+
 void main() {
   test('connect-src allows every provider endpoint, and nothing else', () {
     final providers = {
@@ -44,8 +49,9 @@ void main() {
         Uri.parse(template.replaceAll(RegExp('[{}]'), '')),
       BasemapEndpoints.logo,
     }.map((u) => '${u.scheme}://${u.host}').toSet();
-    // The Flutter engine's own CDN: CanvasKit and fallback fonts.
-    const engine = {'https://www.gstatic.com', 'https://fonts.gstatic.com'};
+    // The Flutter engine's own CDN: CanvasKit (its path only, #70) and
+    // fallback fonts.
+    const engine = {canvasKit, 'https://fonts.gstatic.com'};
 
     final connect = _policy()['connect-src']!;
     expect(connect.first, "'self'");
@@ -56,16 +62,15 @@ void main() {
     'scripts only from the app and the CanvasKit CDN; no eval or inline',
     () {
       final script = _policy()['script-src']!;
-      expect(script, containsAll(["'self'", 'https://www.gstatic.com']));
+      expect(script, containsAll(["'self'", canvasKit]));
+      // Not the whole origin: it also hosts scripts usable as a CSP bypass
+      // (an AngularJS copy), #70.
+      expect(script, isNot(contains('https://www.gstatic.com')));
       expect(script, isNot(contains("'unsafe-eval'")));
       expect(script, isNot(contains("'unsafe-inline'")));
       // Only hash sources besides those: the debug loader's inline snippet.
       final others = script.where(
-        (s) => !{
-          "'self'",
-          "'wasm-unsafe-eval'",
-          'https://www.gstatic.com',
-        }.contains(s),
+        (s) => !{"'self'", "'wasm-unsafe-eval'", canvasKit}.contains(s),
       );
       expect(others, everyElement(startsWith("'sha256-")));
     },
