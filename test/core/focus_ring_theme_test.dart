@@ -1,5 +1,5 @@
-// E7 T2 (pure part): withFocusRings adds a ring for the focused state only,
-// and touches nothing else in the theme (D1, D3). The palette themes stay
+// E7 T2 (pure part): withFocusRings adds a ring for the focused state of
+// buttons and menu items only, and touches nothing else in the theme (D1, D3). The palette themes stay
 // exactly what E1 made them.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,16 +66,14 @@ void main() {
         }
       });
 
-      test('${p.id} ${b.name}: the chip gets the same ring when focused, and '
-          'its stock side otherwise', () {
-        final side = rings.chipTheme.side;
-        expect(WidgetStateProperty.resolveAs<BorderSide?>(side, focused), ring);
-        for (final states in stockStates) {
-          expect(
-            WidgetStateProperty.resolveAs<BorderSide?>(side, states),
-            isNull,
-            reason: '$states',
-          );
+      test('${p.id} ${b.name}: two ringed themes blend without error (each '
+          'button\'s own AnimatedTheme lerps them on a theme change)', () {
+        final other = withFocusRings(
+          paletteTheme(AppPalette.values[(p.index + 1) % 5], b),
+        );
+        for (final t in [0.0, 0.25, 0.5, 1.0]) {
+          final mid = ThemeData.lerp(rings, other, t);
+          expect(mid.textButtonTheme.style?.side?.resolve(focused), isNotNull);
         }
       });
 
@@ -86,9 +84,12 @@ void main() {
             iconButtonTheme: theme.iconButtonTheme,
             outlinedButtonTheme: theme.outlinedButtonTheme,
             menuButtonTheme: theme.menuButtonTheme,
-            chipTheme: theme.chipTheme,
           ),
           theme,
+          reason:
+              'the chip theme too: a chip gets FocusRingWithin, because '
+              'Flutter 3.47.2 ChipThemeData.lerp throws on a state side that '
+              'is null at rest',
         );
       });
     }

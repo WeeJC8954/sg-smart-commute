@@ -182,12 +182,7 @@ void main() {
           expect(style?.side?.resolve({WidgetState.focused}), on ? ring : null);
           expect(style?.side?.resolve({WidgetState.hovered}), isNull);
         }
-        expect(
-          WidgetStateProperty.resolveAs<BorderSide?>(t.chipTheme.side, {
-            WidgetState.focused,
-          }),
-          on ? ring : null,
-        );
+        expect(t.chipTheme, light.chipTheme, reason: 'chips: FocusRingWithin');
       }
 
       await touchEmpty(tester);
@@ -333,10 +328,16 @@ void main() {
       final chip = key('use-current-location');
       expect(chip, findsOneWidget);
       final stock = paintedSide(tester, chip);
+      expect(ringBorder(tester, chip), isNull);
       await tabTo(tester, chip);
-      expect(paintedSide(tester, chip), ringAt(tester, chip));
+      expect(
+        ringBorder(tester, chip),
+        ringBox(tester, chip),
+        reason: 'the shared ring around the chip',
+      );
+      expect(paintedSide(tester, chip), stock, reason: 'its own side: stock');
       await press(tester, LogicalKeyboardKey.tab);
-      expect(paintedSide(tester, chip), stock, reason: 'unfocused: stock');
+      expect(ringBorder(tester, chip), isNull, reason: 'unfocused');
     });
   });
 
