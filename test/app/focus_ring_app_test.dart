@@ -382,6 +382,93 @@ void main() {
     });
   });
 
+  // Owner decision 1 (2026-11-04): the chip's ring (FocusRingWithin, because
+  // Flutter 3.47.2 ChipThemeData.lerp cannot take a theme side) keeps the
+  // touch target, adds no size or shift, stays in the chip's own box, does
+  // not block taps, and shows nothing in touch mode.
+  group('the chip ring (decision 1)', () {
+    /// A manual origin, then a late GPS fix: the chip is offered.
+    Future<Finder> offerChip(WidgetTester tester) async {
+      final location = FakeLocationService(access: LocationAccess.granted);
+      await pumpTall(
+        tester,
+        buildTestApp(
+          location: location,
+          environment: FakeEnvironmentRepository(),
+          places: FakePlaceSearchRepository(),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 10));
+      await tester.enterText(key('manual-origin-field'), 'Tampines Hub');
+      await tester.pump(pastSearchDebounce);
+      await tester.pump();
+      await tester.tap(find.text('OUR TAMPINES HUB'));
+      await tester.pump();
+      location.fix(bishan); // late: only offered
+      await tester.pump();
+      final chip = key('use-current-location');
+      expect(chip, findsOneWidget);
+      return chip;
+    }
+
+    testWidgets(
+      'focused by keyboard: the touch target, size and neighbours are '
+      'unchanged, and the ring is drawn inside the chip\'s own box',
+      (tester) async {
+        final chip = await offerChip(tester);
+        final padded =
+            Theme.of(tester.element(chip)).materialTapTargetSize ==
+            MaterialTapTargetSize.padded;
+        final rect = tester.getRect(chip);
+        final neighbours = {
+          for (final k in ['origin-line', 'change-origin'])
+            k: tester.getRect(key(k)),
+        };
+        expect(
+          rect.height,
+          padded ? greaterThanOrEqualTo(48) : lessThan(48),
+          reason: 'the stock target: padded to 48 dp, or shrink-wrapped',
+        );
+        await tabTo(tester, chip);
+        expect(ringBorder(tester, chip), ringBox(tester, chip));
+        expect(tester.getRect(chip), rect, reason: 'no size or shift');
+        for (final n in neighbours.entries) {
+          expect(tester.getRect(key(n.key)), n.value, reason: n.key);
+        }
+        final ring = find.ancestor(of: chip, matching: find.byType(FocusRing));
+        expect(
+          tester.getRect(ring.first),
+          rect,
+          reason: 'the ring paints at the edge of the chip\'s own box',
+        );
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.windows,
+      }),
+    );
+
+    testWidgets('a tap still lands with the ring showing, also on the '
+        'padding of the 48 dp target', (tester) async {
+      final chip = await offerChip(tester);
+      await tabTo(tester, chip);
+      expect(ringBorder(tester, chip), isNotNull);
+      final rect = tester.getRect(chip);
+      await tester.tapAt(Offset(rect.center.dx, rect.top + 3));
+      await tester.pump();
+      expect(find.text('From: Current location'), findsOneWidget);
+    });
+
+    testWidgets('touch mode: the focused chip shows no ring', (tester) async {
+      final chip = await offerChip(tester);
+      await tabTo(tester, chip);
+      expect(ringBorder(tester, chip), isNotNull);
+      await touchEmpty(tester);
+      expect(focusIn(chip), isTrue, reason: 'a touch elsewhere keeps focus');
+      expect(ringBorder(tester, chip), isNull);
+    });
+  });
+
   group('T4: touch, mouse and hover', () {
     testWidgets('touch: focus moved by "Select" and Show/Hide map shows no '
         'ring; a key shows it at once, a touch hides it again', (tester) async {
