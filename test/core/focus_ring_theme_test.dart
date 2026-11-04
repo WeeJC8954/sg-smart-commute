@@ -77,6 +77,25 @@ void main() {
         }
       });
 
+      test('${p.id} ${b.name}: the plain and the ringed theme blend without '
+          'error both ways (a highlight mode change)', () {
+        for (final t in [0.0, 0.25, 0.5, 0.75, 1.0]) {
+          for (final mid in [
+            ThemeData.lerp(theme, rings, t),
+            ThemeData.lerp(rings, theme, t),
+          ]) {
+            for (final style in [
+              mid.textButtonTheme.style,
+              mid.iconButtonTheme.style,
+              mid.outlinedButtonTheme.style,
+              mid.menuButtonTheme.style,
+            ]) {
+              expect(style?.side?.resolve({}), isNull, reason: 'at rest: $t');
+            }
+          }
+        }
+      });
+
       test('${p.id} ${b.name}: nothing else in the theme changes', () {
         expect(
           rings.copyWith(

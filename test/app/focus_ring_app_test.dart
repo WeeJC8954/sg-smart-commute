@@ -6,6 +6,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -457,6 +458,25 @@ void main() {
       await tester.tapAt(Offset(rect.center.dx, rect.top + 3));
       await tester.pump();
       expect(find.text('From: Current location'), findsOneWidget);
+    });
+
+    testWidgets('the semantics tree is the same with the chip ring on and '
+        'off', (tester) async {
+      final handle = tester.ensureSemantics();
+      final chip = await offerChip(tester);
+      String tree() => tester
+          .getSemantics(find.byType(HomeScreen))
+          .toStringDeep(childOrder: DebugSemanticsDumpOrder.traversalOrder);
+      await tabTo(tester, chip);
+      // Let the scroll that brings the focused chip into view settle.
+      await tester.pump(const Duration(seconds: 1));
+      expect(ringBorder(tester, chip), isNotNull);
+      final withRing = tree();
+      await touchEmpty(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(ringBorder(tester, chip), isNull);
+      expect(tree(), withRing);
+      handle.dispose();
     });
 
     testWidgets('touch mode: the focused chip shows no ring', (tester) async {
