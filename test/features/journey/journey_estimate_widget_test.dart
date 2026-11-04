@@ -261,6 +261,23 @@ void main() {
     semantics.dispose();
   });
 
+  // Owner ruling (plan §16, 2026-11-04): a one-minute ride is spoken in the
+  // singular. The trip total is a multiple of 5, so it never is.
+  test('a one-minute ride is spoken in the singular', () {
+    expect(
+      JourneyCard.rideSemantics(1, 1),
+      '1 stop, about 1 minute on the bus, estimated',
+    );
+    expect(
+      JourneyCard.rideSemantics(3, 1),
+      '3 stops, about 1 minute on the bus, estimated',
+    );
+    expect(
+      JourneyCard.rideSemantics(3, 2),
+      '3 stops, about 2 minutes on the bus, estimated',
+    );
+  });
+
   group('the footer', () {
     const note =
         'Trip times are rough estimates based on scheduled early/late bus '
