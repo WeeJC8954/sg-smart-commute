@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/ui/focus_ring_theme.dart';
 import '../features/appearance/appearance_providers.dart';
 import '../features/appearance/presentation/palette_theme.dart';
 import 'home_screen.dart';
@@ -24,6 +25,8 @@ class SmartCommuteApp extends ConsumerWidget {
       darkTheme: paletteTheme(palette, Brightness.dark),
       // The palette is the user's; the brightness stays the system's.
       themeMode: ThemeMode.system,
+      // The keyboard focus ring (E7), over every page, dialog and menu.
+      builder: (context, child) => FocusRingTheme(child: child!),
       home: const HomeScreen(),
     );
   }

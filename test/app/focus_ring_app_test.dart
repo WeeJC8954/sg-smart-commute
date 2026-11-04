@@ -541,9 +541,14 @@ void main() {
         await press(tester, LogicalKeyboardKey.arrowDown); // teal, blue, rose
       }
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      var framesFocused = 0;
       for (var i = 0; i < 20; i++) {
         await tester.pump(const Duration(milliseconds: 20));
-        if (!focusIn(button)) continue; // the menu is still closing
+        if (focusIn(button)) framesFocused++;
+        // The menu hands focus back in a post-frame callback, so the button
+        // sees its focused state from the next frame on (as for Flutter's own
+        // focus highlight).
+        if (framesFocused < 2) continue;
         expect(
           paintedSide(tester, button),
           ringAt(tester, button),
