@@ -461,7 +461,7 @@ focusable control; touch keeps today's look. The code is `lib/core/ui/` (`focus_
   border. A chip could take a theme side, but each button's own `AnimatedTheme` lerps its theme on every theme change,
   and 3.47.2 `ChipThemeData._lerpSides` throws when a state-dependent side is null at rest; the error widget unmounted
   the focused control and dropped focus (found by T8). So the search results, the attribution links and the "Use my
-  current location" chip are wrapped in `FocusRingWithin` (a non-focusable `Focus` that tracks focus within and draws
+  current location" chip (owner decision 1, 2026-11-04) are wrapped in `FocusRingWithin` (a non-focusable `Focus` that tracks focus within and draws
   `FocusRing`); `test/core/focus_ring_theme_test.dart` checks that two ringed themes blend without error.
 - **ADR E7-4: a two-colour ring on the map only (D2).** Tiles are imagery, so the map's `FocusRing` draws a 2 px
   `surface` band inside the 2 px `primary` ring; the pair is at least 6.15:1 apart in every theme. Other rings stay

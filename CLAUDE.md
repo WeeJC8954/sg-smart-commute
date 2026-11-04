@@ -36,7 +36,8 @@ static estimated trip time on each direct-bus option (display-only; plan
 
 ## Commands
 
-Toolchain: Flutter 3.47.2 stable (Dart 3.13.2), Android SDK 36 / JDK 21.
+Toolchain: Flutter 3.47.2 stable (Dart 3.13.2), Android SDK 36 / JDK 21. On the development PC the SDK is at
+`C:\Users\linus\dev\flutter-3.47.2\flutter\bin`, not on `PATH`: call `flutter` and `dart` by that path.
 
 ```bash
 flutter pub get
@@ -60,7 +61,7 @@ flutter test test/features/origin/origin_controller_test.dart --plain-name "<tes
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_boot_test.dart -d web-server --browser-name=chrome --profile
 ```
 
-CI (`.github/workflows/flutter-test.yml`, every push and on demand) runs `flutter pub get --enforce-lockfile`, format, analyze and `flutter test` on Ubuntu with Flutter 3.47.2, then `flutter test --platform chrome test/features/map/polyline_codec_test.dart test/features/journey/journey_estimate_test.dart` (#73: the decoder's Web-only guard cannot fail on the VM; E2: the estimator rounds and guards the same on dart2js; only pure-Dart files compile for Chrome). The Chrome runner still fails on Windows (flutter_tools path bugs, `docs/testing.md`). Windows Smart App Control blocks `flutter_tester.exe` on the development PC, so `flutter test` evidence comes from CI runs, never a claimed local pass.
+CI (`.github/workflows/flutter-test.yml`, every push and on demand) runs `flutter pub get --enforce-lockfile`, format, analyze and `flutter test` on Ubuntu with Flutter 3.47.2, then `flutter test --platform chrome test/features/map/polyline_codec_test.dart test/features/journey/journey_estimate_test.dart` (#73: the decoder's Web-only guard cannot fail on the VM; E2: the estimator rounds and guards the same on dart2js; only pure-Dart files compile for Chrome). The Chrome runner still fails on Windows (flutter_tools path bugs, `docs/testing.md`). Local `flutter test` runs with that SDK (since 2026-11-04; Smart App Control blocked an earlier install): record each local run in the `docs/testing.md` run log, and CI stays the required check. Known limits of this PC, with the workarounds used so far, are in the 2026-11-04 E7 rows of that log: Avast's HTTPS scanning breaks TLS for Gradle's JDK and for the Android emulator, and `python -m http.server` truncated large files.
 
 Dev-only feasibility probes (not part of the app) are in `tool/`; see `docs/testing.md`. Building the probe
 APK (`-t tool/api_probe_app.dart`) overwrites `app-debug.apk` — rebuild the real app afterwards.
