@@ -1,11 +1,12 @@
 # E7 Keyboard Focus Visibility: Implementation Plan
 
-**Status:** plan only, for owner review. The owner approved the E7 name and scope on 2026-11-04. Nothing is
-implemented until the owner approves this plan and rules on the decisions in §2. The PR that adds this document
-changes no production code, test, dependency or build configuration.
+**Status:** plan only, for owner review. The owner approved the E7 name and scope on 2026-11-04, ruled D1 and
+approved D2 in principle (§2). D3 and D4 await a ruling on the exact wording in §2. Nothing is implemented until
+the owner gives final approval of this plan. The PR that adds this document changes no production code, test,
+dependency or build configuration.
 
-**Baseline:** `main` = `origin/main` = `cc1db3a` (merge of PR #77, E2). PR #78 (E2 close-out, docs and one test)
-is open and does not touch anything this plan changes.
+**Baseline:** written on `cc1db3a` (merge of PR #77, E2); updated to `main` = `2eb8541` (merge of PR #78, E2
+close-out: docs and one test, nothing this plan changes).
 
 **What E7 is.** A post-submission enhancement, outside the milestones, like E1–E4 and E2. It makes keyboard focus
 visible: every focusable control shows a ring of at least 3:1 contrast against its neighbours, in all ten themes
@@ -118,13 +119,13 @@ app: Flutter's licence page (`showLicensePage`, from About), with an `IconButton
 
 ## 2. Decisions for the owner
 
-| # | Question | Recommendation | Why |
-|---|---|---|---|
-| **D1** | **When does the ring show?** (a) only after keyboard navigation, i.e. the last input was a focus-navigation key (Tab, Shift+Tab, arrows, Escape), like the browser's `:focus-visible`; (b) whenever Flutter's highlight mode is `traditional`, which includes the mouse | **(a)** | Only (a) keeps the mouse appearance exactly as it is (your condition). (b) would draw the new ring for mouse users after every code-driven focus move (§1.2). Typing letters or pressing Enter in a search field does not switch the mode, so a soft keyboard that sends key events does not bring rings to touch users |
-| **D2** | **The map's ring over tile imagery.** Tiles are arbitrary colours, so a single `primary` ring cannot be guaranteed 3:1 on them | **Two-tone ring on the map only:** a 2 px `primary` ring with a 2 px `surface` band inside it | The `primary`/`surface` pair has at least 6.15:1 in every theme, so the ring always contrasts with the band beside it whatever the tile. The card outside is ≥ 5.84:1. Other controls keep the single ring |
-| **D3** | **`OutlinedButton`'s stock focused border** (1 px `primary`, also shown to touch users) | Replace it with the shared 2 px ring, which follows D1 | One consistent indicator. It also stops the stock border appearing for touch users after "Select" or Show/Hide map |
-| **D4** | **Flutter's licence page** (framework-owned; its `ListTile`s keep the faint fill) | Accept as a known limitation. Its back button gets the ring through the theme | Changing framework pages means re-implementing them. Out of E7's scope; recorded as Not covered |
-| **D5** | **Focus hand-off gaps** the inventory found: "Use my current location" and the ready-phase "Try location again" have no focus hand-off when they disappear or disable. (The place-search Retry is the documented exception.) | Out of E7 scope (behaviour, not visibility). Raise as separate issues | Keeps E7 to the ring only |
+| # | Decision | Status |
+|---|---|---|
+| **D1** | **When the ring shows.** The ring shows on the focused control while Flutter's `FocusManager.instance.highlightMode` is `FocusHighlightMode.traditional`, the same rule the existing `FocusRing` already uses. The app listens through `FocusManager.instance.addHighlightModeListener`. There is no custom last-input tracker. **Consequence:** Flutter's traditional mode includes the mouse. So after a mouse click that moves focus in code ("Select" → the "Selected" mark, Show/Hide map, "Keep this origin/destination" → "Change", a Retry → its landing), the newly focused control shows the ring. That is where mouse users already see a `FocusLanding` ring or the stock focus tint today. With the mouse, nothing changes on an unfocused control or on hover or press. Touch mode shows no ring | **Ruled 2026-11-04:** Flutter's focus-highlight mechanism, not a custom tracker. The mouse consequence is stated for the owner's confirmation |
+| **D2** | **The map's ring over tile imagery.** Tiles are arbitrary colours, so a single `primary` ring cannot be guaranteed 3:1 on them. The map alone gets a two-colour ring: 2 px `primary` outside, with a 2 px `surface` band inside it. The `primary`/`surface` pair has at least 6.15:1 in every theme, so the ring contrasts with the band beside it whatever the tile, and the card outside is ≥ 5.84:1. Other controls keep the single ring | **Approved in principle 2026-11-04**, subject to T1 (the pair ≥ 3:1 in all 10 themes) and the Web live check over real OneMap Default and Night tiles (§6) |
+| **D3** | **Proposed wording:** "While the highlight mode is traditional (D1), a focused `OutlinedButton` ('Select', 'Show map') shows the shared 2 px `primary` ring in place of Flutter's stock 1 px `primary` focused border. In touch mode the button is unchanged from today, including the stock 1 px `primary` border Flutter draws whenever the button holds focus." **Recommendation: approve.** It gives one indicator for keyboard users and leaves the touch look exactly as it is | Awaiting ruling |
+| **D4** | **Proposed wording:** "Flutter's licence page (About → View licenses) is framework UI. E7 does not restyle it. Its back button is an `IconButton` under the app theme, so it gets the ring. The package list keeps Flutter's stock focus fill, which is below 3:1. This is recorded as a known limitation in `docs/assumptions.md` and `docs/testing.md`, and T7 pins both halves." **Recommendation: approve.** Fixing the list means re-implementing a framework page, which is out of E7's scope | Awaiting ruling |
+| **D5** | **Focus hand-off gaps** the inventory found: "Use my current location" disappears, and the ready-phase "Try location again" disables itself, with no focus hand-off. (The place-search Retry is the documented exception.) | **Ruled 2026-11-04:** out of E7; two separate GitHub issues |
 
 Fixed by the approved scope (not questions): ring colour `colorScheme.primary` (measured, §1.3), width 2 px, no
 new dependency, no `Colors.*`, no change to any unfocused, hover, pressed or touch appearance.
@@ -133,40 +134,43 @@ new dependency, no `Colors.*`, no change to any unfocused, hover, pressed or tou
 
 ## 3. Design
 
-### 3.1 One signal: `KeyboardFocusMode`
+### 3.1 One signal: Flutter's focus highlight mode (D1)
 
-A small app-level notifier in `lib/core/ui/` (no package):
+No custom tracker. A small widget in `lib/core/ui/` (no package) exposes Flutter's own signal:
 
 ```text
-KeyboardFocusMode (ValueNotifier<bool>), false at start
-  HardwareKeyboard handler: on a key-down of Tab, arrows or Escape  -> true   (never consumes the event)
-  global pointer route:     on any pointer down (touch, mouse, pen) -> false
+FocusHighlightScope (InheritedWidget, installed once in MaterialApp.builder)
+  value: FocusManager.instance.highlightMode == FocusHighlightMode.traditional
+  rebuilds on FocusManager.instance.addHighlightModeListener (removed on dispose)
 ```
 
-- It is exposed to widgets by an `InheritedNotifier` (`KeyboardFocusModeScope`), installed once in
-  `MaterialApp.builder`, so it covers every route, dialog and menu.
-- It is an injectable seam for tests (`buildTestApp` can start in either mode).
-- Under D1 (b), it would read `FocusManager.instance.highlightMode` instead; the rest of the design is unchanged.
+- It covers every route, dialog and menu.
+- Flutter switches to traditional on any key event or mouse/trackpad pointer, and to touch on a touch or stylus
+  pointer. Its default strategy (`FocusHighlightStrategy.automatic`) is kept.
+- Tests drive it the Flutter way: a key event (`tester.sendKeyEvent`) or a pointer of a given kind.
 
 ### 3.2 One look: the shared ring
 
-`FocusRing` keeps its look (2 px `primary`, foreground, radius 4) and reads `KeyboardFocusModeScope` instead of the
-highlight mode. It now rebuilds when the mode changes; today it does not listen to highlight-mode changes. For the
-Material controls the same colour and width are set through component themes, applied **only in keyboard mode**:
+`FocusRing` keeps its look (2 px `primary`, foreground, radius 4) and its rule (traditional mode). It now reads
+`FocusHighlightScope`, so it rebuilds when the mode changes; today it does not listen to highlight-mode changes.
+For the Material controls the same colour and width are set through component themes, applied **only in
+traditional mode**:
 
 ```text
 MaterialApp.builder
-  KeyboardFocusModeScope
-    Theme(data: keyboardMode ? withFocusRings(Theme.of(context)) : Theme.of(context))
+  FocusHighlightScope
+    Theme(data: traditional ? withFocusRings(Theme.of(context)) : Theme.of(context))
       child (Navigator: every page, dialog and menu)
 ```
 
 `withFocusRings` is a pure function: it copies the theme with one added `side` for `WidgetState.focused` (2 px
 `colorScheme.primary`) and `null` for every other state, so all other states fall through to the stock defaults.
 
-- **Not in keyboard mode:** the theme is today's `paletteTheme` object, unchanged. Touch, mouse and unfocused
-  looks are identical by construction, and a regression test checks that (§5).
-- **A plain `Theme`, not `AnimatedTheme`:** entering keyboard mode is instant, and the E1 palette animation inside
+- **In touch mode:** the theme is today's `paletteTheme` object, unchanged. The touch look is identical by
+  construction, and a regression test checks that (§5).
+- **In traditional mode:** only the focused state differs. Unfocused, hover and pressed states resolve to the stock
+  values, for mouse and keyboard alike (T2).
+- **A plain `Theme`, not `AnimatedTheme`:** a mode change is instant, and the E1 palette animation inside
   `MaterialApp` is untouched.
 - **Palette or brightness change:** `Theme.of(context)` is already the new theme, so the ring follows the new
   `primary` at once.
@@ -193,14 +197,13 @@ keeps the "Screen readers and focus" rule in `docs/assumptions.md`.
 
 | File | Change |
 |---|---|
-| `lib/core/ui/keyboard_focus_mode.dart` | **New**: `KeyboardFocusMode`, `KeyboardFocusModeScope` |
+| `lib/core/ui/focus_highlight_scope.dart` | **New**: `FocusHighlightScope` (Flutter's highlight mode, D1) |
 | `lib/core/ui/focus_landing.dart` | `FocusRing` reads the scope and rebuilds on change; optional two-tone |
 | `lib/features/appearance/presentation/focus_ring_theme.dart` | **New**: pure `withFocusRings(ThemeData)` |
-| `lib/app/app.dart` | `MaterialApp.builder`: the scope and the keyboard-mode `Theme` |
+| `lib/app/app.dart` | `MaterialApp.builder`: the scope and the traditional-mode `Theme` |
 | `lib/features/places/presentation/place_search_field.dart` | Result `ListTile`s in `FocusRing` |
 | `lib/features/map/presentation/basemap.dart` | Attribution links in `FocusRing` |
 | `lib/features/map/presentation/journey_map.dart` | Map ring two-tone |
-| `integration_test/fakes/test_app.dart` | `buildTestApp(keyboardFocusMode:)` seam |
 | tests (§5), `docs/assumptions.md`, `docs/architecture.md`, `docs/testing.md`, `README.md`, `CLAUDE.md` | as listed |
 
 Not changed: `paletteTheme`, `app_palette.dart`, every provider, the planner, arrivals, the map's scene and camera,
@@ -216,17 +219,19 @@ any host, the CSP, `pubspec.yaml`.
   `surfaceContainerLow`, `surfaceContainer`, `surfaceContainerHigh` and `surfaceContainerHighest`, and against each
   of those with a 10 % `primary`/`onSurface`/`onSurfaceVariant` layer. Also the map's two-tone pair ≥ 3:1.
   Ratios come from `Color.computeLuminance` (WCAG relative luminance).
-- **T2 Pointer mode is today's theme.** Without keyboard mode, the theme under `MaterialApp` equals
+- **T2 Touch mode is today's theme.** In touch mode, the theme under `MaterialApp` equals
   `paletteTheme(palette, brightness)` for all 10 themes, and `withFocusRings` leaves every non-focused state's
-  resolved style equal to the stock one.
-- **T3 Each control shows the ring in keyboard mode.** One widget test per control type in §3.3: Tab to the
+  resolved style (unfocused, hovered, pressed) equal to the stock one.
+- **T3 Each control shows the ring in traditional mode.** One widget test per control type in §3.3: Tab to the
   control, then read the painted indicator (the resolved `Material.shape.side`, or `FocusRing`'s border) and check
   2 px and the theme's `primary`.
-- **T4 No ring for touch or mouse.** For each code-driven focus move (Select → Selected, Show/Hide map, Keep this
-  origin → Change, a Retry landing): with a touch tap and with a mouse click, the newly focused control shows no
-  ring and its shape equals stock. A Tab afterwards shows it. A pointer down hides it again.
-- **T5 Mode signal.** Tab, Shift+Tab, arrows and Escape switch it on. Letters, Enter and Backspace in a search field
-  do not. Any pointer down switches it off. The event is never consumed (Tab still moves focus).
+- **T4 Touch and mouse (D1).** For each code-driven focus move (Select → Selected, Show/Hide map, Keep this
+  origin → Change, a Retry landing): after a touch tap the newly focused control shows no ring and its shape equals
+  stock; after a mouse click it shows the ring (the D1 consequence, pinned). With the mouse, unfocused, hovered and
+  pressed controls equal stock. A touch pointer down hides the ring; a key event shows it again.
+- **T5 Mode signal.** `FocusHighlightScope` follows `FocusManager.instance.highlightMode` and rebuilds its
+  dependants on every change; the listener is removed on dispose. No key event is consumed (Tab still moves
+  focus).
 - **T6 Menus.** Keyboard-open the palette menu, arrow through the five items (each ringed), Escape: focus and the
   ring return to the palette button.
 - **T7 Dialogs.** Keyboard-open About, Tab to View licenses and Close (each ringed), close: the About button is
@@ -242,10 +247,10 @@ any host, the CSP, `pubspec.yaml`.
 **Mutation checks** (each on a throwaway `mut/e7-<id>` branch, CI run recorded, branch deleted, as in E2):
 - ring in `outline` (T1 fails);
 - 1 px (T3);
-- no keyboard gate (T4);
+- no highlight-mode gate (T4);
 - `menuButtonTheme` dropped (T6);
 - a ring on every state (T2);
-- the Tab event consumed (T5).
+- the scope not rebuilding on a mode change (T5).
 
 **Integration** (Android and Web, `integration_test/`, deterministic): `app_boot_test` gains a Tab walk through
 the app bar with the ring asserted. The three files pass on both platforms.
@@ -256,14 +261,16 @@ the app bar with the ring asserted. The three files pass on both platforms.
   - Tab through the whole page in all 10 themes, with a screenshot of each ring.
   - Sample the pixel contrast of the ring against its neighbours, including the map over real OneMap Default and
     Night tiles (D2).
-  - Click with the mouse and confirm no ring after the code-driven focus moves.
+  - Click with the mouse: no ring on unfocused, hovered or pressed controls; the ring after the code-driven focus
+    moves (D1).
   - Emulated touch.
   - Palette menu and About dialog by keyboard.
   - 360 px with 2× text.
   - 0 CSP violations.
 - **Android (emulator):**
   - `adb shell input keyevent KEYCODE_TAB` walk with screenshots, in light and dark.
-  - Touch use and the soft keyboard in a search field: no ring.
+  - Touch use: no ring. The soft keyboard in a search field, then a code-driven focus move: record whether a ring
+    appears (§8).
 - **Expected Not run:**
   - a physical keyboard on a physical phone (no hardware);
   - TalkBack, VoiceOver and NVDA (E7 changes paint only; semantics are covered by T9);
@@ -272,7 +279,7 @@ the app bar with the ring asserted. The three files pass on both platforms.
 ## 7. Commit boundaries (branch `feat/e7-keyboard-focus-visibility`, after this plan is approved and merged)
 
 1. RED: T1, T2, T5 (pure).
-2. GREEN: `KeyboardFocusMode` + `withFocusRings`.
+2. GREEN: `FocusHighlightScope` + `withFocusRings`.
 3. RED: T3, T4, T6–T8 (widgets).
 4. GREEN: wiring in `app.dart`, `FocusRing`, `ListTile`/`InkWell` wrappers, map two-tone.
 5. T9 invariants.
@@ -284,12 +291,14 @@ The PR goes up for review; it is not merged without the owner's approval.
 
 ## 8. Risks and stop conditions
 
-- **A soft keyboard sends navigation keys** (some Android IMEs send arrows or Tab). Then touch users could see a
-  ring until their next tap. T5 and the Android soft-keyboard check cover it; if seen, narrow the keys and record it.
+- **A soft keyboard sends key events** (some Android IMEs do, for Enter or Backspace). Flutter then switches to
+  traditional mode, so a touch user could see a ring on the next code-driven focus move until their next tap. The
+  existing `FocusRing` already behaves this way. The Android soft-keyboard check (§6) looks for it; if seen, it is
+  recorded for an owner ruling, not worked around with a custom tracker (D1).
 - **A framework widget ignores the component theme.** Stop and report rather than restyle it by hand.
 - **Contrast drops below 3:1 after an SDK change.** T1 fails the build; the fix is a ruling, not a lint suppression.
 - **Stop if** the design needs a dependency, a change to `paletteTheme`, a provider, the planner, arrivals or the
-  map scene, or any change to unfocused, touch or mouse appearance.
+  map scene, or any change to the touch appearance or to unfocused, hovered or pressed controls.
 
 ## 9. Out of scope
 
