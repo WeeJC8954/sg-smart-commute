@@ -25,25 +25,50 @@ void main() {
     FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
   });
 
-  testWidgets('a touch makes it false, a key event or a mouse makes it true, '
-      'and each change rebuilds its dependants', (tester) async {
+  // Flutter 3.47.2 (focus_manager.dart `handlePointerEvent`): a key event
+  // makes the mode traditional, a touch or stylus makes it touch, and a mouse
+  // or trackpad leaves it as it is.
+  testWidgets('a touch makes it false, a key event makes it true, a mouse '
+      'keeps it, and each change rebuilds its dependants', (tester) async {
     final seen = <bool>[];
     await tester.pumpWidget(FocusHighlightScope(child: _Probe(seen)));
     await tester.tapAt(const Offset(5, 5)); // touch
     await tester.pump();
     expect(seen.last, isFalse);
 
+    await tester.tapAt(const Offset(5, 5), kind: PointerDeviceKind.mouse);
+    await tester.pump();
+    expect(seen.last, isFalse, reason: 'a mouse after a touch: still touch');
+
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.pump();
     expect(seen.last, isTrue, reason: 'a key event: traditional');
 
+    await tester.tapAt(const Offset(5, 5), kind: PointerDeviceKind.mouse);
+    await tester.pump();
+    expect(seen.last, isTrue, reason: 'a mouse after a key: still traditional');
+
     await tester.tapAt(const Offset(5, 5));
     await tester.pump();
     expect(seen.last, isFalse, reason: 'a touch: touch');
+  });
 
-    await tester.tapAt(const Offset(5, 5), kind: PointerDeviceKind.mouse);
-    await tester.pump();
-    expect(seen.last, isTrue, reason: 'a mouse: traditional (D1)');
+  testWidgets('its first build already has the current mode', (tester) async {
+    for (final strategy in [
+      FocusHighlightStrategy.alwaysTraditional,
+      FocusHighlightStrategy.alwaysTouch,
+    ]) {
+      FocusManager.instance.highlightStrategy = strategy;
+      final seen = <bool>[];
+      await tester.pumpWidget(
+        FocusHighlightScope(key: UniqueKey(), child: _Probe(seen)),
+      );
+      expect(
+        seen.first,
+        strategy == FocusHighlightStrategy.alwaysTraditional,
+        reason: '$strategy',
+      );
+    }
   });
 
   testWidgets('it reads FocusManager.highlightMode, also when the strategy '
