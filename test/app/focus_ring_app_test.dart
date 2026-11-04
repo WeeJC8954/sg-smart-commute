@@ -30,6 +30,9 @@ const bishan = LatLng(1.3508, 103.8485);
 
 const desktop = TargetPlatformVariant({TargetPlatform.windows});
 
+/// The approved width (plan §2), written out so a change to the constant fails.
+const ringWidth = 2.0;
+
 Finder key(String k) => find.byKey(Key(k));
 
 /// The side a button, menu item or chip paints: its Material's border.
@@ -44,7 +47,7 @@ Color primaryAt(WidgetTester tester, Finder f) =>
     Theme.of(tester.element(f.first)).colorScheme.primary;
 
 BorderSide ringAt(WidgetTester tester, Finder f) =>
-    BorderSide(color: primaryAt(tester, f), width: focusRingWidth);
+    BorderSide(color: primaryAt(tester, f), width: ringWidth);
 
 /// The border drawn by the [FocusRing] of [target]: the first one inside it,
 /// else the nearest one around it. Null while no ring shows.
@@ -60,7 +63,7 @@ Border? ringBorder(WidgetTester tester, Finder target) {
 }
 
 Border ringBox(WidgetTester tester, Finder f) =>
-    Border.all(color: primaryAt(tester, f), width: focusRingWidth);
+    Border.all(color: primaryAt(tester, f), width: ringWidth);
 
 /// Whether the primary focus is [f] or inside it.
 bool focusIn(Finder f) {
