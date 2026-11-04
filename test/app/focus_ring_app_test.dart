@@ -461,22 +461,38 @@ void main() {
     });
 
     testWidgets('the semantics tree is the same with the chip ring on and '
-        'off', (tester) async {
+        'off, and the ring wrapper adds no node', (tester) async {
       final handle = tester.ensureSemantics();
-      final chip = await offerChip(tester);
-      String tree() => tester
-          .getSemantics(find.byType(HomeScreen))
-          .toStringDeep(childOrder: DebugSemanticsDumpOrder.traversalOrder);
-      await tabTo(tester, chip);
-      // Let the scroll that brings the focused chip into view settle.
-      await tester.pump(const Duration(seconds: 1));
-      expect(ringBorder(tester, chip), isNotNull);
-      final withRing = tree();
-      await touchEmpty(tester);
-      await tester.pump(const Duration(seconds: 1));
-      expect(ringBorder(tester, chip), isNull);
-      expect(tree(), withRing);
-      handle.dispose();
+      try {
+        final chip = await offerChip(tester);
+        final wrapper = tester.widget<Focus>(
+          find
+              .descendant(
+                of: find.ancestor(
+                  of: chip,
+                  matching: find.byType(FocusRingWithin),
+                ),
+                matching: find.byType(Focus),
+              )
+              .first,
+        );
+        expect(wrapper.includeSemantics, isFalse, reason: 'no semantics node');
+        expect(wrapper.canRequestFocus, isFalse, reason: 'no Tab stop');
+        String tree() => tester
+            .getSemantics(find.byType(HomeScreen))
+            .toStringDeep(childOrder: DebugSemanticsDumpOrder.traversalOrder);
+        await tabTo(tester, chip);
+        // Let the scroll that brings the focused chip into view settle.
+        await tester.pump(const Duration(seconds: 1));
+        expect(ringBorder(tester, chip), isNotNull);
+        final withRing = tree();
+        await touchEmpty(tester);
+        await tester.pump(const Duration(seconds: 1));
+        expect(ringBorder(tester, chip), isNull);
+        expect(tree(), withRing);
+      } finally {
+        handle.dispose();
+      }
     });
 
     testWidgets('touch mode: the focused chip shows no ring', (tester) async {

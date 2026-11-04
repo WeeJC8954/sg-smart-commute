@@ -91,6 +91,11 @@ void main() {
               mid.menuButtonTheme.style,
             ]) {
               expect(style?.side?.resolve({}), isNull, reason: 'at rest: $t');
+              // Focused: one end has the ring, the other none (the lazy
+              // one-null branch of the side lerp).
+              final side = style?.side?.resolve(focused);
+              expect(side, isNotNull, reason: 'focused: $t');
+              expect(side!.color.a, inInclusiveRange(0, 1));
             }
           }
         }

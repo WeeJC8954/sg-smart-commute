@@ -75,6 +75,21 @@ void main() {
     expect(seen.last, isTrue, reason: 'then a key: still traditional');
   });
 
+  testWidgets('a phone with a mouse: before any touch or key, a mouse that '
+      'disconnects takes the scope back to touch', (tester) async {
+    final seen = <bool>[];
+    await tester.pumpWidget(FocusHighlightScope(child: _Probe(seen)));
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: const Offset(5, 5));
+    await mouse.moveTo(const Offset(8, 8));
+    await tester.pump();
+    expect(seen.last, isTrue, reason: 'connected: traditional');
+    await mouse.removePointer();
+    await tester.pump();
+    expect(FocusManager.instance.highlightMode, FocusHighlightMode.touch);
+    expect(seen.last, isFalse, reason: 'disconnected: the default, touch');
+  });
+
   testWidgets('its first build already has the current mode', (tester) async {
     for (final strategy in [
       FocusHighlightStrategy.alwaysTraditional,
