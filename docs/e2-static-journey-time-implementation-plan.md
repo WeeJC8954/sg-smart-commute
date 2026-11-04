@@ -94,7 +94,7 @@ is no in-vehicle time, so a total would be invented"*. E2 amends it (§12).
 | Invariants | No change to planner ranking, scores, option order, Suggested, candidate stops, arrivals, selection or the map |
 | Q9, scope | Direct-bus options only: Suggested and **every alternative, including collapsed ones**. Walk-only and the MRT suggestions are unchanged. No E2 total on E5 transfer journeys |
 | Q2/Q3, trip line | Below the live arrivals: `About N min · excl. waiting`; spoken `Estimated trip, about N minutes, not including waiting` |
-| Q3, ride step | In the expanded steps: `N stops · ~M min ride (est.)`; spoken `N stops, about M minutes on the bus, estimated` |
+| Q3, ride step | In the expanded steps: `N stops · ~M min ride (est.)`; spoken `N stops, about M minutes on the bus, estimated` (`about 1 minute` when M is 1: ruling in §16) |
 | Q8, walk steps | The walking steps' text and semantics stay unchanged |
 | Footer | One E2 footer: `Trip times are rough estimates based on scheduled early/late bus timings. They exclude waiting and live traffic conditions.` No claim of typical, daytime or rush-hour accuracy anywhere |
 | Q4, validity | 300-minute guard on the bus estimate. An invalid, non-finite, negative or over-300 estimate is **omitted, never clamped**. The journey stays available |
@@ -667,5 +667,13 @@ These are small commits, with no force-push or history rewrite. A mutation never
 
 ## 16. Decisions
 
-Q1–Q10 are frozen (§2). One point remains for review: **the footer interpretation** in §2 (one added E2 line; the
-walking note stays).
+Q1–Q10 are frozen (§2). The two points left open after the T9 review were ruled by the owner on 2026-11-04 (E2
+close-out); E2 has no open decision:
+
+- **Ride wording, singular.** The ride step is spoken `about 1 minute` when the shown ride is 1 minute and
+  `about M minutes` otherwise, as the code has done since `cc94d05` (`JourneyCard.rideSemantics`). The §2 Q3 row
+  is updated to match; the production code is unchanged. A pure test pins `1 minute`, `1 minute` with several stops
+  and `2 minutes` (`test/features/journey/journey_estimate_widget_test.dart`). The trip line needs no singular: its
+  total is a multiple of 5.
+- **Footer interpretation: accepted as built.** E2 adds one footer line (the §2 Footer row) under the existing
+  walking note, which stays unchanged.
