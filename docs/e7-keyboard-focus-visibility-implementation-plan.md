@@ -10,7 +10,8 @@ close-out: docs and one test, nothing this plan changes).
 **What E7 is.** A post-submission enhancement, outside the milestones, like E1–E4 and E2. It makes keyboard focus
 visible: every focusable control shows a ring of at least 3:1 contrast against its neighbours, in all ten themes
 (five palettes × light and dark), while the app looks exactly as it does today for touch use and for any control
-without focus. (As built, a desktop mouse click that moves focus in code also shows the ring: D1, §10.)
+without focus. (As built, a mouse click that moves focus in code also shows the ring in traditional mode: on
+desktop, and on a phone with a mouse connected before the first touch or key. D1, §10.)
 
 **Sources:**
 - the E1 known limitation in `docs/testing.md` ("Open acceptance items", E1): the palette button's keyboard focus
