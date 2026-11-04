@@ -435,6 +435,39 @@ Added after Phase A, outside the milestones (plan: `docs/e2-static-journey-time-
 - **ADR E2-4: rounding and wording.** The ride is rounded up to a minute and the total (the displayed walks + ride) up to a multiple of 5, so the total is never below its displayed parts and equals the exact sum rounded up. An estimate that is invalid, non-finite, negative or over 300 min is omitted, never clamped. The ride step keeps its `N stops` text and adds the ride as a second text on the same line, so an option without an estimate looks exactly as before.
 - **ADR E2-5: a per-leg function.** `estimateBusMinutes(network, service:, direction:, boardIndex:, stopCount:)` takes exactly a bus leg's fields, ready for a future E5 leg; E2 adds no leg type, rail type or transfer total.
 
+## Post-submission enhancement E7: keyboard focus visibility
+
+Added after E2, outside the milestones (plan: `docs/e7-keyboard-focus-visibility-implementation-plan.md`; rules:
+`docs/assumptions.md`, "Keyboard focus ring (E7)"). Keyboard focus shows a 2 px `colorScheme.primary` ring on every
+focusable control; touch keeps today's look. The code is `lib/core/ui/` (`focus_highlight_scope.dart`,
+`focus_ring_theme.dart`, `focus_landing.dart`) and one line in `lib/app/app.dart`.
+
+- **ADR E7-1: Flutter's own highlight mode is the gate (D1).** `FocusHighlightScope` exposes
+  `FocusManager.highlightMode` and rebuilds its dependants through `addHighlightModeListener`; there is no custom
+  last-input tracker. Material controls report `WidgetState.focused` whenever they hold focus, also in touch mode, so
+  a state-only style would ring touch users after every code-driven focus move. In Flutter 3.47.2 a mouse or trackpad
+  leaves the mode as it is (a key makes it traditional, a touch makes it touch; desktop starts traditional), which the
+  plan's §1.2 had wrongly said switched it to traditional; `test/core/focus_highlight_scope_test.dart` pins the real
+  rule.
+- **ADR E7-2: the ring comes from the theme, only in traditional mode.** `MaterialApp.builder` installs
+  `FocusRingTheme` above the navigator, so pages, dialogs, menus and the licence page share it. In traditional mode it
+  applies `withFocusRings` (a focused-state `side` on the four button themes, null otherwise, built once per theme
+  object); in touch mode it passes the theme on unchanged. It is always a `Theme` widget, so a mode change keeps
+  subtree state, and a plain `Theme` (not animated), so the ring appears at once and E1's palette cross-fade is
+  untouched. `paletteTheme` is unchanged. `MenuItemButton` draws through a `TextButton` in 3.47.2, so its ring also
+  comes from `textButtonTheme`; `menuButtonTheme` is kept as the documented path.
+- **ADR E7-3: `FocusRingWithin` where the theme cannot reach.** A `ListTile` and a bare `InkWell` have no focused
+  border. A chip could take a theme side, but each button's own `AnimatedTheme` lerps its theme on every theme change,
+  and 3.47.2 `ChipThemeData._lerpSides` throws when a state-dependent side is null at rest; the error widget unmounted
+  the focused control and dropped focus (found by T8). So the search results, the attribution links and the "Use my
+  current location" chip are wrapped in `FocusRingWithin` (a non-focusable `Focus` that tracks focus within and draws
+  `FocusRing`); `test/core/focus_ring_theme_test.dart` checks that two ringed themes blend without error.
+- **ADR E7-4: a two-colour ring on the map only (D2).** Tiles are imagery, so the map's `FocusRing` draws a 2 px
+  `surface` band inside the 2 px `primary` ring; the pair is at least 6.15:1 apart in every theme. Other rings stay
+  single: their surfaces are scheme colours, measured at least 5.00:1.
+- **ADR E7-5: shared code lives in `lib/core/ui/`.** The plan placed `withFocusRings` under `features/appearance/`;
+  it moved next to `FocusRing`, which uses the same colour and width, because `core/` must not import a feature.
+
 ## Dev tools (M0)
 
 - `tool/` holds dev-only probes that are not part of the app: `probe_apis.sh` (curl),

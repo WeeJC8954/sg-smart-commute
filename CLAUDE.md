@@ -15,7 +15,8 @@ scope or start a later milestone silently. After submission, enhancements were a
 colour themes (five selectable palettes, `features/appearance/`; plan `docs/e1-colour-themes-implementation-plan.md`),
 then E3 app icons and E4 About (plan `docs/enhancement-phase-a-identity-about-implementation-plan.md`), then E2 a
 static estimated trip time on each direct-bus option (display-only; plan
-`docs/e2-static-journey-time-implementation-plan.md`).
+`docs/e2-static-journey-time-implementation-plan.md`), then E7 a visible keyboard focus ring (plan
+`docs/e7-keyboard-focus-visibility-implementation-plan.md`).
 
 ## Hard constraints (guide §2, §14, ADR-001)
 
@@ -149,6 +150,15 @@ Key flows that span several files:
   The app-bar `PaletteMenuButton` (a `MenuAnchor` of five `RadioMenuButton`s) only calls `select`. A palette change only
   recolours: map state, camera, plan, arrivals, geometry and selection are kept and no tile is requested
   (`test/features/appearance/palette_change_invariants_test.dart`). Rules: the E1 rows of `docs/assumptions.md`.
+- **Focus ring** (`core/ui/`, post-submission E7): `MaterialApp.builder` installs `FocusRingTheme`, which adds
+  `withFocusRings` (a 2 px `colorScheme.primary` side for the focused state of `TextButton`, `IconButton`,
+  `OutlinedButton`, `MenuItemButton`; null for every other state) only while Flutter's
+  `FocusManager.highlightMode` is traditional (`FocusHighlightScope`; no custom input tracker). In touch mode the
+  theme passes through unchanged. A control with no focused border of its own (`ListTile`, a bare `InkWell`, a chip)
+  gets `FocusRingWithin`; `FocusLanding` and the map use `FocusRing` (the map's has a surface band, D2). Gotchas in
+  Flutter 3.47.2: a mouse leaves the highlight mode as it is (only a key or a touch changes it);
+  `ChipThemeData.lerp` throws on a state-dependent side that is null at rest, so chips are never ringed through the
+  theme; `MenuItemButton` draws through a `TextButton`. Rules: the E7 row of `docs/assumptions.md`.
 - **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no
   rolled-over fields; never plain `DateTime.parse`), store UTC, display at a fixed +08:00 offset (no `timezone`
   package).
