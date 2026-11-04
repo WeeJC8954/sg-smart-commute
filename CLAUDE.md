@@ -156,7 +156,8 @@ Key flows that span several files:
   `FocusManager.highlightMode` is traditional (`FocusHighlightScope`; no custom input tracker). In touch mode the
   theme passes through unchanged. A control with no focused border of its own (`ListTile`, a bare `InkWell`, a chip)
   gets `FocusRingWithin`; `FocusLanding` and the map use `FocusRing` (the map's has a surface band, D2). Gotchas in
-  Flutter 3.47.2: a mouse leaves the highlight mode as it is (only a key or a touch changes it);
+  Flutter 3.47.2: a mouse leaves the highlight mode as it is (only a hardware key or a touch changes it; Android soft-keyboard key
+  events are ignored);
   `ChipThemeData.lerp` throws on a state-dependent side that is null at rest, so chips are never ringed through the
   theme; `MenuItemButton` draws through a `TextButton`. Rules: the E7 row of `docs/assumptions.md`.
 - **Time**: parse provider timestamps only with the strict `parseSourceTimestamp` (explicit offset, no

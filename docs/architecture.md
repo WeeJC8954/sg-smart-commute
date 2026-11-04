@@ -446,7 +446,8 @@ focusable control; touch keeps today's look. The code is `lib/core/ui/` (`focus_
   `FocusManager.highlightMode` and rebuilds its dependants through `addHighlightModeListener`; there is no custom
   last-input tracker. Material controls report `WidgetState.focused` whenever they hold focus, also in touch mode, so
   a state-only style would ring touch users after every code-driven focus move. In Flutter 3.47.2 a mouse or trackpad
-  leaves the mode as it is (a key makes it traditional, a touch makes it touch; desktop starts traditional), which the
+  leaves the mode as it is (a key makes it traditional, except an Android soft-keyboard key event; a touch makes it
+  touch; desktop starts traditional), which the
   plan's §1.2 had wrongly said switched it to traditional; `test/core/focus_highlight_scope_test.dart` pins the real
   rule.
 - **ADR E7-2: the ring comes from the theme, only in traditional mode.** `MaterialApp.builder` installs
