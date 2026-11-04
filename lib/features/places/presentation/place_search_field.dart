@@ -191,8 +191,10 @@ class _SearchBody extends StatelessWidget {
             ),
           ),
           for (final place in places)
-            // A ListTile has no focused border: the shared ring (E7).
+            // A ListTile has no focused border: the shared ring (E7). Keyed
+            // per place, so a changed list keeps the state of each row.
             FocusRingWithin(
+              key: ValueKey(place.id),
               child: ListTile(
                 key: Key('place-${place.id}'),
                 leading: Icon(_iconFor(place.type)),

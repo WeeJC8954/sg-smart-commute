@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
 /// Flutter's own focus highlight mode, for the widgets that draw a focus
-/// ring (E7 D1; no custom input tracker). It is traditional after a key event
-/// or a mouse or trackpad pointer, and touch after a touch or stylus pointer.
+/// ring (E7 D1; no custom input tracker). In Flutter 3.47.2 a hardware key
+/// event makes it traditional and a touch or stylus pointer makes it touch;
+/// a mouse or trackpad leaves it as it is, and so does an Android
+/// soft-keyboard key event. Desktop starts traditional, a phone touch.
 /// Installed once, in `MaterialApp.builder`; a mode change rebuilds only the
 /// widgets that read it.
 class FocusHighlightScope extends StatefulWidget {
