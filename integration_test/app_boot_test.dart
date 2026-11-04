@@ -1,7 +1,8 @@
 // Harness check (M0): the real app builds and boots on the device/browser.
 // Since M1 the app uses location and data.gov.sg, so even this boot test runs
 // with fake providers: no integration test may call a live external API.
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes/fake_environment_repository.dart';
@@ -28,5 +29,46 @@ void main() {
     await tester.tap(find.text('Close'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Author: Jaycee Wee'), findsNothing);
+  });
+
+  // E7: a keyboard Tab shows the 2 px primary focus ring, and only on the
+  // focused control.
+  testWidgets('Tab shows the focus ring in the app bar', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        location: FakeLocationService(),
+        environment: FakeEnvironmentRepository(),
+      ),
+    );
+    await tester.pump();
+
+    BorderSide side(String key) {
+      final material = tester.widget<Material>(
+        find
+            .descendant(
+              of: find.byKey(Key(key)),
+              matching: find.byType(Material),
+            )
+            .first,
+      );
+      return (material.shape! as OutlinedBorder).side;
+    }
+
+    final primary = Theme.of(
+      tester.element(find.byKey(const Key('about-button'))),
+    ).colorScheme.primary;
+    final ring = BorderSide(color: primary, width: 2);
+    expect(side('about-button'), BorderSide.none);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.pump();
+    expect(side('about-button'), ring);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.pump();
+    expect(side('palette-button'), ring);
+    expect(side('about-button'), BorderSide.none);
   });
 }
