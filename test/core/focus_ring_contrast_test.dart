@@ -65,6 +65,19 @@ void main() {
         }
       });
 
+      test('${p.id} ${b.name}: the ring is at least 3:1 inside a ListTile or '
+          'InkWell, whose focus fill is ThemeData.focusColor', () {
+        final theme = paletteTheme(p, b);
+        for (final surface in surfaces.entries) {
+          final inside = Color.alphaBlend(theme.focusColor, surface.value);
+          expect(
+            contrast(focusRingColor(s), inside),
+            greaterThanOrEqualTo(3),
+            reason: '${surface.key} with the focus fill',
+          );
+        }
+      });
+
       test('${p.id} ${b.name}: the map ring\'s two colours are at least 3:1 '
           'apart, and the ring is 3:1 on the map card', () {
         expect(

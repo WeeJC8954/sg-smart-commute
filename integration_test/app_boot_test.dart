@@ -33,6 +33,8 @@ void main() {
 
   // E7: a keyboard Tab shows the 2 px primary focus ring, and only on the
   // focused control.
+  // The physical key is given: on Web (dart2js) the key simulator cannot look
+  // up Tab's USB code by itself (a null check fails).
   testWidgets('Tab shows the focus ring in the app bar', (tester) async {
     await tester.pumpWidget(
       buildTestApp(
@@ -60,12 +62,18 @@ void main() {
     final ring = BorderSide(color: primary, width: 2);
     expect(side('about-button'), BorderSide.none);
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyEvent(
+      LogicalKeyboardKey.tab,
+      physicalKey: PhysicalKeyboardKey.tab,
+    );
     await tester.pump();
     await tester.pump();
     expect(side('about-button'), ring);
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyEvent(
+      LogicalKeyboardKey.tab,
+      physicalKey: PhysicalKeyboardKey.tab,
+    );
     await tester.pump();
     await tester.pump();
     expect(side('palette-button'), ring);

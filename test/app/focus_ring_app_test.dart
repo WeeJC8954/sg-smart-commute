@@ -3,12 +3,14 @@
 // keeps today's look; a mouse keeps the highlight mode it finds (Flutter
 // 3.47.2), so a code-driven focus move after a click shows the ring only in
 // traditional mode; hover alone never shows it (D1, D3, D4).
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/app/home_screen.dart';
+import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/ui/focus_landing.dart';
@@ -167,36 +169,63 @@ Future<void> boot(WidgetTester tester) => pumpTall(
 
 void main() {
   group('T2: the theme', () {
-    testWidgets('touch mode: the app theme is the E1 palette theme itself; '
-        'keyboard: the same with focus rings', (tester) async {
-      await boot(tester);
-      final light = paletteTheme(AppPalette.teal, Brightness.light);
-      final ring = BorderSide(color: light.colorScheme.primary, width: 2);
-      ThemeData app() => Theme.of(tester.element(find.byType(HomeScreen)));
-      void expectRings({required bool on}) {
-        final t = app();
-        expect(t.colorScheme, light.colorScheme);
-        for (final style in [
-          t.textButtonTheme.style,
-          t.iconButtonTheme.style,
-          t.outlinedButtonTheme.style,
-          t.menuButtonTheme.style,
-        ]) {
-          expect(style?.side?.resolve({WidgetState.focused}), on ? ring : null);
-          expect(style?.side?.resolve({WidgetState.hovered}), isNull);
-        }
-        expect(t.chipTheme, light.chipTheme, reason: 'chips: FocusRingWithin');
-      }
+    for (final p in AppPalette.values) {
+      for (final b in Brightness.values) {
+        testWidgets('${p.id} ${b.name}: touch mode is the E1 palette theme '
+            'itself; keyboard adds only the focus rings', (tester) async {
+          tester.platformDispatcher.platformBrightnessTestValue = b;
+          addTearDown(
+            tester.platformDispatcher.clearPlatformBrightnessTestValue,
+          );
+          await pumpTall(
+            tester,
+            buildTestApp(
+              location: FakeLocationService(access: LocationAccess.denied),
+              environment: FakeEnvironmentRepository(),
+              paletteStore: FakePaletteStore(),
+              palette: p,
+            ),
+          );
+          final base = paletteTheme(p, b);
+          final ring = BorderSide(color: base.colorScheme.primary, width: 2);
+          ThemeData app() => Theme.of(tester.element(find.byType(HomeScreen)));
+          void expectRings({required bool on}) {
+            final t = app();
+            expect(t.colorScheme, base.colorScheme);
+            for (final style in [
+              t.textButtonTheme.style,
+              t.iconButtonTheme.style,
+              t.outlinedButtonTheme.style,
+              t.menuButtonTheme.style,
+            ]) {
+              expect(
+                style?.side?.resolve({WidgetState.focused}),
+                on ? ring : null,
+              );
+              expect(style?.side?.resolve({WidgetState.hovered}), isNull);
+            }
+            expect(
+              t.chipTheme,
+              base.chipTheme,
+              reason: 'chips: FocusRingWithin',
+            );
+            expect(
+              t.inputDecorationTheme,
+              base.inputDecorationTheme,
+              reason: 'the TextField keeps its stock focused border',
+            );
+          }
 
-      await touchEmpty(tester);
-      expectRings(on: false);
-      expect(app().textButtonTheme, light.textButtonTheme);
-      expect(app().chipTheme, light.chipTheme);
-      await press(tester, LogicalKeyboardKey.shiftLeft);
-      expectRings(on: true);
-      await touchEmpty(tester);
-      expectRings(on: false);
-    });
+          await touchEmpty(tester);
+          expectRings(on: false);
+          expect(app().textButtonTheme, base.textButtonTheme);
+          await press(tester, LogicalKeyboardKey.shiftLeft);
+          expectRings(on: true);
+          await touchEmpty(tester);
+          expectRings(on: false);
+        });
+      }
+    }
   });
 
   group('T3: keyboard focus shows the ring on every control type', () {
@@ -300,6 +329,15 @@ void main() {
       );
       await tabTo(tester, result);
       expect(ringBorder(tester, result), ringBox(tester, result));
+      final wrapper = tester.widget(
+        find.ancestor(of: result, matching: find.byType(FocusRingWithin)).first,
+      );
+      expect(
+        wrapper.key,
+        isNotNull,
+        reason:
+            'keyed per place, so a changed list keeps the state of each row',
+      );
       expect(
         find.ancestor(
           of: key('destination-field'),
@@ -377,6 +415,50 @@ void main() {
         paintedSide(tester, key('show-map')),
         BorderSide(color: primaryAt(tester, key('show-map'))),
       );
+    });
+
+    testWidgets('touch: "Keep this destination" moves focus to "Change" with '
+        'no ring; a key shows it', (tester) async {
+      await journey(tester);
+      await tapVisible(tester, key('change-destination'));
+      await tapVisible(tester, find.text('Keep this destination'));
+      expect(focusIn(key('change-destination')), isTrue);
+      expect(paintedSide(tester, key('change-destination')), BorderSide.none);
+      await press(tester, LogicalKeyboardKey.shiftLeft);
+      expect(
+        paintedSide(tester, key('change-destination')),
+        ringAt(tester, key('change-destination')),
+      );
+    });
+
+    testWidgets('touch: a tile\'s Retry moves focus to its title with no '
+        'ring; a key shows it', (tester) async {
+      await pumpTall(
+        tester,
+        buildTestApp(
+          location: FakeLocationService(
+            access: LocationAccess.granted,
+            position: bishan,
+          ),
+          environment: FakeEnvironmentRepository()
+            ..failPsi = const NetworkUnavailable(),
+          places: FakePlaceSearchRepository(),
+        ),
+      );
+      await tester.pump();
+      final retry = find.descendant(
+        of: key('tile-psi'),
+        matching: find.widgetWithText(TextButton, 'Retry'),
+      );
+      await tapVisible(tester, retry);
+      final title = find.descendant(
+        of: key('tile-psi'),
+        matching: find.byType(FocusLanding),
+      );
+      expect(focusIn(title), isTrue, reason: 'focus moved to the landing');
+      expect(ringBorder(tester, title), isNull);
+      await press(tester, LogicalKeyboardKey.shiftLeft);
+      expect(ringBorder(tester, title), ringBox(tester, title));
     });
 
     testWidgets('touch on a FocusLanding: no ring; a key shows it', (
@@ -494,6 +576,12 @@ void main() {
     testWidgets('T7: About dialog actions ring; closing returns the ring to '
         'About; the licence page\'s back button rings, and E7 adds no ring '
         'to its package list (D4 limitation)', (tester) async {
+      // A package for the licence page's list (the test bundle has none).
+      LicenseRegistry.addLicense(
+        () => Stream.value(
+          const LicenseEntryWithLineBreaks(['e7-test-package'], 'Text.'),
+        ),
+      );
       await boot(tester);
       await tabTo(tester, key('about-button'));
       await press(tester, LogicalKeyboardKey.enter);
@@ -532,6 +620,25 @@ void main() {
         findsNothing,
         reason: 'D4: the package list keeps Flutter\'s stock focus fill',
       );
+
+      // D4, pinned as a known limitation (not a pass): a package row takes
+      // keyboard focus with Flutter's stock fill only, no ring.
+      final package = find.text('e7-test-package');
+      for (var i = 0; i < 20 && package.evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(package, findsWidgets);
+      final row = find.ancestor(
+        of: package.first,
+        matching: find.byType(InkWell),
+      );
+      await tabTo(tester, row.first);
+      expect(
+        find.ancestor(of: row.first, matching: find.byType(FocusRing)),
+        findsNothing,
+      );
+      // Let the licence page finish its loading timers.
+      await tester.pump(const Duration(seconds: 2));
     });
 
     testWidgets('T8: a palette chosen by keyboard and a light ↔ dark switch '
