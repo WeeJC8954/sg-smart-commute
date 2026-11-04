@@ -1,6 +1,7 @@
 // E7 T5: FocusHighlightScope follows Flutter's own focus highlight mode
 // (D1: no custom tracker), rebuilds what depends on it, and never takes an
 // event away from focus traversal.
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,6 +52,27 @@ void main() {
     await tester.tapAt(const Offset(5, 5));
     await tester.pump();
     expect(seen.last, isFalse, reason: 'a touch: touch');
+  });
+
+  // Final review I1: on a phone Flutter's mode is its platform default until
+  // the first touch or key, and that default turns traditional while a mouse
+  // is connected, without notifying highlight-mode listeners.
+  testWidgets('a phone with a mouse: the scope follows the default that a '
+      'connected mouse changes, also through the first Tab', (tester) async {
+    final seen = <bool>[];
+    await tester.pumpWidget(FocusHighlightScope(child: _Probe(seen)));
+    expect(defaultTargetPlatform, TargetPlatform.android);
+    expect(seen.last, isFalse, reason: 'a phone starts touch');
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: const Offset(5, 5));
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(const Offset(8, 8));
+    await tester.pump();
+    expect(FocusManager.instance.highlightMode, FocusHighlightMode.traditional);
+    expect(seen.last, isTrue, reason: 'a connected mouse: traditional');
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    expect(seen.last, isTrue, reason: 'then a key: still traditional');
   });
 
   testWidgets('its first build already has the current mode', (tester) async {
