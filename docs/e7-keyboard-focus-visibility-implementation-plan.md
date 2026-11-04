@@ -9,8 +9,8 @@ close-out: docs and one test, nothing this plan changes).
 
 **What E7 is.** A post-submission enhancement, outside the milestones, like E1–E4 and E2. It makes keyboard focus
 visible: every focusable control shows a ring of at least 3:1 contrast against its neighbours, in all ten themes
-(five palettes × light and dark), while the app looks exactly as it does today for touch and mouse use and for
-any control without focus.
+(five palettes × light and dark), while the app looks exactly as it does today for touch use and for any control
+without focus. (As built, a desktop mouse click that moves focus in code also shows the ring: D1, §10.)
 
 **Sources:**
 - the E1 known limitation in `docs/testing.md` ("Open acceptance items", E1): the palette button's keyboard focus
@@ -182,9 +182,9 @@ MaterialApp.builder
 |---|---|---|
 | `TextButton`, `IconButton`, `OutlinedButton` | `textButtonTheme`, `iconButtonTheme`, `outlinedButtonTheme`: `ButtonStyle(side: focused → 2 px primary)` | `ButtonStyleButton` resolves widget → theme → default per state, so `null` keeps the stock value. The side is painted on the existing shape: no size change. `OutlinedButton`'s stock focused border is replaced (D3) |
 | `RadioMenuButton` | `menuButtonTheme`, same `side` | Covers the palette menu; the menu opens and closes by keyboard as today |
-| `ActionChip` | `chipTheme.side`: a `WidgetStateBorderSide` (focused → 2 px primary, else `null`) | `null` falls back to the chip's default side (`chip.dart` `_getShape`) |
-| `ListTile` (search results) | wrap in `FocusRing` driven by the tile's `onFocusChange` | `ListTile` has no state-resolved border. The ring follows the tile's shape |
-| `InkWell` links (attribution) | wrap in `FocusRing` driven by `onFocusChange` | Rectangle to radius 4, as `FocusRing` already draws |
+| `ActionChip` | `chipTheme.side`: a `WidgetStateBorderSide` (focused → 2 px primary, else `null`) | `null` falls back to the chip's default side (`chip.dart` `_getShape`). *As built: `FocusRingWithin` (§10, owner decision 1)* |
+| `ListTile` (search results) | wrap in `FocusRing` driven by the tile's `onFocusChange` | `ListTile` has no state-resolved border. The ring follows the tile's shape. *As built: `FocusRingWithin`, a non-focusable `Focus` wrapper that tracks focus within (§10)* |
+| `InkWell` links (attribution) | wrap in `FocusRing` driven by `onFocusChange` | Rectangle to radius 4, as `FocusRing` already draws. *As built: `FocusRingWithin` (§10)* |
 | `TextField` | none | Stock 2 px `primary` border passes (≥ 5.84:1 on the card). Pinned by a test |
 | `FocusLanding` (8) | existing `FocusRing`, new signal | Look unchanged |
 | Map | existing `FocusRing`, new signal, two-tone (D2) | A `FocusRing(twoTone: true)` parameter, used only by the map |
@@ -326,5 +326,7 @@ or mechanisms above. Rationale: `docs/architecture.md`, ADRs E7-1 to E7-5.
 | §3.3, chip | `chipTheme.side` as a `WidgetStateBorderSide` | `FocusRingWithin` (radius 8; on Android and iOS the ring goes around the chip's 48 dp touch target). This changed the approved per-control mechanism without a prior ruling (§8 said to stop and report). **Approved by the owner on 2026-11-04 (decision 1)** with conditions: the 48 dp touch target unchanged; no clipping, overlap, hit-testing change or layout shift; the touch look and focus behaviour kept. `test/app/focus_ring_app_test.dart`, "the chip ring (decision 1)", pins them. In 3.47.2 `ChipThemeData._lerpSides` throws on a state side that is null at rest, and each button's own `AnimatedTheme` lerps the theme on every theme change; T8 caught focus being dropped |
 | §3.3, menu items | `menuButtonTheme` rings `RadioMenuButton` | Kept, but `MenuItemButton` draws through a `TextButton` in 3.47.2, so `textButtonTheme` also rings it; the mutation without `menuButtonTheme` is caught by T2, not T6 |
 | §4, files | `lib/features/appearance/presentation/focus_ring_theme.dart` | `lib/core/ui/focus_ring_theme.dart` (with the `FocusRingTheme` widget), next to `focus_highlight_scope.dart` as planned: `FocusRing` in `core/` shares its colour and width, and `core/` must not import a feature. No `buildTestApp` seam: tests drive Flutter's mode with real key, touch and mouse events |
+| §3.3, ListTile and InkWell | `FocusRing` driven by the control's `onFocusChange` | One shared `FocusRingWithin` (a `Focus` with `canRequestFocus: false`, `skipTraversal: true`, `includeSemantics: false`) for the ListTile, the links and the chip: no Tab stop, no semantics node |
+| Final review I1 | — | On a phone Flutter's mode is the platform default until the first touch or key, and that default turns traditional while a mouse is connected without notifying highlight-mode listeners. `FocusHighlightScope` also listens to `MouseTracker` and re-reads the mode; still no custom tracker (D1) |
 | §5, T6 and T8 | — | T8 skips the one frame in which the menu hands focus back (a post-frame callback), as for Flutter's own focus highlight. The #58 map test now expects two bordered boxes (the two-colour ring) |
 
