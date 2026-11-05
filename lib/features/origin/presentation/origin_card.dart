@@ -254,8 +254,8 @@ class _OriginCardState extends ConsumerState<OriginCard> {
                   avatar: const Icon(Icons.my_location, size: 18),
                   label: const Text('Use my current location'),
                   // The chip removes itself: focus goes to "Change", as after
-                  // picking a place (#80). Post-frame, because with "Change"
-                  // open that button only exists after the rebuild.
+                  // picking a place and through the same helper (#80). With
+                  // "Change" open, that button only exists after the rebuild.
                   onPressed: () {
                     controller.useCurrentLocation();
                     _focusChangeAfterRebuild();
