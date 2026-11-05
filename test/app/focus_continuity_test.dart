@@ -465,5 +465,83 @@ void main() {
         semantics.dispose();
       }
     });
+
+    // O1 (plan §3.3): the permission prompt is answered after its 10 s bound,
+    // so the attempt runs again and disables the re-enabled button without a
+    // press. Focus must stay in the origin section, with no text input shown.
+    // Focus that is not on the button is left where it is.
+    group('T81-7 the button disabled again by a late permission answer', () {
+      /// The attempt's permission bound passes: the note shows and the button
+      /// is enabled again.
+      Future<FakeLocationService> unanswered(WidgetTester tester) async {
+        final location = await manualOrigin(tester);
+        await retryByTab(tester);
+        await tester.pump(const Duration(seconds: 10));
+        await settle(tester);
+        expect(failureNote, findsOneWidget);
+        return location;
+      }
+
+      Future<void> answerLate(
+        WidgetTester tester,
+        FakeLocationService location,
+      ) async {
+        expect(focusIn(retry), isTrue, reason: 'on the button: ${focusName()}');
+        location.grant();
+        await settle(tester);
+        expect(busy, findsOneWidget, reason: 'the attempt runs again');
+        expect(
+          onLanding() || focusIn(change),
+          isTrue,
+          reason: 'focus on ${focusName()}',
+        );
+        expect(tester.testTextInput.isVisible, isFalse);
+      }
+
+      testWidgets('reached by Tab from the landing', (tester) async {
+        final location = await unanswered(tester);
+        await tabTo(tester, retry);
+        await answerLate(tester, location);
+      });
+
+      testWidgets('reached by Shift+Tab from the destination field', (
+        tester,
+      ) async {
+        final location = await unanswered(tester);
+        await tabTo(tester, destinationField);
+        await tabTo(tester, retry, shift: true);
+        await answerLate(tester, location);
+      });
+
+      testWidgets('focus elsewhere is left where it is', (tester) async {
+        final location = await unanswered(tester);
+        await tabTo(tester, destinationField);
+        location.grant();
+        await settle(tester);
+        expect(busy, findsOneWidget);
+        expect(
+          focusIn(destinationField),
+          isTrue,
+          reason: 'the user moved on: ${focusName()}',
+        );
+      });
+
+      testWidgets('touch: the button never had focus, so nothing moves', (
+        tester,
+      ) async {
+        final location = await manualOrigin(tester);
+        await tester.tap(retry);
+        await settle(tester);
+        await tester.pump(const Duration(seconds: 10));
+        await settle(tester);
+        expect(failureNote, findsOneWidget);
+        final before = FocusManager.instance.primaryFocus;
+        location.grant();
+        await settle(tester);
+        expect(busy, findsOneWidget);
+        expect(FocusManager.instance.highlightMode, FocusHighlightMode.touch);
+        expect(FocusManager.instance.primaryFocus, same(before));
+      });
+    });
   });
 }
