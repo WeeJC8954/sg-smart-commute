@@ -1,8 +1,12 @@
 # E8 Focus Continuity: Implementation Plan
 
-**Status:** approved and implemented on `feat/e8-focus-continuity`. The owner approved decisions D1–D3 (§2), this
-plan and the O1 ruling (§3.3, option A) on 2026-11-05, then the implementation, then, after T81-7 found a defect, a
-narrow exception to D3 (§3.4). What was built, and how it differs from this plan: §10.
+**Status:** completed with documented limitations. The owner approved decisions D1–D3 (§2), this plan and the O1
+ruling (§3.3, option A) on 2026-11-05, then the implementation, then, after T81-7 found a defect, a narrow exception
+to D3 (§3.4). What was built, and how it differs from this plan: §10.
+
+**Outcome:** merged on 2026-11-05: PR #87 as `d58971d` (CI on `main` run 42038204631, 959 tests, Chrome step 32).
+Issues #80 and #81 were closed by the merge. m80b survived as an equivalent mutant; it was not detected. Open checks
+that are not passes: `docs/testing.md`, "E8 focus continuity" under Open acceptance items.
 
 **Baseline:** `main` = `600944c` (merge of PR #85, E7 close-out). CI on it: run 42016401482, `flutter test`
 **937 passed**, Chrome step **32 passed**.
