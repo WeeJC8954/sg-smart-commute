@@ -215,11 +215,17 @@ class _OriginCardState extends ConsumerState<OriginCard> {
           child: MergeSemantics(
             child: Semantics(
               liveRegion: true,
-              child: ActionChip(
-                key: const Key('use-current-location'),
-                avatar: const Icon(Icons.my_location, size: 18),
-                label: const Text('Use my current location'),
-                onPressed: controller.useCurrentLocation,
+              // A chip's focused border can't come from the theme (see
+              // withFocusRings): the shared ring, with the chip's corner
+              // radius. On a phone it goes around the 48 dp touch target (E7).
+              child: FocusRingWithin(
+                radius: 8,
+                child: ActionChip(
+                  key: const Key('use-current-location'),
+                  avatar: const Icon(Icons.my_location, size: 18),
+                  label: const Text('Use my current location'),
+                  onPressed: controller.useCurrentLocation,
+                ),
               ),
             ),
           ),

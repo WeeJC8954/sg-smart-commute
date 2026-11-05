@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../../core/ui/focus_landing.dart';
 import '../../../core/ui/status_rows.dart';
 import '../domain/place.dart';
 import '../domain/place_search_session.dart';
@@ -190,12 +191,17 @@ class _SearchBody extends StatelessWidget {
             ),
           ),
           for (final place in places)
-            ListTile(
-              key: Key('place-${place.id}'),
-              leading: Icon(_iconFor(place.type)),
-              title: Text(place.displayName),
-              subtitle: Text(_detailOf(place)),
-              onTap: () => onSelected(place),
+            // A ListTile has no focused border: the shared ring (E7). Keyed
+            // per place, so a changed list keeps the state of each row.
+            FocusRingWithin(
+              key: ValueKey(place.id),
+              child: ListTile(
+                key: Key('place-${place.id}'),
+                leading: Icon(_iconFor(place.type)),
+                title: Text(place.displayName),
+                subtitle: Text(_detailOf(place)),
+                onTap: () => onSelected(place),
+              ),
             ),
           Text(oneMapAttribution, style: small),
         ],

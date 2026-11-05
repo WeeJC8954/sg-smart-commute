@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/ui/focus_landing.dart';
 
 /// Creates the tile provider for one opened map. Tests override it with a
 /// fake, so they never fetch tiles.
@@ -123,21 +124,24 @@ class _AttributionLink extends ConsumerWidget {
     return Semantics(
       link: true,
       linkUrl: uri,
-      child: InkWell(
-        onTap: () => _open(context, ref),
-        child: ConstrainedBox(
-          // A comfortable touch target for a short text link.
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Align(
-              widthFactor: 1,
-              child: Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                  decoration: TextDecoration.underline,
-                  decorationColor: theme.colorScheme.primary,
+      // A bare InkWell has no focused border: the shared ring (E7).
+      child: FocusRingWithin(
+        child: InkWell(
+          onTap: () => _open(context, ref),
+          child: ConstrainedBox(
+            // A comfortable touch target for a short text link.
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Align(
+                widthFactor: 1,
+                child: Text(
+                  label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                    decorationColor: theme.colorScheme.primary,
+                  ),
                 ),
               ),
             ),

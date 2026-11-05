@@ -21,6 +21,10 @@ Estimated trip time (post-submission enhancement E2): each direct-bus option sho
 rough static estimate of walking plus riding, rounded up to 5 minutes, and the estimated ride on its bus step. It
 is not a live ETA.
 
+Keyboard focus (post-submission enhancement E7): with a keyboard, the focused button, link, search result, menu item or
+map shows a ring in the theme's primary colour, at least 3:1 against its surroundings in all ten themes. Touch use
+looks as before.
+
 ## Screenshots
 
 The release Web build at phone width with live data: a trip from Bishan to HDB Hub, Toa Payoh (2026-10-05,
@@ -145,6 +149,8 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
   screen reader (TalkBack attempts on the emulator were blocked) or on a physical device. Details:
   [`docs/testing.md`](docs/testing.md).
 - The colour theme is stored per device or browser (a private window forgets it).
+- Keyboard focus on Flutter's licence page (About → View licenses): the back button shows the focus ring, but the
+  package list keeps Flutter's own faint focus highlight, below 3:1 contrast. Not resolved.
 
 ## Documentation
 
@@ -154,6 +160,7 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - [Colour themes plan (E1)](docs/e1-colour-themes-implementation-plan.md)
 - [App icon and About plan (E3, E4)](docs/enhancement-phase-a-identity-about-implementation-plan.md)
 - [Estimated trip time plan (E2)](docs/e2-static-journey-time-implementation-plan.md)
+- [Keyboard focus visibility plan (E7)](docs/e7-keyboard-focus-visibility-implementation-plan.md)
 
 ## Roadmap
 

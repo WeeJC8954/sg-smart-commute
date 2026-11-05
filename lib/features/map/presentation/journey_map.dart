@@ -214,6 +214,8 @@ class _JourneyMapState extends ConsumerState<JourneyMap> {
             listenable: _mapFocus,
             builder: (context, map) => FocusRing(
               focused: _mapFocus.hasFocus,
+              // Tiles are any colour: a surface band keeps the ring 3:1 (D2).
+              twoTone: true,
               child: Semantics(
                 container: true,
                 label: widget.scene.summary,

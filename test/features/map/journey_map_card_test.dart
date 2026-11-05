@@ -479,7 +479,8 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.shift);
     keyboard.focusNode!.requestFocus();
     await tester.pump();
-    expect(ring, findsOneWidget);
+    // E7 D2: the two-colour ring, a primary ring over a surface band.
+    expect(ring, findsNWidgets(2));
     expect(tester.getSemantics(summary), isSemantics(isFocused: true));
     handle.dispose();
   });
