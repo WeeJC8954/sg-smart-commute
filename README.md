@@ -161,6 +161,7 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - [App icon and About plan (E3, E4)](docs/enhancement-phase-a-identity-about-implementation-plan.md)
 - [Estimated trip time plan (E2)](docs/e2-static-journey-time-implementation-plan.md)
 - [Keyboard focus visibility plan (E7)](docs/e7-keyboard-focus-visibility-implementation-plan.md)
+- [Focus continuity plan (E8)](docs/e8-focus-continuity-implementation-plan.md)
 - [Next-phase journey routing master plan](docs/sg-smart-commute-next-phase-master-plan.md): proposed and
   approval-gated, nothing in it is built yet. The starting point for any later routing work (E5 onwards).
 
