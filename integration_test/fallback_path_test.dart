@@ -15,11 +15,13 @@
 //
 // Every provider is a fake; no live API is called. The 10 s timeout is injected (short), so the test never
 // waits 10 s in real time.
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/core/ui/focus_landing.dart';
 import 'package:sg_smart_commute/features/destination/presentation/destination_card.dart';
 import 'package:sg_smart_commute/features/origin/presentation/origin_card.dart';
 
@@ -244,5 +246,120 @@ void main() {
     location.fix(const LatLng(1.3508, 103.8485)); // late, valid
     await pumpUntilFound(tester, find.byKey(const Key('use-current-location')));
     expect(find.text('From: ION ORCHARD'), findsOneWidget);
+  });
+
+  // E8: controls that remove or disable themselves hand keyboard focus on.
+  group('E8 focus continuity', () {
+    /// A key press with its physical key: on Web (dart2js) the key simulator
+    /// cannot look up the USB code by itself (as in app_boot_test).
+    Future<void> press(
+      WidgetTester tester,
+      LogicalKeyboardKey logical,
+      PhysicalKeyboardKey physical,
+    ) async {
+      await tester.sendKeyEvent(logical, physicalKey: physical);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    Future<void> tab(WidgetTester tester) =>
+        press(tester, LogicalKeyboardKey.tab, PhysicalKeyboardKey.tab);
+    Future<void> enter(WidgetTester tester) =>
+        press(tester, LogicalKeyboardKey.enter, PhysicalKeyboardKey.enter);
+
+    /// Whether the primary focus is the widget with [key] or inside it.
+    bool focusIn(String key) {
+      final context = FocusManager.instance.primaryFocus?.context;
+      final target = find.byKey(Key(key)).evaluate();
+      if (context == null || target.isEmpty) return false;
+      var inside = identical(context, target.first);
+      context.visitAncestorElements((e) {
+        inside = inside || identical(e, target.first);
+        return !inside;
+      });
+      return inside;
+    }
+
+    Future<void> tabTo(WidgetTester tester, String key) async {
+      for (var i = 0; i < 20 && !focusIn(key); i++) {
+        await tab(tester);
+      }
+      expect(focusIn(key), isTrue, reason: 'Tab never reached $key');
+    }
+
+    String focusName() => '${FocusManager.instance.primaryFocus}';
+
+    testWidgets('#81: "Try location again" behind a manual origin leaves '
+        'focus on the origin section; Tab moves on to "Change"', (
+      tester,
+    ) async {
+      final location = FakeLocationService(access: LocationAccess.denied);
+      await tester.pumpWidget(
+        buildTestApp(
+          location: location,
+          environment: FakeEnvironmentRepository(),
+        ),
+      );
+      await pumpUntilFound(tester, find.text(OriginCard.fallbackPrompt));
+      await searchAndPick(
+        tester,
+        field: const Key('manual-origin-field'),
+        query: 'Tampines Hub',
+        result: 'OUR TAMPINES HUB',
+      );
+      location.reset();
+      await tabTo(tester, 'retry-location');
+      await enter(tester);
+      expect(find.text('Finding your location…'), findsOneWidget);
+      // The origin section's FocusLanding (debugLabel is debug-only, and the
+      // Web runs use a profile build).
+      final landing = tester.widget<FocusLanding>(
+        find.descendant(
+          of: find.byType(OriginCard),
+          matching: find.byType(FocusLanding),
+        ),
+      );
+      expect(
+        FocusManager.instance.primaryFocus,
+        same(landing.focusNode),
+        reason: focusName(),
+      );
+      await tab(tester);
+      expect(focusIn('change-origin'), isTrue, reason: focusName());
+    });
+
+    testWidgets('#80: "Use my current location" with "Change" open leaves '
+        'focus on "Change"; Tab moves on to the destination field', (
+      tester,
+    ) async {
+      final location = FakeLocationService(access: LocationAccess.granted);
+      await tester.pumpWidget(
+        buildTestApp(
+          location: location,
+          environment: FakeEnvironmentRepository(),
+          locationTimeout: const Duration(milliseconds: 200),
+        ),
+      );
+      await pumpUntilFound(tester, find.text(OriginCard.fallbackPrompt));
+      await searchAndPick(
+        tester,
+        field: const Key('manual-origin-field'),
+        query: 'Tampines Hub',
+        result: 'OUR TAMPINES HUB',
+      );
+      location.fix(const LatLng(1.3508, 103.8485)); // late: only offered
+      await pumpUntilFound(
+        tester,
+        find.byKey(const Key('use-current-location')),
+      );
+      await scrollToAndTap(tester, find.byKey(const Key('change-origin')));
+      await tester.pump();
+      await tabTo(tester, 'use-current-location');
+      await enter(tester);
+      await pumpUntilFound(tester, find.text('From: Current location'));
+      expect(focusIn('change-origin'), isTrue, reason: focusName());
+      await tab(tester);
+      expect(focusIn('destination-field'), isTrue, reason: focusName());
+    });
   });
 }

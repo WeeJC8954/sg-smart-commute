@@ -16,7 +16,8 @@ colour themes (five selectable palettes, `features/appearance/`; plan `docs/e1-c
 then E3 app icons and E4 About (plan `docs/enhancement-phase-a-identity-about-implementation-plan.md`), then E2 a
 static estimated trip time on each direct-bus option (display-only; plan
 `docs/e2-static-journey-time-implementation-plan.md`), then E7 a visible keyboard focus ring (plan
-`docs/e7-keyboard-focus-visibility-implementation-plan.md`).
+`docs/e7-keyboard-focus-visibility-implementation-plan.md`), then E8 focus continuity (#80, #81: the origin card's
+self-removing or self-disabling controls hand keyboard focus on; plan `docs/e8-focus-continuity-implementation-plan.md`).
 
 ## Hard constraints (guide §2, §14, ADR-001)
 
@@ -199,7 +200,9 @@ Key flows that span several files:
   (`test/web/content_security_policy_test.dart` checks it against `app_config.dart`).
 - A control that removes itself when pressed (a section's Retry, "Select", Show/Hide map) must hand focus on:
   to a `FocusLanding` on something that stays (`ErrorRetryRow.landing`, `SectionHeading(focusNode:)`), or to
-  its replacement. A landing adds no semantics node of its own. The place-search Retry is the exception: its
+  its replacement. So does a control disabled while it works (the manual-origin "Try location again", #81). The one
+  focus move without a press (E8, owner exception): a late permission answer that disables that button while it
+  has focus moves focus to the origin section first (`ref.listen` + a microtask re-check); nothing else moves. A landing adds no semantics node of its own. The place-search Retry is the exception: its
   only target is the search field, and focusing that would open the keyboard unasked (rule: the "Screen
   readers and focus" row of `docs/assumptions.md`).
 - Presentation colours come only from `Theme.of(context).colorScheme`; the five palette seeds in `lib/features/appearance/domain/app_palette.dart` are the only fixed colours, and no `Colors.*` is used in `lib/` code (`test/app/app_theme_test.dart` scans `lib/`).

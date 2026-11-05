@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +16,9 @@ import '../domain/origin_controller.dart';
 /// the manual-origin prompt and the late-fix offer (§5.1–§5.4).
 ///
 /// Focus follows the flow: "Change" opens a focused search field, and
-/// picking a place (or "Keep this origin") puts focus on the new "Change", so
-/// keyboard and screen-reader users are not sent back to the top.
+/// picking a place, "Keep this origin" or "Use my current location" puts
+/// focus on the new "Change", so keyboard and screen-reader users are not
+/// sent back to the top.
 class OriginCard extends ConsumerStatefulWidget {
   const OriginCard({super.key});
 
@@ -29,9 +32,14 @@ class OriginCard extends ConsumerStatefulWidget {
 class _OriginCardState extends ConsumerState<OriginCard> {
   final _changeButton = FocusNode(debugLabel: 'change-origin');
 
-  /// Where the fallback prompt's "Try location again" leaves focus: the
-  /// section itself, which stays while the prompt turns into a spinner (#65).
+  /// Where both "Try location again" buttons leave focus: the section itself,
+  /// which stays while the fallback prompt turns into a spinner (#65) or the
+  /// manual-origin button is disabled (#81).
   final _section = FocusNode(debugLabel: 'origin-section');
+
+  /// The manual-origin "Try location again", so the guard in [build] can
+  /// tell whether it has focus (#81, T81-7).
+  final _retryButton = FocusNode(debugLabel: 'retry-location');
 
   /// Set by that "Try location again", so the GPS fix its attempt gets is
   /// announced once (#65). It stays set when the attempt times out into
@@ -46,12 +54,21 @@ class _OriginCardState extends ConsumerState<OriginCard> {
   void dispose() {
     _changeButton.dispose();
     _section.dispose();
+    _retryButton.dispose();
     super.dispose();
   }
 
   void _retryFromFallback() {
     _section.requestFocus();
     _announceFix = true;
+    ref.read(originControllerProvider.notifier).retryLocation();
+  }
+
+  /// "Try location again" behind a manual origin disables itself while the
+  /// attempt runs, so focus goes to the section first (#81). No fix
+  /// announcement: a fix from this attempt is only offered, by the chip.
+  void _retryInBackground() {
+    _section.requestFocus();
     ref.read(originControllerProvider.notifier).retryLocation();
   }
 
@@ -69,6 +86,27 @@ class _OriginCardState extends ConsumerState<OriginCard> {
 
   @override
   Widget build(BuildContext context) {
+    // The one focus move without a press (owner exception to E8 D3): a
+    // permission answer after its 10 s bound runs the attempt again and
+    // disables "Try location again". Only if that button has focus, focus
+    // goes to the section before the rebuild disables it; otherwise Flutter
+    // would hand it to an earlier node, such as the destination field (#81).
+    // Checked again in a microtask (still before that rebuild): a late
+    // failure answer turns the flag on and off in one turn, and the button
+    // then stays enabled and keeps focus.
+    ref.listen(originControllerProvider.select((s) => s.locatingInBackground), (
+      busyBefore,
+      busyNow,
+    ) {
+      if (busyBefore != false || !busyNow) return;
+      scheduleMicrotask(() {
+        if (mounted &&
+            ref.read(originControllerProvider).locatingInBackground &&
+            _retryButton.hasFocus) {
+          _section.requestFocus();
+        }
+      });
+    });
     final state = ref.watch(originControllerProvider);
     final controller = ref.read(originControllerProvider.notifier);
     final theme = Theme.of(context);
@@ -107,9 +145,10 @@ class _OriginCardState extends ConsumerState<OriginCard> {
               if (manual)
                 TextButton(
                   key: const Key('retry-location'),
+                  focusNode: _retryButton,
                   onPressed: state.locatingInBackground
                       ? null
-                      : controller.retryLocation,
+                      : _retryInBackground,
                   child: const Text('Try location again'),
                 ),
             ],
@@ -224,7 +263,13 @@ class _OriginCardState extends ConsumerState<OriginCard> {
                   key: const Key('use-current-location'),
                   avatar: const Icon(Icons.my_location, size: 18),
                   label: const Text('Use my current location'),
-                  onPressed: controller.useCurrentLocation,
+                  // The chip removes itself: focus goes to "Change", as after
+                  // picking a place and through the same helper (#80). With
+                  // "Change" open, that button only exists after the rebuild.
+                  onPressed: () {
+                    controller.useCurrentLocation();
+                    _focusChangeAfterRebuild();
+                  },
                 ),
               ),
             ),

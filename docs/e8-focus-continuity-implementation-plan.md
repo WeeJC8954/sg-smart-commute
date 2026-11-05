@@ -1,8 +1,8 @@
 # E8 Focus Continuity: Implementation Plan
 
-**Status:** approved. The owner approved decisions D1–D3 (§2), this plan and the O1 ruling (§3.3, option A) on
-2026-11-05. Production code changes start only on the owner's explicit approval of the implementation step. The PR
-that adds this document changes no production code, test, dependency or build configuration.
+**Status:** approved and implemented on `feat/e8-focus-continuity`. The owner approved decisions D1–D3 (§2), this
+plan and the O1 ruling (§3.3, option A) on 2026-11-05, then the implementation, then, after T81-7 found a defect, a
+narrow exception to D3 (§3.4). What was built, and how it differs from this plan: §10.
 
 **Baseline:** `main` = `600944c` (merge of PR #85, E7 close-out). CI on it: run 42016401482, `flutter test`
 **937 passed**, Chrome step **32 passed**.
@@ -112,6 +112,32 @@ the destination field, any control outside the origin card, or a visible text in
 defect even if Flutter does it today; the test is not weakened to match. If T81-7 fails on a path: record the
 observed behaviour in `docs/testing.md`, do not commit the failing test, change nothing in the UI or the button's
 enabled/disabled behaviour, and report to the owner for a separate decision. E8 scope does not grow.
+
+**Outcome:** T81-7 failed on the Shift+Tab path (§3.4), so option A led to a separate ruling.
+
+### 3.4 T81-7 finding and the narrow exception to D3 (owner ruling, 2026-11-05)
+
+**Finding.** The steps are:
+1. Location is denied at launch. The user picks a place as the origin.
+2. The user presses "Try location again" by Tab and Enter; focus goes to the landing.
+3. The permission prompt stays unanswered for 10 s. The note shows and the button is enabled again.
+4. The user reaches the button again: by Tab, or by Shift+Tab from the destination field.
+5. The permission answer arrives late. The attempt runs again and disables the button without a press.
+
+On the Tab path, Flutter's focus history put focus on "Change" (inside the card). On the Shift+Tab path it put
+focus on the **destination search field**, and a text input opened (a phone's soft keyboard, unasked). E8's press
+hand-off cannot help: there is no press. Run log: `docs/testing.md`, 2026-11-05.
+
+**Ruling: a guarded hand-off, a narrow exception to D3.** It is necessary because only an asynchronous update
+disables the button here, and Flutter's fallback can then move focus out of the origin card. The rule:
+
+- The trigger is an asynchronous location update that is about to disable the manual-origin "Try location again".
+- If that button has focus, focus goes to the origin section's `FocusLanding` before the button is disabled.
+- If the button does not have focus, nothing moves. Focus that the user moved elsewhere stays there.
+- A rebuild or a GPS state change alone moves nothing.
+- The button's enabled/disabled behaviour and the #57 announcements are unchanged.
+- It uses the existing `FocusLanding` plus one dedicated `FocusNode` on that button (disposed with the state). There
+  is no global tracker, no new semantics node and no controller change.
 
 ## 4. Files (implementation PR, not this plan PR)
 
@@ -239,3 +265,48 @@ Stop and ask the owner if:
 Any other focus behaviour, the D4 licence page (E7), new announcements, visual changes, the controller's attempt
 logic, issue #82 and the repository secret, E5 and the next-phase roadmap
 (`docs/sg-smart-commute-next-phase-master-plan.md`).
+
+## 10. Implementation notes (2026-11-05)
+
+All runs and their CI run ids are in the `docs/testing.md` run log.
+
+**As built** (`lib/features/origin/presentation/origin_card.dart` only):
+- #80: the chip's `onPressed` calls `useCurrentLocation()`, then `_focusChangeAfterRebuild()` (§3.1).
+- #81: `_retryInBackground()` requests the landing, then calls `retryLocation()` (§3.2).
+- The T81-7 guard (§3.4):
+  - `ref.listen` on `locatingInBackground` (false → true) schedules a microtask.
+  - The microtask moves focus to the landing only if the widget is still mounted, the attempt is still running and
+    `_retryButton` still has focus.
+  - Riverpod notifies listeners synchronously. The microtask runs before the rebuild that disables the button, so
+    focus moves first and Flutter's fallback never runs.
+  - The re-check (independent review, I1) covers a late *failure* answer. That answer turns the flag on and off in
+    one turn, and the button stays enabled and keeps focus.
+
+**Differences from §5:**
+- **Mouse T81-4 (review M1).** A mouse click in traditional mode does not focus the button, so the press hand-off
+  alone moves focus. This test is what kills m81a. The guard also covers a keyboard press, so the keyboard tests
+  alone no longer catch m81a.
+- **Four tests added to T81-7:**
+  - a late *failure* answer leaves focus on the button, which stays enabled (review I1; RED first);
+  - focus elsewhere (the destination field) is left alone: this one pins the guard's own condition;
+  - touch keeps its focus and touch mode;
+  - both keyboard paths now require the landing, the next Tab on "Change" and the destination field never focused.
+- **Integration.** The landing is matched by the `FocusLanding`'s node, not `debugLabel`, which is debug-only. The Web
+  runs use a profile build.
+- **m80b survives, and it is an equivalent mutant.** Flutter keeps a focus request on a node that is not attached yet
+  (`_requestFocusWhenReparented`, `focus_manager.dart`) and applies it when the node is attached. So a synchronous
+  request also works with "Change" open. §3.1's "post-frame, because" is too strong; the chip keeps the shared helper.
+
+**Mutation results** (final code, `afefae6`):
+
+| ID | Mutation | Result |
+|---|---|---|
+| m80a | no chip hand-off | killed: T80-2, T80-3, T80-4 |
+| m80b | synchronous request | survives (equivalent, above) |
+| m81a | no press hand-off | killed: T81-4 touch and mouse |
+| m81b | the retry sets `_announceFix` | killed: T81-6 |
+| m81c | press hand-off to "Change" | killed: T81-1 to T81-5 (10 tests) |
+| m81d | guard hand-off removed | killed: T81-7 both keyboard paths |
+| m81e | guard without the re-check | killed: T81-7 late failure answer |
+
+**Test count.** CI: 937 at the baseline, then 959 on `afefae6` (22 new widget tests). The Chrome step stays 32.
