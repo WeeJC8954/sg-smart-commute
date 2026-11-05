@@ -1,12 +1,18 @@
 // E8 focus continuity (docs/e8-focus-continuity-implementation-plan.md): a
 // control that removes or disables itself when pressed hands focus on.
-// #80: "Use my current location" → "Change". Real Tab, Shift+Tab and Enter key
-// events, so focus traversal and the highlight mode are Flutter's own.
+// #80: "Use my current location" → "Change". #81: the manual-origin "Try
+// location again" → the origin section's FocusLanding, before it disables.
+// Real Tab, Shift+Tab and Enter key events, so focus traversal and the
+// highlight mode are Flutter's own.
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
+import 'package:sg_smart_commute/core/ui/focus_landing.dart';
 
 import '../../integration_test/fakes/fake_environment_repository.dart';
 import '../../integration_test/fakes/fake_location_service.dart';
@@ -21,6 +27,13 @@ final chip = key('use-current-location');
 final change = key('change-origin');
 final originField = key('manual-origin-field');
 final destinationField = key('destination-field');
+final retry = key('retry-location');
+final busy = find.text('Finding your location…');
+final failureNote = key('background-location-failure');
+
+/// Whether the origin section's FocusLanding has the primary focus.
+bool onLanding() =>
+    FocusManager.instance.primaryFocus?.debugLabel == 'origin-section';
 
 /// Whether the primary focus is [f] or inside it.
 bool focusIn(Finder f) {
@@ -218,6 +231,235 @@ void main() {
         expect(
           tester.getSemantics(change),
           isSemantics(isFocused: true, label: 'Change origin'),
+        );
+      } finally {
+        semantics.dispose();
+      }
+    });
+  });
+
+  group('#81: the manual-origin "Try location again" hands focus to the '
+      'origin section', () {
+    /// Location denied at launch, then a searched origin: "Change" has focus
+    /// and "Try location again" is offered. The next attempt waits for the
+    /// test to answer it.
+    Future<FakeLocationService> manualOrigin(WidgetTester tester) async {
+      final location = FakeLocationService(access: LocationAccess.denied);
+      await pumpTall(
+        tester,
+        buildTestApp(
+          location: location,
+          environment: FakeEnvironmentRepository(),
+          places: FakePlaceSearchRepository(),
+        ),
+      );
+      await typeOrigin(tester);
+      await tester.tap(find.text('OUR TAMPINES HUB'));
+      await settle(tester);
+      expect(focusIn(change), isTrue);
+      location.reset();
+      return location;
+    }
+
+    /// Tab to the button and press Enter: the attempt runs.
+    Future<void> retryByTab(WidgetTester tester) async {
+      await tabTo(tester, retry);
+      await press(tester, LogicalKeyboardKey.enter);
+      expect(busy, findsOneWidget);
+    }
+
+    void expectOnLanding([String when = '']) {
+      expect(onLanding(), isTrue, reason: '$when focus on ${focusName()}');
+    }
+
+    testWidgets('T81-1 reached by Tab: on the landing while busy; Tab moves '
+        'on to "Change"', (tester) async {
+      await manualOrigin(tester);
+      await retryByTab(tester);
+      expectOnLanding();
+      expect(FocusManager.instance.primaryFocus, isNot(isA<FocusScopeNode>()));
+      await press(tester, LogicalKeyboardKey.tab);
+      expect(focusIn(change), isTrue, reason: 'Tab: ${focusName()}');
+    });
+
+    testWidgets('T81-1 reached by Tab: Shift+Tab from the landing moves to '
+        'the control before the route card', (tester) async {
+      await manualOrigin(tester);
+      await retryByTab(tester);
+      expectOnLanding();
+      await press(tester, LogicalKeyboardKey.tab, shift: true);
+      expect(
+        focusIn(key('palette-button')),
+        isTrue,
+        reason: 'Shift+Tab: ${focusName()}',
+      );
+    });
+
+    testWidgets('T81-2 reached by Shift+Tab from the destination field: on '
+        'the landing, not in the field, no keyboard', (tester) async {
+      await manualOrigin(tester);
+      await tabTo(tester, destinationField);
+      await tabTo(tester, retry, shift: true);
+      await press(tester, LogicalKeyboardKey.enter);
+      expect(busy, findsOneWidget);
+      expectOnLanding();
+      expect(focusIn(destinationField), isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+      await press(tester, LogicalKeyboardKey.tab);
+      expect(focusIn(change), isTrue, reason: 'Tab: ${focusName()}');
+    });
+
+    group('T81-3 focus stays on the landing after the outcome', () {
+      testWidgets('success: the chip is offered and announced', (tester) async {
+        final semantics = tester.ensureSemantics();
+        try {
+          final location = await manualOrigin(tester);
+          await retryByTab(tester);
+          location
+            ..grant()
+            ..fix(bishan);
+          await settle(tester);
+          expect(busy, findsNothing);
+          expect(
+            tester.getSemantics(chip),
+            isSemantics(
+              isLiveRegion: true,
+              isButton: true,
+              label: 'Use my current location',
+            ),
+          );
+          expectOnLanding('after the fix:');
+        } finally {
+          semantics.dispose();
+        }
+      });
+
+      /// The #57 note, announced, and focus still on the landing.
+      void expectFailureNote(WidgetTester tester, LocationFailure reason) {
+        expect(busy, findsNothing);
+        expect(
+          tester.getSemantics(failureNote),
+          isSemantics(
+            isLiveRegion: true,
+            label: '${reason.message} Your chosen origin is kept.',
+          ),
+        );
+        expectOnLanding('after $reason:');
+      }
+
+      testWidgets('failure: denied', (tester) async {
+        final semantics = tester.ensureSemantics();
+        try {
+          final location = await manualOrigin(tester);
+          await retryByTab(tester);
+          location.answer(LocationAccess.denied);
+          await settle(tester);
+          expectFailureNote(tester, const LocationPermissionDenied());
+        } finally {
+          semantics.dispose();
+        }
+      });
+
+      testWidgets('timeout: the permission prompt is not answered', (
+        tester,
+      ) async {
+        final semantics = tester.ensureSemantics();
+        try {
+          await manualOrigin(tester);
+          await retryByTab(tester);
+          await tester.pump(const Duration(seconds: 10));
+          await settle(tester);
+          expectFailureNote(tester, const LocationPermissionUnanswered());
+        } finally {
+          semantics.dispose();
+        }
+      });
+
+      testWidgets('timeout: granted, but no fix', (tester) async {
+        final semantics = tester.ensureSemantics();
+        try {
+          final location = await manualOrigin(tester);
+          await retryByTab(tester);
+          location.grant();
+          await settle(tester);
+          await tester.pump(const Duration(seconds: 10));
+          await settle(tester);
+          expectFailureNote(tester, const LocationTimeout());
+        } finally {
+          semantics.dispose();
+        }
+      });
+    });
+
+    testWidgets('T81-4 touch: a tap leaves the landing focused, with no ring', (
+      tester,
+    ) async {
+      await manualOrigin(tester);
+      await tester.tap(retry);
+      await settle(tester);
+      expect(FocusManager.instance.highlightMode, FocusHighlightMode.touch);
+      expectOnLanding();
+      final ring = find.ancestor(of: busy, matching: find.byType(FocusRing));
+      final box = tester.widget<DecoratedBox>(
+        find.descendant(of: ring.first, matching: find.byType(DecoratedBox)),
+      );
+      expect(
+        (box.decoration as BoxDecoration).border,
+        isNull,
+        reason: 'touch mode: no ring (E7 D1)',
+      );
+    });
+
+    testWidgets('T81-5 semantics: the button is still disabled while busy, '
+        'and one existing node carries the focus flag', (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await manualOrigin(tester);
+        await retryByTab(tester);
+        expect(
+          tester.getSemantics(retry),
+          isSemantics(
+            isButton: true,
+            hasEnabledState: true,
+            isEnabled: false,
+            label: 'Try location again',
+          ),
+        );
+        final focused = find.semantics
+            .byPredicate(
+              (node) =>
+                  node.getSemanticsData().flagsCollection.isFocused ==
+                  Tristate.isTrue,
+            )
+            .evaluate()
+            .toList();
+        expect(focused, hasLength(1), reason: 'one focused node');
+        expect(
+          focused.single.getSemanticsData().label,
+          contains('From: OUR TAMPINES HUB'),
+          reason: "the route card's own node, not a new one",
+        );
+      } finally {
+        semantics.dispose();
+      }
+    });
+
+    testWidgets('T81-6 a fix from this attempt is only offered: after the '
+        'chip, the origin line is not announced', (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        final location = await manualOrigin(tester);
+        await retryByTab(tester);
+        location
+          ..grant()
+          ..fix(bishan);
+        await settle(tester);
+        await tester.tap(chip);
+        await settle(tester);
+        expect(find.text('From: Current location'), findsOneWidget);
+        expect(
+          tester.getSemantics(key('origin-line')),
+          isNot(isSemantics(isLiveRegion: true)),
         );
       } finally {
         semantics.dispose();
