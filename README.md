@@ -161,9 +161,15 @@ Details and limits: [`docs/data-sources.md`](docs/data-sources.md).
 - [App icon and About plan (E3, E4)](docs/enhancement-phase-a-identity-about-implementation-plan.md)
 - [Estimated trip time plan (E2)](docs/e2-static-journey-time-implementation-plan.md)
 - [Keyboard focus visibility plan (E7)](docs/e7-keyboard-focus-visibility-implementation-plan.md)
+- [Next-phase journey routing master plan](docs/sg-smart-commute-next-phase-master-plan.md): proposed and
+  approval-gated, nothing in it is built yet. The starting point for any later routing work (E5 onwards).
 
 ## Roadmap
 
 M1 location + environment → M2 places → M3 direct-bus planner + MRT → M4 live arrivals → M5 hardening →
 Phase 2 map (P2-M0 feasibility → P2-M1 map shell → P2-M2 bus ride line → P2-M3 option sync, walk connectors, MRT
 markers → P2-M4 hardening): **complete**. UI polish: **complete** (PR #35, plus follow-ups after Phase 2).
+
+Next, proposed and not built: transfer journeys, in gated steps (bus → bus first as E5, then rail and
+multimodal), each with its own approval. See the
+[next-phase master plan](docs/sg-smart-commute-next-phase-master-plan.md).
