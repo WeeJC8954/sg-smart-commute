@@ -30,8 +30,9 @@ class OriginCard extends ConsumerStatefulWidget {
 class _OriginCardState extends ConsumerState<OriginCard> {
   final _changeButton = FocusNode(debugLabel: 'change-origin');
 
-  /// Where the fallback prompt's "Try location again" leaves focus: the
-  /// section itself, which stays while the prompt turns into a spinner (#65).
+  /// Where both "Try location again" buttons leave focus: the section itself,
+  /// which stays while the fallback prompt turns into a spinner (#65) or the
+  /// manual-origin button is disabled (#81).
   final _section = FocusNode(debugLabel: 'origin-section');
 
   /// Set by that "Try location again", so the GPS fix its attempt gets is
@@ -53,6 +54,14 @@ class _OriginCardState extends ConsumerState<OriginCard> {
   void _retryFromFallback() {
     _section.requestFocus();
     _announceFix = true;
+    ref.read(originControllerProvider.notifier).retryLocation();
+  }
+
+  /// "Try location again" behind a manual origin disables itself while the
+  /// attempt runs, so focus goes to the section first (#81). No fix
+  /// announcement: a fix from this attempt is only offered, by the chip.
+  void _retryInBackground() {
+    _section.requestFocus();
     ref.read(originControllerProvider.notifier).retryLocation();
   }
 
@@ -110,7 +119,7 @@ class _OriginCardState extends ConsumerState<OriginCard> {
                   key: const Key('retry-location'),
                   onPressed: state.locatingInBackground
                       ? null
-                      : controller.retryLocation,
+                      : _retryInBackground,
                   child: const Text('Try location again'),
                 ),
             ],
