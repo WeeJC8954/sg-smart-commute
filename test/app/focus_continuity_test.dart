@@ -487,15 +487,31 @@ void main() {
         FakeLocationService location,
       ) async {
         expect(focusIn(retry), isTrue, reason: 'on the button: ${focusName()}');
+        final field = tester
+            .widget<EditableText>(
+              find.descendant(
+                of: destinationField,
+                matching: find.byType(EditableText),
+              ),
+            )
+            .focusNode;
+        var fieldFocused = false;
+        void watch() => fieldFocused = fieldFocused || field.hasFocus;
+        field.addListener(watch);
+        addTearDown(() => field.removeListener(watch));
         location.grant();
         await settle(tester);
         expect(busy, findsOneWidget, reason: 'the attempt runs again');
         expect(
-          onLanding() || focusIn(change),
-          isTrue,
-          reason: 'focus on ${focusName()}',
+          tester.widget<TextButton>(retry).onPressed,
+          isNull,
+          reason: 'still disabled while busy',
         );
+        expectOnLanding('after the late answer:');
+        expect(fieldFocused, isFalse, reason: 'never in the destination field');
         expect(tester.testTextInput.isVisible, isFalse);
+        await press(tester, LogicalKeyboardKey.tab);
+        expect(focusIn(change), isTrue, reason: 'Tab: ${focusName()}');
       }
 
       testWidgets('reached by Tab from the landing', (tester) async {

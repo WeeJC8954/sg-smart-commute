@@ -35,6 +35,10 @@ class _OriginCardState extends ConsumerState<OriginCard> {
   /// manual-origin button is disabled (#81).
   final _section = FocusNode(debugLabel: 'origin-section');
 
+  /// The manual-origin "Try location again", so the guard in [build] can
+  /// tell whether it has focus (#81, T81-7).
+  final _retryButton = FocusNode(debugLabel: 'retry-location');
+
   /// Set by that "Try location again", so the GPS fix its attempt gets is
   /// announced once (#65). It stays set when the attempt times out into
   /// manual entry: the attempt goes on, and a late fix can still fill the
@@ -48,6 +52,7 @@ class _OriginCardState extends ConsumerState<OriginCard> {
   void dispose() {
     _changeButton.dispose();
     _section.dispose();
+    _retryButton.dispose();
     super.dispose();
   }
 
@@ -79,6 +84,19 @@ class _OriginCardState extends ConsumerState<OriginCard> {
 
   @override
   Widget build(BuildContext context) {
+    // The one focus move without a press (owner exception to E8 D3): a
+    // permission answer after its 10 s bound runs the attempt again and
+    // disables "Try location again". Only if that button has focus, focus
+    // goes to the section before the rebuild disables it; otherwise Flutter
+    // would hand it to an earlier node, such as the destination field (#81).
+    ref.listen(originControllerProvider.select((s) => s.locatingInBackground), (
+      busyBefore,
+      busyNow,
+    ) {
+      if (busyBefore == false && busyNow && _retryButton.hasFocus) {
+        _section.requestFocus();
+      }
+    });
     final state = ref.watch(originControllerProvider);
     final controller = ref.read(originControllerProvider.notifier);
     final theme = Theme.of(context);
@@ -117,6 +135,7 @@ class _OriginCardState extends ConsumerState<OriginCard> {
               if (manual)
                 TextButton(
                   key: const Key('retry-location'),
+                  focusNode: _retryButton,
                   onPressed: state.locatingInBackground
                       ? null
                       : _retryInBackground,
