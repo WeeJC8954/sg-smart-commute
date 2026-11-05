@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,13 +91,21 @@ class _OriginCardState extends ConsumerState<OriginCard> {
     // disables "Try location again". Only if that button has focus, focus
     // goes to the section before the rebuild disables it; otherwise Flutter
     // would hand it to an earlier node, such as the destination field (#81).
+    // Checked again in a microtask (still before that rebuild): a late
+    // failure answer turns the flag on and off in one turn, and the button
+    // then stays enabled and keeps focus.
     ref.listen(originControllerProvider.select((s) => s.locatingInBackground), (
       busyBefore,
       busyNow,
     ) {
-      if (busyBefore == false && busyNow && _retryButton.hasFocus) {
-        _section.requestFocus();
-      }
+      if (busyBefore != false || !busyNow) return;
+      scheduleMicrotask(() {
+        if (mounted &&
+            ref.read(originControllerProvider).locatingInBackground &&
+            _retryButton.hasFocus) {
+          _section.requestFocus();
+        }
+      });
     });
     final state = ref.watch(originControllerProvider);
     final controller = ref.read(originControllerProvider.notifier);
