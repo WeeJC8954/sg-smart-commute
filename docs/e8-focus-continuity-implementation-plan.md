@@ -1,8 +1,8 @@
 # E8 Focus Continuity: Implementation Plan
 
-**Status:** plan for review. The owner approved decisions D1–D3 (§2) on 2026-11-05 and asked for this plan as a
-docs-only PR. Production code changes start only when the owner approves this plan. The PR that adds this document
-changes no production code, test, dependency or build configuration.
+**Status:** approved. The owner approved decisions D1–D3 (§2), this plan and the O1 ruling (§3.3, option A) on
+2026-11-05. Production code changes start only on the owner's explicit approval of the implementation step. The PR
+that adds this document changes no production code, test, dependency or build configuration.
 
 **Baseline:** `main` = `600944c` (merge of PR #85, E7 close-out). CI on it: run 42016401482, `flutter test`
 **937 passed**, Chrome step **32 passed**.
@@ -94,19 +94,24 @@ Synchronous, like `_retryFromFallback`, so Flutter never falls back to the focus
 **not** set `_announceFix`: a fix from a background attempt is only offered by the chip (already announced, #57),
 never applied. The controller, its states and the announcements are unchanged.
 
-### 3.3 Open point O1 (owner ruling needed before GREEN #81)
+### 3.3 O1: the button disabled again without a press (ruled: option A)
 
 The background attempt can disable the button again **without a press**: when the permission prompt is answered after
 its 10 s bound, `resumeIfAnsweredLate` sets `locatingInBackground` back to true. If the user has meanwhile tabbed back
 to the re-enabled button, Flutter moves focus to the focus history again. In the common case (the section, then Tab
 to "Change", then the button) that history is inside the origin card; it is not proven for every path. D3 forbids a
-focus move caused by an asynchronous update. Options:
+focus move caused by an asynchronous update. Options were:
 
-- **(a, recommended)** No code for it. Test T81-7 pins what happens on the two keyboard paths; if focus stays in
-  the origin card, record it as covered; if it can leave the card, record it as a known limit in
-  `docs/assumptions.md` and `docs/testing.md` and ask again.
+- **(a)** No code for it. Test T81-7 reproduces both keyboard paths and checks where focus goes.
 - **(b)** Keep the button enabled while busy and ignore presses. This changes how it looks and how it is announced
-  (today a screen reader hears it as disabled while busy), so it is not recommended.
+  (today a screen reader hears it as disabled while busy).
+
+**Owner ruling (2026-11-05): option A.** No production change for this case in E8. T81-7 must check that focus
+stays in a meaningful place in the origin section: the section's `FocusLanding` or "Change"; never a scope node,
+the destination field, any control outside the origin card, or a visible text input. Focus that escapes is a
+defect even if Flutter does it today; the test is not weakened to match. If T81-7 fails on a path: record the
+observed behaviour in `docs/testing.md`, do not commit the failing test, change nothing in the UI or the button's
+enabled/disabled behaviour, and report to the owner for a separate decision. E8 scope does not grow.
 
 ## 4. Files (implementation PR, not this plan PR)
 
@@ -157,8 +162,10 @@ Tests use `buildTestApp` with `FakeLocationService`, real Tab / Shift+Tab / Ente
   "Try location again" is still disabled while busy (`isEnabled: false`, as today).
 - **T81-6** After a background fix and the chip press, the origin line is not announced (pins that #81 does not set
   `_announceFix`).
-- **T81-7** O1 probe: the late permission answer re-disables the focused button on the Tab and the Shift+Tab path;
-  pins where focus goes (§3.3).
+- **T81-7** O1 (§3.3, option A): after the permission timeout re-enables the button, the user reaches it by Tab
+  (from the landing via "Change") and, in a second test, by Shift+Tab from the destination field; then the late
+  permission answer disables it again. Focus must be on the section's landing or "Change", and no text input is
+  shown. A failure is reported, not committed or weakened (§3.3).
 
 ### 5.3 Integration (Android and Web, fakes only, deterministic)
 
@@ -223,7 +230,7 @@ Stop and ask the owner if:
 
 - a fix needs a controller, provider or state change;
 - a fix needs a new widget, a new focus node outside `_OriginCardState`, or a semantics node;
-- O1 shows focus can leave the origin card;
+- T81-7 shows focus can leave the origin section (§3.3: report, no change);
 - an existing guard (§5.5) must change;
 - the CI count changes other than by the new tests.
 
