@@ -4,7 +4,7 @@
 // location again" → the origin section's FocusLanding, before it disables.
 // Real Tab, Shift+Tab and Enter key events, so focus traversal and the
 // highlight mode are Flutter's own.
-import 'dart:ui' show Tristate;
+import 'dart:ui' show PointerDeviceKind, Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -410,6 +410,25 @@ void main() {
       );
     });
 
+    testWidgets('T81-4 mouse in traditional mode: a click (which does not '
+        'focus the button) still hands focus to the landing', (tester) async {
+      await manualOrigin(tester);
+      await press(tester, LogicalKeyboardKey.tab); // keyboard used before
+      expect(
+        FocusManager.instance.highlightMode,
+        FocusHighlightMode.traditional,
+      );
+      await tester.tap(retry, kind: PointerDeviceKind.mouse);
+      await settle(tester);
+      expect(busy, findsOneWidget);
+      expect(
+        FocusManager.instance.highlightMode,
+        FocusHighlightMode.traditional,
+        reason: 'a mouse leaves the mode as it is',
+      );
+      expectOnLanding();
+    });
+
     testWidgets('T81-5 semantics: the button is still disabled while busy, '
         'and one existing node carries the focus flag', (tester) async {
       final semantics = tester.ensureSemantics();
@@ -542,9 +561,25 @@ void main() {
         );
       });
 
-      testWidgets('touch: the button never had focus, so nothing moves', (
-        tester,
-      ) async {
+      testWidgets('a late failure answer leaves focus on the button, which '
+          'stays enabled', (tester) async {
+        final location = await unanswered(tester);
+        await tabTo(tester, retry);
+        location.answer(LocationAccess.denied);
+        await settle(tester);
+        expect(busy, findsNothing);
+        expect(tester.widget<TextButton>(retry).onPressed, isNotNull);
+        expect(
+          tester.getSemantics(failureNote).label,
+          contains(const LocationPermissionDenied().message),
+        );
+        expect(focusIn(retry), isTrue, reason: 'focus on ${focusName()}');
+      });
+
+      // The guard's own condition (the button has focus) is pinned by "focus
+      // elsewhere" above; this one pins that touch use stays as it is.
+      testWidgets('touch: the late answer leaves focus and the touch mode as '
+          'they are', (tester) async {
         final location = await manualOrigin(tester);
         await tester.tap(retry);
         await settle(tester);
