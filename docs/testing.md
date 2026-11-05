@@ -178,7 +178,7 @@ complete (PR #35, follow-ups PR #48). The sections below were written at each st
     - The Android map with a real GPS fix: the Location Accuracy dialog was declined, so the origin was searched.
       (The searched origin on Android; GPS on the Web.)
 
-- **E7 keyboard focus visibility (2026-11-04; merged 2026-11-05):** complete as built. PR #84 merged into `main` as
+- **E7 keyboard focus visibility (2026-11-04; merged 2026-11-05):** **completed with documented limitations.** PR #84 merged into `main` as
   `6178c70` (a merge commit of `e03c559`); CI on `main` run 42014088894: 937 tests passed. The limits below stay open
   and are not passes.
   - Automated: CI and local `flutter test` (937 tests at `64c5f20`), the contrast tests in all ten themes
