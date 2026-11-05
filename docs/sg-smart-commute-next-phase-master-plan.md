@@ -23,14 +23,14 @@ The architecture should accommodate an ordered sequence of legs, but E5 implemen
 
 ## 2. Known project baseline
 
-The application is a front-end-only Flutter app using public data sources. Documented capabilities include manual/device origin selection, OneMap place search, direct-bus suggestions, live bus arrivals, nearby MRT information (not routed MRT journeys), an optional OneMap journey map, environmental information, five palettes in light/dark mode, estimated bus journey times, and keyboard focus visibility.
+The application is a front-end-only Flutter app using public data sources. Confirmed current capabilities (on `main` at `600944c`) include manual/device origin selection, OneMap place search, direct-bus suggestions, live bus arrivals, nearby MRT information (not routed MRT journeys), an optional OneMap journey map, environmental information, five palettes in light/dark mode, a static estimated trip time on each direct-bus option (display-only; waiting excluded), and keyboard focus visibility. Everything else in this document is proposed, not built.
 
 Historical E7 completion baseline (verify afresh):
 
 - E7 implementation merge: `6178c70`.
 - E7 documentation close-out merge: `600944c`.
 - Flutter tests: **937 passed**; Chrome CI step: **32 passed**.
-- Open issues at that point: **#80** current-location chip focus loss; **#81** retry-location focus loss; **#82** GitHub secret review. Do not change these as part of E5.
+- Open issues at that point: **#80** current-location chip focus loss; **#81** retry-location focus loss; **#82** GitHub secret review. Do not change these as part of E5. #80 and #81 are addressed separately by E8 (focus continuity, `docs/e8-focus-continuity-implementation-plan.md`, planned 2026-11-05); check their current state on GitHub.
 - Some physical-device and screen-reader checks remain **Not run**; Flutter licence-page package-list focus contrast remains unresolved.
 
 The historical E5 feasibility report and E6 addendum are unavailable. Known fragments mention per-bus-leg fields `service`, `direction`, `boardIndex`, `stopCount`; reuse of E2's `estimateBusMinutes`; and an ordered leg-sequence concept. **Do not fabricate the missing reports or assign a meaning to E6.**
@@ -114,7 +114,7 @@ Choose thresholds only after inspecting real network data and benchmarking repre
 
 ## 6. Future rail phase (not part of E5)
 
-Investigate authoritative, licensed, maintainable data for station IDs, coordinates, line membership, station order, interchanges, platform or walking connections, service constraints, and travel-time information. A list of MRT stations alone cannot establish valid routes.
+Within the hard constraints of `CLAUDE.md` (public, keyless data readable directly from the browser, allowed by the CSP; a source that needs a key or a proxy, such as LTA DataMall, is out of scope), investigate authoritative, licensed, maintainable data for station IDs, coordinates, line membership, station order, interchanges, platform or walking connections, service constraints, and travel-time information. A list of MRT stations alone cannot establish valid routes.
 
 Target direct MRT and MRT Line A → interchange → Line B. Distinguish stations passed, train changes, line changes, and walking connections. Never invent rail links or service frequency. Submit a separate feasibility report and approval gate before rail implementation.
 
@@ -134,7 +134,7 @@ A separate potential enhancement is exact **five-digit bus stop code search**. I
 
 - **Performance:** benchmark representative and worst-case routes using fixed fixtures; record latency, memory, candidate count and network calls.
 - **Reliability:** invalid/missing data must never yield fabricated routes; degrade gracefully.
-- **Privacy/security:** preserve front-end-only, keyless design unless a separate approved study justifies changes. Do not introduce tracking, credentials or a backend implicitly.
+- **Privacy/security:** preserve the front-end-only, keyless design. These are hard constraints in `CLAUDE.md` (ADR-001): no backend, proxy or serverless function, and no credentials, for any phase of this roadmap. Only the owner can change them, by changing `CLAUDE.md` and ADR-001 first; no gate here can. Do not introduce tracking.
 - **Maintainability:** prefer pure routing functions, small interfaces, deterministic ranking and clear data ownership.
 - **Compatibility:** preserve existing direct-bus calculations, UI and live-arrival behaviour unless explicitly approved.
 
