@@ -413,11 +413,14 @@ void main() {
     testWidgets('T81-4 mouse in traditional mode: a click (which does not '
         'focus the button) still hands focus to the landing', (tester) async {
       await manualOrigin(tester);
-      await press(tester, LogicalKeyboardKey.tab); // keyboard used before
+      // The keyboard was used before, away from the button (Shift+Tab from
+      // "Change" leaves the route card), so the click is the only activation.
+      await press(tester, LogicalKeyboardKey.tab, shift: true);
       expect(
         FocusManager.instance.highlightMode,
         FocusHighlightMode.traditional,
       );
+      expect(focusIn(retry), isFalse);
       await tester.tap(retry, kind: PointerDeviceKind.mouse);
       await settle(tester);
       expect(busy, findsOneWidget);
