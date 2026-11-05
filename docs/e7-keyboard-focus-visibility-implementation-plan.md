@@ -4,6 +4,9 @@
 plan on 2026-11-04. Implementation starts only on the owner's explicit approval of that step. The PR that adds this
 document changes no production code, test, dependency or build configuration.
 
+**Outcome:** completed with documented limitations. Merged on 2026-11-05: PR #84 as `6178c70` (CI on `main` run 42014088894, 937 tests).
+Open limits, not passes: `docs/testing.md`, "E7 keyboard focus visibility" under Open acceptance items.
+
 **Baseline:** written on `cc1db3a` (merge of PR #77, E2); updated to `main` = `2eb8541` (merge of PR #78, E2
 close-out: docs and one test, nothing this plan changes).
 
