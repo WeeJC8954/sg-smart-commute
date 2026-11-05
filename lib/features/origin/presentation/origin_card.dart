@@ -14,8 +14,9 @@ import '../domain/origin_controller.dart';
 /// the manual-origin prompt and the late-fix offer (§5.1–§5.4).
 ///
 /// Focus follows the flow: "Change" opens a focused search field, and
-/// picking a place (or "Keep this origin") puts focus on the new "Change", so
-/// keyboard and screen-reader users are not sent back to the top.
+/// picking a place, "Keep this origin" or "Use my current location" puts
+/// focus on the new "Change", so keyboard and screen-reader users are not
+/// sent back to the top.
 class OriginCard extends ConsumerStatefulWidget {
   const OriginCard({super.key});
 
@@ -224,7 +225,13 @@ class _OriginCardState extends ConsumerState<OriginCard> {
                   key: const Key('use-current-location'),
                   avatar: const Icon(Icons.my_location, size: 18),
                   label: const Text('Use my current location'),
-                  onPressed: controller.useCurrentLocation,
+                  // The chip removes itself: focus goes to "Change", as after
+                  // picking a place (#80). Post-frame, because with "Change"
+                  // open that button only exists after the rebuild.
+                  onPressed: () {
+                    controller.useCurrentLocation();
+                    _focusChangeAfterRebuild();
+                  },
                 ),
               ),
             ),
