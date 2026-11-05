@@ -213,11 +213,11 @@ void main() {
         await press(tester, LogicalKeyboardKey.enter);
         expect(
           tester.getSemantics(key('origin-line')),
-          isNot(containsSemantics(isLiveRegion: true)),
+          isNot(isSemantics(isLiveRegion: true)),
         );
         expect(
           tester.getSemantics(change),
-          containsSemantics(isFocused: true, label: 'Change origin'),
+          isSemantics(isFocused: true, label: 'Change origin'),
         );
       } finally {
         semantics.dispose();
