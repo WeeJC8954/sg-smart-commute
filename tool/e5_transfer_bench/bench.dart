@@ -158,7 +158,9 @@ String runBenchmark(
     )
     ..writeln('== results ==');
   _sampleSection(out, network, indexes, sample, plans, noDirect);
+  _rankingSection(out, network, indexes[0]!, sample, plans, noDirect, named);
   _namedSection(out, network, indexes, named);
+  _directSection(out, sample, plans);
   return '$out$timings';
 }
 
@@ -320,8 +322,8 @@ void _sampleSection(
     if (sx.road == sy.road) sameRoad++;
     if (examples.length < 8) {
       examples.add(
-        '  ${sx.code} ${sx.name} (${sx.road}) -> ${sy.code} ${sy.name} '
-        '(${sy.road}), ${j.transferWalk.straightLineMeters.round()} m',
+        '  ${sx.code} (${sx.road}) -> ${sy.code} (${sy.road}), '
+        '${j.transferWalk.straightLineMeters.round()} m',
       );
     }
   }
@@ -388,6 +390,154 @@ void _namedSection(
         out.writeln('  ${_walkName(walk)}, ${limits.join('/')}: $text');
       }
     }
+  }
+}
+
+/// G2-4: the stop-count score against E2 minutes, for transfers (same stop,
+/// limit 2.5, every journey the search keeps) and, for context, for today's
+/// direct options (the planner run with no option cap; the planner itself is
+/// unchanged). Minutes are the parts before E2's 5-minute rounding, no wait.
+void _rankingSection(
+  StringBuffer out,
+  BusNetwork network,
+  TransferIndex index,
+  List<Pair> sample,
+  List<JourneyPlan> plans,
+  List<Pair> noDirect,
+  List<Pair> named,
+) {
+  out
+    ..writeln()
+    ..writeln(
+      'G2-4 ranking: score order (A) against E2-minute order (B), same stop, '
+      'limit 2.5, all journeys kept by the search:',
+    );
+  final gaps = <double>[];
+  final rows = <(double, String)>[];
+  var pairs = 0, multi = 0, differ = 0, inTop3 = 0, within5 = 0;
+  final rankOfFastest = <double>[];
+  for (final p in [...noDirect, ...named]) {
+    final all = searchOneTransfer(
+      index,
+      p.origin,
+      p.destination,
+      detourLimit: 2.5,
+      maxResults: 1 << 20,
+    ).journeys;
+    if (all.isEmpty) continue;
+    final isNamed = named.contains(p);
+    final est = [for (final j in all) _estimate(network, index, j)];
+    var fastest = 0;
+    for (var i = 1; i < all.length; i++) {
+      if ((est[i] ?? 1 << 30) < (est[fastest] ?? 1 << 30)) fastest = i;
+    }
+    final gap = (est[0] ?? 0) - (est[fastest] ?? 0);
+    if (isNamed) {
+      out.writeln(
+        '  ${p.label}: A first ${_describe(network, index, p, all[0], label: false)}',
+      );
+      if (fastest != 0) {
+        out.writeln(
+          '    B first ${_describe(network, index, p, all[fastest], label: false)}',
+        );
+      } else {
+        out.writeln('    B first: the same journey');
+      }
+      continue;
+    }
+    pairs++;
+    if (all.length > 1) multi++;
+    if (fastest == 0 || gap <= 0) continue;
+    differ++;
+    gaps.add(gap.toDouble());
+    rankOfFastest.add(fastest + 1.0);
+    if (fastest < 3) inTop3++;
+    final shownBest = [
+      for (var i = 0; i < math.min(3, all.length); i++) ?est[i],
+    ].fold<int?>(null, (m, e) => m == null || e < m ? e : m);
+    if (shownBest != null && shownBest - est[fastest]! <= 5) within5++;
+    rows.add((
+      gap.toDouble(),
+      '  ${p.label} gap $gap min, B rank in A ${fastest + 1}/${all.length}\n'
+          '    A ${_describe(network, index, p, all[0], label: false)}\n'
+          '    B ${_describe(network, index, p, all[fastest], label: false)}',
+    ));
+  }
+  out
+    ..writeln(
+      'sample: $pairs pairs with a journey ($multi with 2+); A and B pick a '
+      'different first journey in $differ',
+    )
+    ..writeln(
+      '  minutes A first - B first: p50/p90/max ${_p(gaps, 50, 0)}/'
+      '${_p(gaps, 90, 0)}/${_p(gaps, 100, 0)}; B first is among the 3 shown '
+      'in $inTop3 of $differ; a shown journey is within 5 min of B first in '
+      '$within5 of $differ; B first rank in A p50/max ${_p(rankOfFastest, 50, 0)}/'
+      '${_p(rankOfFastest, 100, 0)}',
+    )
+    ..writeln('largest 8 gaps:');
+  rows.sort((a, b) => b.$1.compareTo(a.$1));
+  for (final r in rows.take(8)) {
+    out.writeln(r.$2);
+  }
+
+  // Context: today's direct options, uncapped (planner unchanged).
+  final directGaps = <double>[];
+  var directPairs = 0, directDiffer = 0, directInTop3 = 0;
+  for (var i = 0; i < sample.length; i++) {
+    if (plans[i] is! DirectBusOptions) continue;
+    final all = planDirectBus(
+      network,
+      sample[i].origin,
+      sample[i].destination,
+      config: const PlannerConfig(maxOptions: 1 << 20),
+    );
+    if (all is! DirectBusOptions) continue;
+    directPairs++;
+    final est = [
+      for (final o in all.options)
+        estimateDirectJourney(o, network)?.partsMinutes,
+    ];
+    var fastest = 0;
+    for (var k = 1; k < est.length; k++) {
+      if ((est[k] ?? 1 << 30) < (est[fastest] ?? 1 << 30)) fastest = k;
+    }
+    final gap = (est[0] ?? 0) - (est[fastest] ?? 0);
+    if (fastest == 0 || gap <= 0) continue;
+    directDiffer++;
+    directGaps.add(gap.toDouble());
+    if (fastest < 3) directInTop3++;
+  }
+  out.writeln(
+    'context, direct options today: $directPairs pairs; the score and E2 '
+    'pick a different first option in $directDiffer; minutes gap p50/p90/max '
+    '${_p(directGaps, 50, 0)}/${_p(directGaps, 90, 0)}/${_p(directGaps, 100, 0)}; '
+    'E2 first among the 3 shown in $directInTop3 of $directDiffer',
+  );
+}
+
+/// Pre-E5 direct plans of the sample, pinned so Gate 3 can show they are
+/// unchanged (F3): the first option per pair.
+void _directSection(
+  StringBuffer out,
+  List<Pair> sample,
+  List<JourneyPlan> plans,
+) {
+  out
+    ..writeln()
+    ..writeln(
+      'Direct plans (pre-E5 baseline): pair, options, first option '
+      '(service board->alight stops score):',
+    );
+  for (var i = 0; i < sample.length; i++) {
+    final plan = plans[i];
+    if (plan is! DirectBusOptions) continue;
+    final o = plan.options.first;
+    out.writeln(
+      '${sample[i].label} ${plan.options.length} ${o.service.number} '
+      '${o.board.code}->${o.alight.code} ${o.stops} '
+      '${o.score.toStringAsFixed(1)}',
+    );
   }
 }
 

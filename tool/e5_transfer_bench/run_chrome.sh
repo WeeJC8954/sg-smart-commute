@@ -7,7 +7,7 @@ chrome=${1:?usage: run_chrome.sh <path to chrome>}
 dart=${DART:-dart}
 here=tool/e5_transfer_bench
 out=build/e5_transfer_bench
-data=test/fixtures/busrouter/snapshot-2026-11-06
+data=$out/snapshot  # fetch_snapshot.sh
 mkdir -p "$out"
 "$dart" compile js -O4 -o "$out/bench.js" "$here/web_main.dart" >/dev/null
 cp "$here/index.html" "$data/stops.min.json" "$data/services.min.json" "$out/"

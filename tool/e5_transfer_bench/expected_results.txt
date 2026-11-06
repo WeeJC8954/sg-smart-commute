@@ -33,15 +33,69 @@ Journeys gained by each step of the limit (same stop; best journey, first 6 by s
 
 Pairs found only with a 150 m transfer walk (limit 2.5), with the two stops of the walk:
 12 pairs (11 with both stops on the same road name); in 85 more pairs a walking transfer is the best journey
-  62071 Bartley Stn Exit A (Bartley Rd) -> 62079 Aft Bartley Stn Exit B (Bartley Rd), 57 m
-  04179 Aft Bras Basah Stn Exit A (Bras Basah Rd) -> 01012 Hotel Grand Pacific (Victoria St), 126 m
-  17161 Blk 455 (C'wealth Ave West) -> 17169 Blk 329 (C'wealth Ave West), 49 m
-  44251 Bt Panjang Stn/Blk 604 (Bt Panjang Rd) -> 44259 Blk 183 (Bt Panjang Rd), 72 m
-  46499 Opp Blk 402 (Woodlands Ave 3) -> 46491 Blk 402 (Woodlands Ave 3), 49 m
-  65439 Blk 220C (Punggol Way) -> 65431 Twin Waterfalls (Punggol Way), 87 m
-  65069 Blk 190C (Punggol Rd) -> 65061 Blk 298A (Punggol Rd), 59 m
-  68119 Aft Piccadilly Circus/TPE (Jln Kayu) -> 68111 Bef Piccadilly Circus/TPE (Jln Kayu), 89 m
+  62071 (Bartley Rd) -> 62079 (Bartley Rd), 57 m
+  04179 (Bras Basah Rd) -> 01012 (Victoria St), 126 m
+  17161 (C'wealth Ave West) -> 17169 (C'wealth Ave West), 49 m
+  44251 (Bt Panjang Rd) -> 44259 (Bt Panjang Rd), 72 m
+  46499 (Woodlands Ave 3) -> 46491 (Woodlands Ave 3), 49 m
+  65439 (Punggol Way) -> 65431 (Punggol Way), 87 m
+  65069 (Punggol Rd) -> 65061 (Punggol Rd), 59 m
+  68119 (Jln Kayu) -> 68111 (Jln Kayu), 89 m
 walking transfers among best journeys: 97, straight line p50/max 80/143 m
+
+G2-4 ranking: score order (A) against E2-minute order (B), same stop, limit 2.5, all journeys kept by the search:
+  Toa Payoh Int -> Yishun Int: A first 88 (12 stops) + 851e (10 stops), change at 54011, 10.8 km, detour 1.15, est. 48 min excl. wait (13.5 km/h straight line), walking 176 min
+    B first: the same journey
+  Bedok Int -> Punggol Int: A first 69 (12 stops) + 118 (12 stops), change at 75031, 9.3 km, detour 1.36, est. 49 min excl. wait (11.4 km/h straight line), walking 152 min
+    B first: the same journey
+  Yishun Int -> Changi Village Ter: A first 969 (9 stops) + 89e (4 stops), change at 65199, 17.4 km, detour 1.29, est. 76 min excl. wait (13.7 km/h straight line), walking 283 min
+    B first: the same journey
+  Sengkang Int -> Jurong East Int: A first 654 (9 stops) + 97e (16 stops), change at 03129, 18.5 km, detour 1.70, est. 111 min excl. wait (10.0 km/h straight line), walking 301 min
+    B first 109 (22 stops) + 506 (29 stops), change at 66009, 18.5 km, detour 1.42, est. 101 min excl. wait (11.0 km/h straight line), walking 301 min
+  Clementi Int -> Yishun Int: A first 184 (22 stops) + 171 (15 stops), change at 44221, 14.9 km, detour 1.40, est. 77 min excl. wait (11.6 km/h straight line), walking 243 min
+    B first: the same journey
+  Bt Batok Int -> Bedok Int: A first 506 (9 stops) + 26 (26 stops), change at 52081, 20.0 km, detour 1.19, est. 87 min excl. wait (13.8 km/h straight line), walking 325 min
+    B first: the same journey
+  Toa Payoh Int -> Changi Airport T2: A first 59 (23 stops) + 34 (4 stops), change at 76031, 15.4 km, detour 1.14, est. 73 min excl. wait (12.7 km/h straight line), walking 251 min
+    B first: the same journey
+  Woodlands Int -> Pasir Ris Int: A first 168 (5 stops) + 88 (8 stops), change at 65199, 19.4 km, detour 1.07, est. 68 min excl. wait (17.1 km/h straight line), walking 316 min
+    B first: the same journey
+  Punggol Int -> Kent Ridge Ter: A first 43e (13 stops) + 151 (41 stops), change at 71029, 19.1 km, detour 1.47, est. 105 min excl. wait (10.9 km/h straight line), walking 311 min
+    B first: the same journey
+  Changi Airport T2 -> Jurong East Int: A first 36 (19 stops) + 97e (21 stops), change at 02171, 27.2 km, detour 1.28, est. 121 min excl. wait (13.5 km/h straight line), walking 443 min
+    B first: the same journey
+  Changi Village Ter -> Boon Lay Int: A first 59 (45 stops) + 157 (52 stops), change at 52039, 31.9 km, detour 1.32, est. 160 min excl. wait (11.9 km/h straight line), walking 518 min
+    B first: the same journey
+  Pasir Ris Int -> Clementi Int: A first 518A (14 stops) + 105 (23 stops), change at 09219, 21.5 km, detour 1.27, est. 96 min excl. wait (13.4 km/h straight line), walking 350 min
+    B first: the same journey
+sample: 229 pairs with a journey (201 with 2+); A and B pick a different first journey in 46
+  minutes A first - B first: p50/p90/max 3/22/35; B first is among the 3 shown in 37 of 46; a shown journey is within 5 min of B first in 43 of 46; B first rank in A p50/max 2/9
+largest 8 gaps:
+  46429->78039 gap 35 min, B rank in A 2/11
+    A 648 (14 stops) + 661 (5 stops), change at 03129, 20.2 km, detour 1.87, est. 125 min excl. wait (9.7 km/h straight line), walking 328 min
+    B 969 (20 stops) + 109 (11 stops), change at 65199, 20.2 km, detour 1.21, est. 90 min excl. wait (13.4 km/h straight line), walking 328 min
+  58069->52419 gap 28 min, B rank in A 3/6
+    A 169 (19 stops) + 966 (14 stops), change at 46009, 14.1 km, detour 1.98, est. 106 min excl. wait (8.0 km/h straight line), walking 229 min
+    B 169 (28 stops) + 163 (17 stops), change at 56019, 14.1 km, detour 1.26, est. 78 min excl. wait (10.8 km/h straight line), walking 229 min
+  65329->81011 gap 25 min, B rank in A 4/15
+    A 678 (4 stops) + 100 (17 stops), change at 03222, 10.1 km, detour 2.25, est. 84 min excl. wait (7.2 km/h straight line), walking 164 min
+    B 50 (3 stops) + 62 (35 stops), change at 65529, 10.1 km, detour 1.33, est. 59 min excl. wait (10.3 km/h straight line), walking 164 min
+  77359->43391 gap 24 min, B rank in A 2/4
+    A 518A (21 stops) + 647 (17 stops), change at 02151, 22.6 km, detour 1.78, est. 137 min excl. wait (9.9 km/h straight line), walking 367 min
+    B 109 (33 stops) + 506 (19 stops), change at 66009, 22.6 km, detour 1.36, est. 113 min excl. wait (12.0 km/h straight line), walking 367 min
+  40059->22369 gap 22 min, B rank in A 4/4
+    A 960 (11 stops) + 502 (34 stops), change at 02049, 15.9 km, detour 1.80, est. 103 min excl. wait (9.3 km/h straight line), walking 259 min
+    B 48 (15 stops) + 185 (31 stops), change at 11379, 15.9 km, detour 1.27, est. 81 min excl. wait (11.8 km/h straight line), walking 259 min
+  66339->44479 gap 18 min, B rank in A 3/4
+    A 660 (8 stops) + 649 (10 stops), change at 03129, 13.6 km, detour 2.30, est. 100 min excl. wait (8.2 km/h straight line), walking 222 min
+    B 74 (19 stops) + 67 (29 stops), change at 41031, 13.6 km, detour 1.49, est. 82 min excl. wait (10.0 km/h straight line), walking 222 min
+  21599->74041 gap 18 min, B rank in A 3/3
+    A 178 (63 stops) + 168 (7 stops), change at 46009, 23.3 km, detour 1.89, est. 160 min excl. wait (8.7 km/h straight line), walking 380 min
+    B 30 (67 stops) + 168 (18 stops), change at 84009, 23.3 km, detour 1.61, est. 142 min excl. wait (9.9 km/h straight line), walking 380 min
+  99071->44531 gap 17 min, B rank in A 2/7
+    A 2 (65 stops) + 190 (30 stops), change at 10499, 26.0 km, detour 1.64, est. 163 min excl. wait (9.6 km/h straight line), walking 423 min
+    B 59 (18 stops) + 67 (79 stops), change at 74949, 26.0 km, detour 1.41, est. 146 min excl. wait (10.7 km/h straight line), walking 423 min
+context, direct options today: 199 pairs; the score and E2 pick a different first option in 7; minutes gap p50/p90/max 1/13/13; E2 first among the 3 shown in 7 of 7
 
 Named fixtures (best journey per limit):
 Toa Payoh Int -> Yishun Int: 10.8 km, direct plan no direct bus, walking the whole way 176 min
@@ -80,3 +134,204 @@ Changi Village Ter -> Boon Lay Int: 31.9 km, direct plan no direct bus, walking 
 Pasir Ris Int -> Clementi Int: 21.5 km, direct plan no direct bus, walking the whole way 350 min
   same stop, 2.0/2.5/3.0/none: 518A (14 stops) + 105 (23 stops), change at 09219, 21.5 km, detour 1.27, est. 96 min excl. wait (13.4 km/h straight line), walking 350 min
   150 m, 2.0/2.5/3.0/none: 518A (14 stops) + 105 (23 stops), change at 09219, 21.5 km, detour 1.27, est. 96 min excl. wait (13.4 km/h straight line), walking 350 min
+
+Direct plans (pre-E5 baseline): pair, options, first option (service board->alight stops score):
+21501->22151 3 251 22569->22159 6 23.0
+54399->47201 1 169 54009->46459 51 92.5
+43969->44649 2 973 43961->44639 8 18.0
+43268->43311 2 963 43268->43629 7 18.5
+97019->71101 1 5 97019->71091 25 43.5
+20011->10431 3 197 20019->10109 12 24.0
+59269->64571 1 965 59269->63009 19 40.5
+52069->28521 1 157 52369->28521 46 84.0
+59149->53011 3 852 59009->53019 22 42.0
+70261->21571 1 154 70379->21751 56 94.0
+01511->82179 2 33 01113->82181 17 34.5
+67671->13109 1 683 67529->08031 4 25.0
+21649->21509 1 246 21679->21501 10 22.0
+58029->05029 2 656 58391->03019 6 24.0
+59051->64241 2 854e 59059->63249 11 27.5
+05199->67719 1 80 05023->64021 40 70.0
+10101->98019 1 5 10009->98281 49 90.5
+03041->67131 1 654 03071->67139 4 15.0
+83331->52141 2 26 83059->52009 25 58.5
+65059->75619 3 27 65061->75359 2 15.0
+67659->65141 3 104 67789->65571 10 32.0
+82149->46641 1 966 83291->46009 19 47.5
+77201->59721 1 39 77231->59031 15 39.5
+72011->51119 1 93 72011->51119 24 40.0
+40039->28079 1 143 40129->28439 65 109.5
+01511->44179 1 647 02161->43839 20 49.0
+77281->50061 2 518A 77289->50069 17 29.5
+74929->14281 2 5 75069->10009 36 66.0
+76259->84249 1 17 76249->84259 13 30.5
+43111->22241 3 974 44029->22511 17 42.5
+09011->58041 1 167 09011->58339 46 77.0
+54251->62049 1 45 54259->62229 16 30.0
+17119->01511 1 61 12119->01113 43 75.5
+22499->44119 3 974 22499->44441 10 22.0
+28409->53281 1 157 28409->52031 44 78.0
+46271->76081 2 168 46009->76149 14 38.0
+98089->13191 3 518A 98019->09047 7 19.5
+64309->64611 1 672 64241->64461 8 21.0
+53399->76291 1 59 53009->76081 32 63.0
+44721->21341 1 187 44249->22491 31 67.5
+46279->75411 2 168 46631->75289 9 30.5
+44259->45249 1 974 44259->44941 9 21.5
+71069->77191 1 58 70071->77199 21 43.5
+60119->12129 1 61 60029->11271 40 72.0
+71069->42089 1 151 71029->42061 28 54.0
+42159->70131 3 151 42141->70131 23 46.5
+06029->72071 1 5 06071->72039 20 50.0
+46069->57079 1 856 46069->57119 29 58.5
+13071->41049 2 174 09059->41041 17 37.5
+96039->74951 3 118 96319->75059 5 23.5
+64111->84579 2 854 64119->84011 25 46.5
+44381->06129 1 75 43139->06129 39 69.5
+67319->70371 2 43e 67411->70269 10 30.0
+59569->65611 3 39 59049->65401 8 27.0
+18191->70061 1 100 11049->70061 42 71.0
+84609->42171 1 67 84209->42111 59 99.5
+45491->11261 1 75 44989->11269 34 61.0
+11221->66051 2 153 11091->62141 24 52.0
+20019->44629 1 188 17059->44469 26 58.0
+03501->59729 1 857 02051->59031 27 55.5
+05419->21489 1 30 05649->21171 46 88.0
+13049->40351 2 174e 09131->43531 11 30.5
+43501->17331 2 963 43629->20019 7 31.5
+44391->40499 3 649 44299->43759 7 24.5
+22319->27441 3 258M 22491->27371 3 18.5
+82221->11091 2 7 82049->11221 34 60.0
+83149->01139 3 2 83049->01059 17 30.5
+81139->12151 1 7 81131->12021 37 58.5
+52131->59439 1 851 51031->59051 23 54.5
+41141->43439 2 852 41169->43171 23 45.5
+21591->46971 1 178 21199->46009 63 113.5
+84249->52141 3 28 84219->52279 34 73.0
+65201->80251 1 62 65201->80089 40 67.0
+61119->11081 2 93 66089->11089 19 43.5
+76449->06161 3 12e 96129->05059 19 51.5
+05631->46269 3 648 03222->46441 18 42.0
+59251->76391 1 969 59149->75589 11 40.5
+43339->40429 1 870 43329->40391 4 15.0
+77009->52529 1 88 77009->52361 46 81.0
+08031->78141 3 518 08057->98091 24 50.0
+10419->11211 3 123 10101->11209 12 27.0
+10149->08121 3 16 06071->09038 7 13.5
+21729->42259 3 174e 21421->42159 12 32.0
+02141->68119 1 679 02149->67749 16 38.0
+65801->46859 1 965 67449->46769 22 52.0
+42089->18089 1 74 42061->18111 15 41.5
+54371->11311 2 156 54531->11319 29 56.5
+50159->85031 1 31 52329->85101 36 74.0
+64389->67129 3 82 64389->65041 6 18.0
+59761->54191 1 860 59761->55119 24 43.0
+92109->65409 2 43e 92241->65401 27 48.5
+76339->55289 1 39 76071->55281 31 54.5
+77221->03059 2 518A 77239->03519 31 64.5
+50301->52531 2 56 50011->52369 10 32.0
+94041->10291 1 14 94049->10111 45 81.5
+64031->57129 1 965 63009->59271 19 45.5
+05239->63309 2 80 05241->63021 32 64.0
+59521->59331 3 169 59529->59339 5 10.5
+52201->72061 1 59 52179->72039 11 25.5
+10131->44041 2 961 10131->44041 39 62.5
+52301->81219 3 26 52329->81031 13 33.5
+81211->83059 3 2 81051->83062 6 21.0
+94099->54309 3 25 94059->54309 36 67.0
+82181->14259 2 16 92171->10009 30 66.0
+53029->70071 1 93 51131->71071 20 46.0
+80309->75269 3 23 60061->76051 9 35.5
+54331->10079 2 851 54019->10151 34 74.0
+67431->77361 1 109 67599->77049 10 24.0
+53311->60059 3 130 53019->60099 16 40.0
+63311->67441 3 43 64101->67449 9 20.5
+83049->59111 1 854 83049->59009 45 82.5
+64231->14051 2 153 63069->10009 42 84.0
+20169->18011 1 51 20269->18011 32 57.0
+07589->43731 1 61 01139->43181 55 93.5
+58451->04149 1 656 58411->04179 8 30.0
+84111->70409 3 45 84191->71089 8 29.0
+28701->40301 3 506 42311->43531 7 28.5
+78071->66051 3 81 77051->66371 20 41.0
+71061->81219 3 43e 71029->81101 5 22.5
+01113->66601 3 677 02149->67309 16 48.0
+49109->42131 3 170 45129->42019 33 67.5
+53329->77039 1 88 53161->77009 38 62.0
+25641->26019 1 247 25641->26019 11 20.5
+64409->92109 1 43e 67731->92249 13 30.5
+43349->18021 1 97 43453->18109 19 42.5
+77231->63219 1 109 77231->63219 18 31.0
+61009->92229 2 853M 61029->92071 25 49.5
+67059->84331 2 854e 67051->84009 18 38.0
+10459->20259 1 51 10271->20261 42 71.0
+63399->46229 1 161 64411->46229 12 30.0
+18041->28329 2 97e 18041->28301 7 25.5
+56021->53439 1 262 56289->54091 7 28.5
+57111->46179 1 856 57111->46139 25 43.5
+43639->40499 1 871 42191->40381 13 31.5
+64209->75081 1 72 64201->75121 20 45.0
+28671->12069 1 52 28651->12061 12 30.0
+13179->03059 3 970 13062->03059 10 27.0
+43311->01619 2 106 42319->02049 32 57.0
+53111->40099 2 132 53019->40239 9 20.5
+42219->80159 3 174e 42179->04167 12 42.0
+59231->47111 2 169 59251->47809 13 33.5
+01121->14491 2 57 01559->14161 18 39.0
+84681->82131 3 10 94059->92129 14 40.0
+53421->28361 1 157 52039->28461 41 79.5
+84191->85101 3 24 84041->85101 4 12.0
+40339->18281 2 97e 43769->18049 9 26.5
+96319->75351 1 118 96319->75351 16 28.0
+59049->14201 1 855 59049->10139 40 71.0
+10061->55251 1 855 10361->55251 39 72.5
+43699->05651 1 647 43699->03222 5 12.5
+50191->40069 3 186 50189->51099 4 21.0
+59449->10171 2 851 59049->10171 49 87.5
+43209->84619 1 67 43019->84201 55 106.5
+17299->70361 1 151 16009->70101 33 57.5
+70039->54009 1 135 70031->54009 16 28.0
+82151->74941 3 28 82061->74941 14 33.0
+14109->91059 2 30 14109->91081 4 15.0
+54461->64121 3 72 55329->66471 9 26.5
+84619->76469 2 59 84611->76241 13 24.5
+52499->40101 2 131 52099->50351 14 26.0
+67671->76369 3 969 65199->75589 1 21.5
+01419->04251 3 961 01239->04249 6 15.0
+46241->59241 3 965 46269->59099 14 42.0
+41031->44791 3 170 41031->44041 26 47.0
+82221->54469 1 13 82049->54051 39 64.5
+43279->01139 3 170 43069->01109 31 55.5
+54211->20081 1 52 53341->28009 36 77.0
+76409->52389 3 129 76149->52069 13 35.5
+43311->28359 3 66 43149->28299 7 28.5
+72061->07361 2 21 72069->07329 18 34.0
+65281->62139 3 82 65079->66351 19 40.5
+59709->47649 2 965 59079->47609 8 29.0
+45439->49141 1 925 45159->49149 14 28.0
+40121->84429 1 67 40039->84521 32 60.0
+54621->57049 1 169 54219->57041 15 30.5
+34051->30081 1 975 34059->30081 28 46.0
+40221->21469 1 154 40091->21171 35 62.5
+03223->18021 3 667 03218->18119 1 16.5
+76411->04339 3 12e 76109->04149 17 40.5
+52439->11359 1 105 52361->11181 27 52.5
+16209->28321 2 188 16201->28639 23 42.5
+52149->67199 3 156 51051->67331 26 62.0
+03239->30129 1 684 03217->30129 6 12.0
+80259->59379 1 853M 80089->59051 42 76.0
+54491->84311 1 45 54589->84311 25 52.5
+77021->74951 3 46 77381->75069 12 27.0
+54301->40059 1 132 54309->40199 32 62.0
+40369->51091 1 985 43471->51091 14 33.0
+05259->40449 3 674 03217->40449 7 25.5
+96071->92191 3 31 96119->92079 18 38.0
+80309->92119 3 32 80051->92111 10 26.0
+59301->46209 1 856 59111->46129 27 52.5
+51139->64349 2 74 53011->64341 20 36.0
+59109->18181 1 855 59009->11049 40 84.0
+53359->02029 3 166 53079->04167 23 49.5
+17379->53519 1 52 17189->53339 25 49.5
+66109->75121 1 72 64491->75121 31 60.5
+53141->63359 1 74 53141->63371 16 33.0
+82081->92141 3 40 82089->92141 8 15.0

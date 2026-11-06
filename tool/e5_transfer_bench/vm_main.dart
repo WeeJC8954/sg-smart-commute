@@ -6,7 +6,7 @@ import 'dart:io';
 import 'bench.dart';
 
 void main() {
-  const data = 'test/fixtures/busrouter/snapshot-2026-11-06';
+  const data = 'build/e5_transfer_bench/snapshot'; // fetch_snapshot.sh
   stdout.write(
     runBenchmark(
       File('$data/stops.min.json').readAsStringSync(),
