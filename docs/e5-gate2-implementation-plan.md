@@ -1,9 +1,10 @@
 # E5 Gate 2: Implementation Plan (one-transfer Bus → Bus)
 
-**Status:** Gate 2 plan-only deliverable, 2026-11-06, for owner review. **No E5 production code exists or is
-authorized**; Gate 3 starts only after the owner approves this plan and rules on §12. This PR adds this plan, a
-development-only benchmark (`tool/e5_transfer_bench/`, owner ruling F5) and its fixed input
-(`test/fixtures/busrouter/snapshot-2026-11-06/`). Nothing under `lib/`, `web/`, `android/` or `pubspec.*` changes.
+**Status:** Gate 2 plan-only deliverable, 2026-11-06. **No E5 production code exists or is authorized.** The owner
+ruled on the first version on 2026-11-06 (§12): the direction is approved in principle; final approval (G2-0) waits
+on the ranking analysis (§2.7) and the snapshot licensing (§2.8), both now done. This PR adds this plan and a
+development-only benchmark (`tool/e5_transfer_bench/`, owner ruling F5). The benchmark downloads its fixed input
+instead of committing it (§2.8). Nothing under `lib/`, `web/`, `android/` or `pubspec.*` changes.
 
 **Governing documents:** `docs/e5-gate0-discovery-report.md` (Gate 0; the owner's rulings are its §13),
 `docs/sg-smart-commute-next-phase-master-plan.md` (gates, §10 testing), `CLAUDE.md`, `docs/assumptions.md`.
@@ -33,10 +34,11 @@ fixed detour limit) but do not change it materially.
 
 - **Tool:** `tool/e5_transfer_bench/` (how to run and check it: its `README.md`). The deterministic results it must
   reproduce are in `tool/e5_transfer_bench/expected_results.txt`.
-- **Fixed input:** busrouter `stops.min.json` and `services.min.json` fetched 2026-11-06 12:27 UTC, unmodified, in
-  `test/fixtures/busrouter/snapshot-2026-11-06/` with sizes and SHA-256 (`PROVENANCE.md`). 5,209 stops, 604 services,
+- **Fixed input:** busrouter `stops.min.json` and `services.min.json`, byte-identical to `data.busrouter.sg` on
+  2026-11-06 12:27 UTC and to `cheeaun/sgbusdata` at commit `a60fe9e` (2026-11-01). `fetch_snapshot.sh` downloads
+  them from that commit into the git-ignored `build/` and checks their SHA-256 (README). 5,209 stops, 604 services,
   801 directions, 26,957 (stop, direction, position) entries: the same counts as Gate 0's fetch.
-- **App code:** the app's own parser, `planDirectBus` and E2 `estimateBusMinutes`. The transfer search is a prototype
+- **App code:** the app's own parser, `planDirectBus` and E2 `estimateBusMinutes` / `estimateDirectJourney`. The transfer search is a prototype
   of Gate 0 §6 with the F1 rules (`transfer_search.dart`), not the implementation.
 - **Pairs:**
   - a seeded sample: seed 20261106, 500 stop pairs at least 1.5 km apart, each end moved 0.0004° in latitude and
@@ -99,18 +101,18 @@ Same-stop transfers; best journey per pair:
 
 ### 2.4 F5: performance in Chrome (dart2js)
 
-Five Chrome runs and five VM runs on 2026-11-06 (ranges across runs; prototype search, same stop, limit 2.5, over
+Six Chrome runs and six VM runs on 2026-11-06 (ranges across runs; prototype search, same stop, limit 2.5, over
 the 301 no-direct pairs, 903 timed queries per run):
 
 | Measure | Chrome 156 (dart2js -O4) | Dart VM | §10.4 target |
 |---|---|---|---|
 | One-transfer search, warm, median | 1.7–2.8 ms | 1.9–2.2 ms | |
-| One-transfer search, warm, p95 | **3.8–5.5 ms** | 3.4–3.8 ms | < 50 ms Chrome, < 20 ms VM |
-| One-transfer search, warm, max | **10.3–16.5 ms** | 5.0–6.4 ms | < 150 ms Chrome |
+| One-transfer search, warm, p95 | **3.8–5.6 ms** | 3.4–3.8 ms | < 50 ms Chrome, < 20 ms VM |
+| One-transfer search, warm, max | **10.3–17.6 ms** | 4.8–6.4 ms | < 150 ms Chrome |
 | First (cold) search | 9.5–10.4 ms | 20.9–23.9 ms | |
 | Transfer index build, once per network | **8.2–12.6 ms** | 22.5–27.2 ms | < 100 ms Chrome |
 | `planDirectBus` (today's planner), warm, p95 | 5.8–6.9 ms | 4.5–4.9 ms | |
-| Parse (`jsonDecode` + parser), cold | 15.7–20.8 ms | 39.9–47.3 ms | |
+| Parse (`jsonDecode` + parser), cold | 15.7–20.8 ms | 39.9–47.4 ms | |
 
 - Chrome rounds `performance.now()` to 0.1 ms, so these are 0.1 ms resolution.
 - **Every target holds with a wide margin [C]:** 8–9× in Chrome, 5× on the VM. A journey with no direct bus costs today's planner plus the
@@ -126,12 +128,7 @@ Under F3 option 1, transfer journeys are ranked only against each other, so a fi
 and is dropped (Gate 0 §13). The score is the direct planner's, extended:
 `walk to stop + 1.5 × stops on bus 1 + 1.5 × stops on bus 2 + walk from stop` (minutes and stops; no wait).
 
-- **[C]** In 38 of the 201 sample pairs with two or more journeys shown (19%), a lower-ranked journey has a shorter E2
-  estimate: by a median of 3 min and at most 35 min.
-- **Recommendation [P]: keep the stop-count score** (G2-4). This is the same rule as the direct planner, and E2 stays
-  display-only, as its assumptions row requires ("never in the planner score"). Each option shows its own estimate,
-  so a rider can compare. The alternative is to rank transfer journeys by E2 minutes. That would make E2 part of
-  planning for transfers only, against the E2 rule, with an estimate calibrated on off-peak first and last trips.
+G2-4 [D, provisional]: keep it for now. The comparison the owner asked for is §2.7.
 
 ### 2.6 Other observations
 
@@ -139,8 +136,99 @@ and is dropped (Gate 0 §13). The score is the direct planner's, extended:
   operating hours, so neither the direct planner nor E5 can tell that such a bus is not running now. This is an
   existing limit of the direct planner, not new in E5. The card's wording does not claim the bus runs now (§4.6).
 - **[C]** Coverage criterion of Gate 0 §10.3 ("at least 45% of no-direct pairs") is exceeded: 76.1%. The Gate 3
-  criterion becomes exact (T2.14): the implementation serves exactly the pairs the benchmark does on the pinned input,
+  criterion becomes exact (T8): the implementation serves exactly the pairs the benchmark does on the pinned input,
   or each difference is explained.
+
+### 2.7 G2-4: stop-count ranking against E2 minutes
+
+The owner's request: compare the two orders on the pinned fixtures and representative journeys, look at the largest
+differences, and say whether the stop-count order is reasonable enough for the first release. E2 is used here only to
+measure; nothing in the planner changes. Method (`bench.dart`, `_rankingSection`):
+- the search keeps every journey (same stop, limit 2.5, no cap);
+- **A** is the score order, as planned;
+- **B** is the order by E2 minutes: the walks plus each ride rounded up, before E2's 5-minute rounding, no wait.
+
+| | Transfer journeys (sample: 229 pairs with a journey) | Direct options today (sample: 199 pairs, planner uncapped) |
+|---|---|---|
+| A and B pick a different first journey | **46 (20%)** | 7 (3.5%) |
+| A first slower than B first: p50 / p90 / max | 3 / 22 / **35 min** | 1 / 13 / 13 min |
+| B first among the 3 shown under A | 37 of 46 | 7 of 7 |
+| A shown journey within 5 min of B first | 43 of 46 | |
+| B first's rank under A: p50 / max | 2 / 9 | |
+
+- **Named fixtures [C].** 11 of the 12 rank the same first journey under A and B. Sengkang Int → Jurong East Int
+  differs: A's Bus 654 (9 stops) then 97e (16 stops), 111 min, against B's Bus 109 (22 stops) then 506 (29 stops),
+  101 min.
+- **The largest gaps [C].** All 8 largest come from a score-first journey with a long detour (1.78–2.30) on services
+  that make few stops over long distances.
+  - Example: 46429 → 78039. A takes Bus 648 (14 stops) then 661 (5 stops), detour 1.87, 125 min. B takes Bus 969
+    (20 stops) then 109 (11 stops), detour 1.21, 90 min. B is A's 2nd of 11.
+  - The score counts stops, not distance, so a 14-stop express ride "costs" less than a 20-stop ride that covers
+    the same ground faster.
+- **City Direct services [C].** busrouter's raw `bus-services.json` marks 35 services `CITYDIRECT`, for example 647,
+  648, 649, 660, 661 and 678. One of them is on A's first journey in **15 of the 46 differing pairs, and in 9 of the
+  16 pairs with a gap of 10 min or more**, but on B's first in only 4. These services carry few stops between towns and
+  the city. [A] They run only at peak hours in one direction. busrouter has no hours, so the app cannot tell, and the
+  E2 estimate, fitted off-peak, is least reliable for them.
+- **The direct planner shows the same weakness, much smaller [C].** Direct options for one pair share both ends, so
+  their distances are similar. Transfer journeys allow detours up to 2.5 on two rides, so stops and distance diverge
+  more.
+
+**Assessment [P]: reasonable enough for the first release, with its limit disclosed** (G2-4):
+- Every journey shown is valid.
+- Each one shows its own estimate, so the faster option is visible.
+- In 43 of 46 differing pairs, a shown journey is within 5 min of B's first. In 3 of 229 pairs (1.3%), no shown
+  journey comes within 5 min of it. Those misses are 12, 22 and 25 min, and in each, B's first is A's 4th.
+- "Suggested" is the label the direct options already use for the first option by score.
+
+The alternative needs explicit approval because it uses E2 for ordering:
+- order the 3 shown transfer journeys by E2 minutes, still choosing them by score;
+- this would fix 37 of the 46 differing pairs without changing which journeys are found or the direct planner.
+
+Two further options are not recommended for E5:
+- **Excluding City Direct services:** the type is only in a further busrouter file, which is new data under F7, and
+  the cut would apply to direct buses too.
+- **Adding ride distance to the score:** a new routing metric, close to E2.
+
+### 2.8 G2-8: redistribution rights of the busrouter snapshot
+
+**Finding [C]: redistribution rights cannot be established. The snapshot was removed from the PR (§12).** Sources,
+read 2026-11-06:
+
+| Source | What it says |
+|---|---|
+| `cheeaun/busrouter-sg` README, "Data" | Bus stops, services and routes are "mostly _scraped_ from https://www.lta.gov.sg/, which means they are copyrighted by the Land Transport Authority" (link to LTA's website terms of use) |
+| `cheeaun/busrouter-sg` README, "License" | "Data © LTA © OneMap © OSM contributors. Everything else: MIT". GitHub reports no licence file for the repository |
+| `cheeaun/sgbusdata` (the data repository) | No licence (GitHub `license: null`); its README states no terms for the data |
+| sgbusdata `scripts/generate-data.js` | `stops.min.json`: code, position and name from lta.gov.sg `bus_stops.xml`, names corrected from SimplyGo's e-guide, road name from DataMall `BusStops`. `services.min.json`: services and stop lists from lta.gov.sg `bus_services.xml` and per-service route files, with missing routes patched from OneMap and Citymapper |
+| LTA website terms of use (updated 3 December 2021), "Restrictions on use of content" | "the Contents of this website shall not be reproduced, republished, uploaded, posted, transmitted, communicated or otherwise distributed in any way, without the prior written permission of LTA". No exception is stated for personal or non-commercial use |
+| LTA DataMall API terms of service | Datasets served through the API are under the Singapore Open Data Licence. This covers only the road-name field here, and only data obtained through DataMall |
+
+- **Conclusion [C].** Most of each file comes from lta.gov.sg, whose terms require LTA's prior written permission to
+  redistribute. Neither busrouter nor sgbusdata grants a licence. Attribution alone does not grant one. So committing
+  the files to this public repository is not shown to be permitted.
+- **Compliant alternative (done in this PR).** `fetch_snapshot.sh` downloads the two files from `cheeaun/sgbusdata`
+  at the pinned commit `a60fe9e` into git-ignored `build/`, and stops unless both SHA-256 hashes match. They are
+  byte-identical to the measured snapshot, so every figure in §2 still holds, and the 2026-11-06 VM and Chrome runs
+  from the fetched files reproduced `expected_results.txt`. Reproducibility lasts as long as GitHub serves that
+  commit. The project republishes nothing.
+- **Limits of the alternative [A].**
+  - If sgbusdata's history is ever rewritten or removed, the input is lost. A dated local copy kept outside the
+    repository by the owner would be the fallback.
+  - Asking LTA for written permission is the only route to a committed snapshot.
+- **`expected_results.txt` [A].** It now holds only derived facts: counts, stop codes, service numbers, DataMall road
+  names, and labels written for the named pairs. It holds no lta.gov.sg stop names. I assess that such short factual
+  excerpts are not a reproduction of the site's contents. This is not legal advice.
+- **Gate 3 tests.** Because the input is not in the repository, CI tests use synthetic networks only (§6). Checks on
+  real data (named fixtures, coverage, the pre-E5 direct baseline) run in the benchmark, which pins the direct plans of
+  all 199 direct pairs, and are logged.
+- **Wider findings for the owner [C].** These were not changed in this PR:
+  - The snapshot's commit `b1715b6` is still in this PR's branch history, so a merge commit would bring it into
+    `main`'s history (§12, G2-10).
+  - `test/fixtures/busrouter/` already holds busrouter subsets committed since M3 and P2-M2: `stops.subset.json`,
+    `services.subset.json` and `geometry/*.json`, with the same unresolved rights (G2-11).
+  - The app's runtime fetch from `data.busrouter.sg` is not redistribution by this project. `docs/data-sources.md`
+    records these findings.
 
 ## 3. Scope
 
@@ -257,7 +345,7 @@ A new `_Plan` case, `OneTransferOptions`. It reuses `_Option`'s layout: summary,
 | Where | Text |
 |---|---|
 | Title above the options | `No direct bus` (the existing title) |
-| Line under it | `These routes change buses once, at the same stop.` |
+| Line under it | `These routes change buses once, at the same stop. Times exclude waiting for both buses.` |
 | Option summary | `Bus 88, then Bus 851e` (each service in its badge) |
 | Trip line (when both rides have an estimate) | `About 50 min · excl. waiting for both buses` |
 | Trip semantics | `Estimated trip, about 50 minutes, not including waiting for either bus` |
@@ -267,7 +355,7 @@ A new `_Plan` case, `OneTransferOptions`. It reuses `_Option`'s layout: summary,
 | Step 4 | `Bus 851e toward <towardName> · 10 stops` + ride detail |
 | Step 5 | `Alight at 59009 — Yishun Int` |
 | Step 6 | `~2 min walk (est.) to destination` |
-| Under the options, instead of the arrivals footer | `Live arrivals are shown for direct buses only.` |
+| Under the options, instead of the arrivals footer | `Live arrival times are not available for these transfer suggestions.` (owner's wording, G2-7) |
 | No direct bus and no one-change route (F6) | Title `No bus route found`; text `No single bus, and no two buses changing at the same stop, connect stops within 800 m of both ends. See the MRT option below.` |
 
 - **Total.** The total is the walks plus each ride rounded up as E2 rounds, then rounded up to a multiple of 5 (E2's
@@ -348,8 +436,8 @@ and appearance features.
 - T1.4 a ride of 0 stops is rejected;
 - T1.5 walks attached to the wrong stop are rejected.
 
-**T2. Planner**: synthetic networks (`transfer_planner_test.dart`, pure Dart, also run on Chrome in CI), plus the
-snapshot (`transfer_planner_snapshot_test.dart`, VM only):
+**T2. Planner**: synthetic networks only (`transfer_planner_test.dart`, pure Dart, also run on Chrome in CI). Real
+busrouter data is not in the repository (§2.8), so the real-data checks are T8:
 - T2.1 a same-stop transfer is found, with its legs, score and detour;
 - T2.2 forward only: bus 2 passes the change stop after the destination stop → none;
 - T2.3 only the direction that serves the order is used;
@@ -363,14 +451,14 @@ snapshot (`transfer_planner_snapshot_test.dart`, VM only):
 - T2.11 at most 3 journeys;
 - T2.12 no journey → `NoDirectBus(800)`;
 - T2.13 deterministic: the same input twice gives equal output, and the order of the services map does not matter;
-- T2.14 snapshot: the 12 named fixtures give the journeys in `expected_results.txt`; the seeded sample serves
-  exactly 229 of 301;
-- T2.15 snapshot: every journey obeys T1 and the F1 rules (a property check over the sample).
+- T2.14 property check over a seeded synthetic network (generated in the test, a few hundred stops and services):
+  every journey obeys T1 and the F1 rules.
 
 **T3. Providers** (`journey_providers_test.dart`):
 - T3.1 a direct pair returns `planDirectBus`'s result, and the transfer index is never built (spy repository);
-- T3.2 regression: 50 pinned direct pairs from the snapshot give, through the provider, plans equal to
-  `planDirectBus` (options, order, scores) with no index built;
+- T3.2 regression: on the T2.14 synthetic network, at least 50 pairs with a direct bus give, through the provider,
+  plans equal to `planDirectBus` (options, order, scores), with no index built. On real data, T8's direct baseline
+  covers the same;
 - T3.3 a no-direct pair → `OneTransferOptions`; the index is built once across two journeys;
 - T3.4 neither → `NoDirectBus`;
 - T3.5 walk-only still never loads bus data;
@@ -404,8 +492,12 @@ snapshot (`transfer_planner_snapshot_test.dart`, VM only):
 **T7. Integration** (Android and Web, fakes only): a no-direct journey shows the transfer card, then the map with two
 rides.
 
-**T8. Benchmark:** `tool/e5_transfer_bench` runs `planOneTransfer`. Its same-stop rows equal `expected_results.txt`
-(or each difference is explained), and its timings are recorded against §2.4.
+**T8. Benchmark (real data, development run, logged; not CI):** after `fetch_snapshot.sh`, `tool/e5_transfer_bench`
+runs `planOneTransfer`. Pass conditions:
+- the same-stop rows and the named fixtures equal `expected_results.txt`, so the sample serves exactly 229 of 301;
+- the "Direct plans (pre-E5 baseline)" section, all 199 direct pairs, is unchanged;
+- each difference is explained;
+- the timings are recorded against §2.4.
 
 ## 7. Mutation checks (each a throwaway `mut/e5-<id>` branch from a GREEN head, pushed alone, CI run recorded)
 
@@ -437,7 +529,7 @@ rides.
 
 1. `test(e5): leg invariants` (RED) → `feat(e5): ordered journey legs` (GREEN)
 2. `test(e5): one-transfer planner rules` (RED) → `feat(e5): one-transfer planner` (GREEN)
-3. `test(e5): snapshot fixtures and benchmark parity` → GREEN
+3. `test(e5): synthetic-network properties and direct regression` → GREEN; `tool(e5): benchmark runs the real planner`
 4. `test(e5): transfers only without a direct bus` (RED) → `feat(e5): plan transfers when no direct bus` (GREEN)
 5. `test(e5): transfer journey card` (RED) → `feat(e5): leg-list journey card` (GREEN)
 6. `test(e5): two-ride map` (RED) → `feat(e5): map a transfer journey` (GREEN)
@@ -447,34 +539,45 @@ rides.
 ## 10. Rollback
 
 E5 is merged as one merge commit. Rollback is `git revert -m 1 <merge>` through a PR. Nothing is stored on the device,
-and there is no data migration, new host or new dependency, so nothing else needs undoing. The snapshot fixture and
-the benchmark can stay.
+and there is no data migration, new host or new dependency, so nothing else needs undoing. The benchmark can
+stay.
 
 ## 11. Risks and stop conditions
 
 | Risk | Tag | Mitigation or stop |
 |---|---|---|
-| A direct-bus result changes | C (F3 requires none) | T3.2 and T6.2. **Stop** if any direct pair differs |
+| A direct-bus result changes | C (F3 requires none) | T3.2, T6.2 and T8's direct baseline. **Stop** if any direct pair differs |
 | The card grows too complex at 2× text | A | T5.7. Stop and report if the leg list cannot fit without dropping information |
 | Phone performance is far below the PC | A | Targets kept with an 8–9× margin in Chrome. Measure on Android if a device is available; otherwise Not run |
-| Express or limited services shown when not running | C (existing limit) | Wording claims no operating time; recorded in `assumptions.md` |
-| busrouter data drifts | C | A dated snapshot; the live check uses live data; the parser's validation is unchanged |
+| Express, limited or City Direct services shown when not running, and ranked first by stop count (§2.7) | C (existing limit, larger for transfers) | Wording claims no operating time; each option shows its estimate; recorded in `assumptions.md` |
+| busrouter data drifts | C | The benchmark input is pinned by commit and hash; the live check uses live data; the parser's validation is unchanged |
 | New findings change the design | A | Stop and report (a Gate 1 report then, G0-1) |
 
-## 12. Decisions requiring owner approval
+## 12. Decisions
+
+### 12.1 Owner rulings of 2026-11-06 [D]
+
+| ID | Ruling |
+|---|---|
+| G2-1 | Detour limit **2.5** |
+| G2-2 | **Same-stop** transfers only for E5 |
+| G2-3 | Keep the §10.4 targets; add a cold first search under 100 ms in Chrome |
+| G2-4 | **Provisional:** keep the stop-count ranking for now; compare it with E2 order on the pinned and representative fixtures; no change to the direct planner, and E2 is not a routing metric without explicit approval. Done in §2.7 |
+| G2-5 | Up to three transfer journeys |
+| G2-6 | No live-arrival requests for transfer journeys in E5 |
+| G2-7 | UI, map, accessibility and failure handling approved. Live-arrival line: "Live arrival times are not available for these transfer suggestions." The card must say clearly that durations exclude waiting for both buses (both in §4.6) |
+| G2-8 | **Licensing check required** for the committed snapshot. Done in §2.8: not established, snapshot removed, fetch-and-verify instead |
+| G2-9 | Benchmark code accepted as a required feasibility artifact, kept apart from production code. The snapshot may stay only with confirmed rights; it was removed |
+| G2-0 | **Pending:** approved in principle; final approval after the two findings, before PR #90 is merged |
+
+### 12.2 Remaining decisions for the final Gate 2 approval
 
 | ID | Decision | Recommendation |
 |---|---|---|
-| G2-0 | Approve this plan as the Gate 3 scope | Approve |
-| G2-1 | Final detour limit (F1) | **2.5** (§2.2) |
-| G2-2 | Transfer walk for the first release (F2) | **Same stop only** (§2.3) |
-| G2-3 | Performance targets (F5) | Keep §10.4 unchanged, plus a cold first search under 100 ms in Chrome (§2.4) |
-| G2-4 | Ranking among transfer journeys | The stop-count score, as the direct planner; E2 stays display-only (§2.5) |
-| G2-5 | How many transfer journeys | Up to 3, with the direct options' Select pattern and map sync |
-| G2-6 | Live arrivals for a transfer journey's first boarding stop | Not in E5: no arrival request for transfer journeys; the card says so (§4.5) |
-| G2-7 | Wording (F6) and the UI and accessibility requirements (F8) | Approve §4.6–§4.9 |
-| G2-8 | Keep the benchmark (`tool/e5_transfer_bench/`) and the full busrouter snapshot (574 KB, data © LTA via busrouter, in this public repository) | Keep both: they make the measurements repeatable. Otherwise the snapshot is fetched per run and checked by hash, and repeatability ends when busrouter updates |
-| G2-9 | This PR carries the benchmark code and snapshot besides the plan, so it is not strictly docs-only | Accept as F5's required benchmark; or split it into its own PR |
+| G2-0 | Final approval of this plan as the Gate 3 scope | Approve |
+| G2-4 | Ranking for the first release (§2.7) | **Keep the stop-count order** as planned: valid journeys, each with its own estimate, and a shown journey within 5 min of the E2-fastest in 98.7% of pairs. The alternative, ordering the 3 shown by E2 minutes, fixes 37 of 46 differing pairs, but makes E2 an ordering metric (explicit approval needed) |
+| G2-10 | The removed snapshot is still in this PR's history (commit `b1715b6`, already public on the PR branch). A merge commit would carry it into `main`'s history | Close PR #90 unmerged and open a new PR with the same final tree, from a new branch without that commit (no rewrite of a shared branch); then delete the old branch, which needs the owner because this session's permission check refuses branch deletion. Note: GitHub keeps a closed PR's commits reachable through the PR, which only GitHub support can purge |
+| G2-11 | Busrouter subsets committed since M3 and P2-M2 (`test/fixtures/busrouter/*.subset.json`, `geometry/*.json`) have the same unresolved rights (§2.8) | Not part of E5. Decide separately: ask LTA for written permission, or replace them with synthetic fixtures in their own change |
 
 ## 13. Out of scope
 
