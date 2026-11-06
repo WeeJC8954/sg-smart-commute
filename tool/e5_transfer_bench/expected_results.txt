@@ -1,0 +1,82 @@
+E5 one-transfer benchmark
+input: 5209 stops, 604 services, 801 directions, 26957 occurrences
+sample: seed 20261106, 500 stop pairs >= 1500 m apart, each end offset 0.0004 deg lat and lng
+== results ==
+direct bus 199 (39.8%); no direct bus 301 (60.2%); no nearby stops 0; walk only 0
+
+Coverage of the 301 no-direct pairs, and plausibility of the best journey (minutes exclude any wait):
+walk | limit | found | 1.5-5 km | 5-10 km | 10-15 km | >15 km | detour p50/p95/max | est. min p50/p95 | km/h p5/p50 | slower than walking
+same stop | 2.0 | 222 (73.8%) | 7/7 | 43/53 | 63/76 | 109/165 | 1.45/1.87/1.98 | 84/145 | 7.6/10.3 | 0
+same stop | 2.5 | 229 (76.1%) | 7/7 | 48/53 | 65/76 | 109/165 | 1.47/2.12/2.36 | 84/145 | 7.1/10.2 | 0
+same stop | 3.0 | 230 (76.4%) | 7/7 | 48/53 | 66/76 | 109/165 | 1.47/2.26/2.88 | 84/146 | 6.7/10.2 | 0
+same stop | none | 230 (76.4%) | 7/7 | 48/53 | 66/76 | 109/165 | 1.47/2.50/4.59 | 86/146 | 6.1/10.1 | 0
+150 m | 2.0 | 236 (78.4%) | 7/7 | 47/53 | 68/76 | 114/165 | 1.41/1.89/2.00 | 81/145 | 7.7/10.5 | 0
+150 m | 2.5 | 241 (80.1%) | 7/7 | 51/53 | 69/76 | 114/165 | 1.42/2.12/2.30 | 82/145 | 7.3/10.4 | 0
+150 m | 3.0 | 242 (80.4%) | 7/7 | 51/53 | 70/76 | 114/165 | 1.43/2.23/2.88 | 83/145 | 7.1/10.4 | 0
+150 m | none | 242 (80.4%) | 7/7 | 51/53 | 70/76 | 114/165 | 1.43/2.29/3.82 | 84/145 | 6.5/10.4 | 0
+
+Ranking by score against E2 minutes (limit 2.5, the 3 journeys shown): pairs where a lower-ranked journey has a shorter estimate
+same stop: 38 of 201 pairs with 2+ journeys; minutes saved p50/max 3/35
+150 m: 47 of 226 pairs with 2+ journeys; minutes saved p50/max 5/41
+
+Journeys gained by each step of the limit (same stop; best journey, first 6 by sample order):
+2.0 -> 2.5: 7 pairs gained, 0 of them slower than walking the whole way
+  40371->59579 506 (20 stops) + 103 (35 stops), change at 66009, 13.2 km, detour 2.31, est. 127 min excl. wait (6.2 km/h straight line), walking 215 min
+  55249->44989 852 (18 stops) + 170 (30 stops), change at 41031, 9.4 km, detour 2.12, est. 80 min excl. wait (7.1 km/h straight line), walking 153 min
+  17021->57011 175 (36 stops) + 980 (32 stops), change at 01112, 12.8 km, detour 2.14, est. 110 min excl. wait (7.0 km/h straight line), walking 208 min
+  54279->44839 652 (4 stops) + 972 (19 stops), change at 08057, 10.0 km, detour 2.29, est. 81 min excl. wait (7.4 km/h straight line), walking 163 min
+  25631->27241 182 (24 stops) + 99 (10 stops), change at 24009, 7.8 km, detour 2.05, est. 80 min excl. wait (5.8 km/h straight line), walking 127 min
+  56021->47721 980 (23 stops) + 962 (25 stops), change at 58259, 7.5 km, detour 2.35, est. 83 min excl. wait (5.4 km/h straight line), walking 122 min
+2.5 -> 3.0: 1 pairs gained, 0 of them slower than walking the whole way
+  47559->27449 648 (9 stops) + 651 (9 stops), change at 03129, 14.6 km, detour 2.70, est. 130 min excl. wait (6.7 km/h straight line), walking 238 min
+3.0 -> none: 0 pairs gained, 0 of them slower than walking the whole way
+
+Pairs found only with a 150 m transfer walk (limit 2.5), with the two stops of the walk:
+12 pairs (11 with both stops on the same road name); in 85 more pairs a walking transfer is the best journey
+  62071 Bartley Stn Exit A (Bartley Rd) -> 62079 Aft Bartley Stn Exit B (Bartley Rd), 57 m
+  04179 Aft Bras Basah Stn Exit A (Bras Basah Rd) -> 01012 Hotel Grand Pacific (Victoria St), 126 m
+  17161 Blk 455 (C'wealth Ave West) -> 17169 Blk 329 (C'wealth Ave West), 49 m
+  44251 Bt Panjang Stn/Blk 604 (Bt Panjang Rd) -> 44259 Blk 183 (Bt Panjang Rd), 72 m
+  46499 Opp Blk 402 (Woodlands Ave 3) -> 46491 Blk 402 (Woodlands Ave 3), 49 m
+  65439 Blk 220C (Punggol Way) -> 65431 Twin Waterfalls (Punggol Way), 87 m
+  65069 Blk 190C (Punggol Rd) -> 65061 Blk 298A (Punggol Rd), 59 m
+  68119 Aft Piccadilly Circus/TPE (Jln Kayu) -> 68111 Bef Piccadilly Circus/TPE (Jln Kayu), 89 m
+walking transfers among best journeys: 97, straight line p50/max 80/143 m
+
+Named fixtures (best journey per limit):
+Toa Payoh Int -> Yishun Int: 10.8 km, direct plan no direct bus, walking the whole way 176 min
+  same stop, 2.0/2.5/3.0/none: 88 (12 stops) + 851e (10 stops), change at 54011, 10.8 km, detour 1.15, est. 48 min excl. wait (13.5 km/h straight line), walking 176 min
+  150 m, 2.0/2.5/3.0/none: 8 (4 stops) + 857 (15 stops), change 60081 -> 60089 75 m, 10.8 km, detour 1.51, est. 60 min excl. wait (10.8 km/h straight line), walking 176 min
+Bedok Int -> Punggol Int: 9.3 km, direct plan no direct bus, walking the whole way 152 min
+  same stop, 2.0/2.5/3.0/none: 69 (12 stops) + 118 (12 stops), change at 75031, 9.3 km, detour 1.36, est. 49 min excl. wait (11.4 km/h straight line), walking 152 min
+  150 m, 2.0/2.5/3.0/none: 24 (13 stops) + 44 (5 stops), change 95151 -> 95159 97 m, 9.3 km, detour 1.99, est. 68 min excl. wait (8.2 km/h straight line), walking 152 min
+Yishun Int -> Changi Village Ter: 17.4 km, direct plan no direct bus, walking the whole way 283 min
+  same stop, 2.0/2.5/3.0/none: 969 (9 stops) + 89e (4 stops), change at 65199, 17.4 km, detour 1.29, est. 76 min excl. wait (13.7 km/h straight line), walking 283 min
+  150 m, 2.0/2.5/3.0/none: 969 (9 stops) + 89e (4 stops), change at 65199, 17.4 km, detour 1.29, est. 76 min excl. wait (13.7 km/h straight line), walking 283 min
+Sengkang Int -> Jurong East Int: 18.5 km, direct plan no direct bus, walking the whole way 301 min
+  same stop, 2.0/2.5/3.0/none: 654 (9 stops) + 97e (16 stops), change at 03129, 18.5 km, detour 1.70, est. 111 min excl. wait (10.0 km/h straight line), walking 301 min
+  150 m, 2.0/2.5/3.0/none: 654 (9 stops) + 97e (16 stops), change at 03129, 18.5 km, detour 1.70, est. 111 min excl. wait (10.0 km/h straight line), walking 301 min
+Clementi Int -> Yishun Int: 14.9 km, direct plan no direct bus, walking the whole way 243 min
+  same stop, 2.0/2.5/3.0/none: 184 (22 stops) + 171 (15 stops), change at 44221, 14.9 km, detour 1.40, est. 77 min excl. wait (11.6 km/h straight line), walking 243 min
+  150 m, 2.0/2.5/3.0/none: 184 (22 stops) + 171 (15 stops), change at 44221, 14.9 km, detour 1.40, est. 77 min excl. wait (11.6 km/h straight line), walking 243 min
+Bt Batok Int -> Bedok Int: 20.0 km, direct plan no direct bus, walking the whole way 325 min
+  same stop, 2.0/2.5/3.0/none: 506 (9 stops) + 26 (26 stops), change at 52081, 20.0 km, detour 1.19, est. 87 min excl. wait (13.8 km/h straight line), walking 325 min
+  150 m, 2.0/2.5/3.0/none: 506 (9 stops) + 26 (26 stops), change at 52081, 20.0 km, detour 1.19, est. 87 min excl. wait (13.8 km/h straight line), walking 325 min
+Toa Payoh Int -> Changi Airport T2: 15.4 km, direct plan no direct bus, walking the whole way 251 min
+  same stop, 2.0/2.5/3.0/none: 59 (23 stops) + 34 (4 stops), change at 76031, 15.4 km, detour 1.14, est. 73 min excl. wait (12.7 km/h straight line), walking 251 min
+  150 m, 2.0/2.5/3.0/none: 129 (19 stops) + 27 (3 stops), change 76131 -> 76139 147 m, 15.4 km, detour 1.15, est. 70 min excl. wait (13.2 km/h straight line), walking 251 min
+Woodlands Int -> Pasir Ris Int: 19.4 km, direct plan no direct bus, walking the whole way 316 min
+  same stop, 2.0/2.5/3.0/none: 168 (5 stops) + 88 (8 stops), change at 65199, 19.4 km, detour 1.07, est. 68 min excl. wait (17.1 km/h straight line), walking 316 min
+  150 m, 2.0/2.5/3.0/none: 168 (5 stops) + 88 (8 stops), change at 65199, 19.4 km, detour 1.07, est. 68 min excl. wait (17.1 km/h straight line), walking 316 min
+Punggol Int -> Kent Ridge Ter: 19.1 km, direct plan no direct bus, walking the whole way 311 min
+  same stop, 2.0/2.5/3.0/none: 43e (13 stops) + 151 (41 stops), change at 71029, 19.1 km, detour 1.47, est. 105 min excl. wait (10.9 km/h straight line), walking 311 min
+  150 m, 2.0/2.5/3.0/none: 43e (13 stops) + 151 (41 stops), change at 71029, 19.1 km, detour 1.47, est. 105 min excl. wait (10.9 km/h straight line), walking 311 min
+Changi Airport T2 -> Jurong East Int: 27.2 km, direct plan no direct bus, walking the whole way 443 min
+  same stop, 2.0/2.5/3.0/none: 36 (19 stops) + 97e (21 stops), change at 02171, 27.2 km, detour 1.28, est. 121 min excl. wait (13.5 km/h straight line), walking 443 min
+  150 m, 2.0/2.5/3.0/none: 36 (19 stops) + 97e (21 stops), change at 02171, 27.2 km, detour 1.28, est. 121 min excl. wait (13.5 km/h straight line), walking 443 min
+Changi Village Ter -> Boon Lay Int: 31.9 km, direct plan no direct bus, walking the whole way 518 min
+  same stop, 2.0/2.5/3.0/none: 59 (45 stops) + 157 (52 stops), change at 52039, 31.9 km, detour 1.32, est. 160 min excl. wait (11.9 km/h straight line), walking 518 min
+  150 m, 2.0/2.5/3.0/none: 2 (57 stops) + 174e (27 stops), change 04159 -> 04143 129 m, 31.9 km, detour 1.26, est. 153 min excl. wait (12.5 km/h straight line), walking 518 min
+Pasir Ris Int -> Clementi Int: 21.5 km, direct plan no direct bus, walking the whole way 350 min
+  same stop, 2.0/2.5/3.0/none: 518A (14 stops) + 105 (23 stops), change at 09219, 21.5 km, detour 1.27, est. 96 min excl. wait (13.4 km/h straight line), walking 350 min
+  150 m, 2.0/2.5/3.0/none: 518A (14 stops) + 105 (23 stops), change at 09219, 21.5 km, detour 1.27, est. 96 min excl. wait (13.4 km/h straight line), walking 350 min

@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>E5 transfer benchmark</title>
+</head>
+<body>
+<pre id="out">not run</pre>
+<script>
+  // Synchronous file:// reads: Chrome needs --allow-file-access-from-files.
+  function e5Load(path) {
+    var request = new XMLHttpRequest();
+    request.open('GET', path, false);
+    request.send();
+    return request.responseText;
+  }
+  var e5StopsJson = e5Load('stops.min.json');
+  var e5ServicesJson = e5Load('services.min.json');
+  var e5UserAgent = navigator.userAgent;
+  function e5SetResult(text) {
+    document.getElementById('out').textContent = text;
+  }
+</script>
+<script src="bench.js"></script>
+</body>
+</html>
