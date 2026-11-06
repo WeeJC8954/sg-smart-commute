@@ -1,9 +1,9 @@
-// busrouter routes.min.json parsing and the repository. The fixture in
-// test/fixtures/busrouter/geometry/routes.json is an unmodified subset of the
-// live file: services 10 and 46 (two directions), 4, 11, 2B and 115 (one).
+// busrouter routes.min.json parsing and the repository. The routes are
+// hand-made and synthetic (test/fixtures/busrouter/synthetic_busrouter.dart,
+// owner decision A-1): services F10 and F46 (two directions), F4, F11, F2B
+// and F115 (one).
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,8 +17,9 @@ import 'package:sg_smart_commute/features/map/data/busrouter_routes_parser.dart'
 import 'package:sg_smart_commute/features/map/map_providers.dart';
 import 'package:sg_smart_commute/main.dart' show noAutomaticRetry;
 
-final String routesBody = File('test/fixtures/busrouter/geometry/routes.json')
-    .readAsStringSync();
+import '../../fixtures/busrouter/synthetic_busrouter.dart';
+
+final String routesBody = geometryRoutesBody;
 
 Matcher unavailable() => throwsA(
   isA<StaticDataUnavailable>().having(
@@ -30,13 +31,13 @@ Matcher unavailable() => throwsA(
 
 void main() {
   group('parseBusrouterRoutes', () {
-    test('the captured fixture parses without decoding', () {
+    test('the fixture parses without decoding', () {
       final geometry = parseBusrouterRoutes(jsonDecode(routesBody));
       expect(geometry.serviceCount, 6);
-      expect(geometry.encoded('10', 0), isNotNull);
-      expect(geometry.encoded('10', 1), isNotNull);
-      expect(geometry.encoded('10', 2), isNull);
-      expect(geometry.encoded('4', 1), isNull);
+      expect(geometry.encoded('F10', 0), isNotNull);
+      expect(geometry.encoded('F10', 1), isNotNull);
+      expect(geometry.encoded('F10', 2), isNull);
+      expect(geometry.encoded('F4', 1), isNull);
       expect(geometry.encoded('nope', 0), isNull);
     });
 

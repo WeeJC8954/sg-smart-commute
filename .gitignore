@@ -61,3 +61,5 @@ skills-lock.json
 # (docs/e5-gate2-implementation-plan.md §2.8, docs/busrouter-fixture-licensing-audit.md).
 tool/e5_transfer_bench/**/*.min.json
 test/fixtures/busrouter/snapshot-*/
+# The busrouter test data is synthetic Dart (test/fixtures/busrouter/README.md); no captured JSON.
+test/fixtures/busrouter/**/*.json
