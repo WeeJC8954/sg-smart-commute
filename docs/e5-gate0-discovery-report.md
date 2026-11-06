@@ -1,8 +1,9 @@
 # E5 Gate 0: Discovery and Feasibility Report (one-transfer Bus → Bus)
 
-**Status:** Gate 0 deliverable for owner review, 2026-11-05. Discovery only: it adds no production code, test,
-dependency, data file or implementation branch. Nothing here is approved. Every "Proposed" item needs an owner
-decision (§11).
+**Status:** Gate 0 deliverable, 2026-11-05. Discovery only: it adds no production code, test, dependency, data file
+or implementation branch. **The owner ruled on 2026-11-06 (§13):** approved in principle as documentation and
+planning only, with conditions. No E5 production implementation is authorized. §1–§12 are kept as written for
+review; where a ruling narrows or overrides a [P] item, §13 governs.
 
 **Governing documents:** `docs/sg-smart-commute-next-phase-master-plan.md` (the roadmap; this is its Gate 0, with the
 Gate 1 analysis the owner asked for), `CLAUDE.md`, `docs/architecture.md`, `docs/assumptions.md`,
@@ -17,6 +18,7 @@ Each item is tagged in the margin:
 | **[C]** | Confirmed: read from the code or data, or measured, with its source |
 | **[A]** | Assumption, not verified |
 | **[P]** | Proposal, needs approval |
+| **[D]** | Owner decision, 2026-11-06 (§13 only) |
 
 ## 1. Summary
 
@@ -307,3 +309,26 @@ that. This matches the E6-addendum direction that the E2 plan cites, without dep
   - demand-weighted origin/destination pairs;
   - two-transfer coverage of the "neither" pairs.
 - No live UI prototype.
+
+## 13. Owner decisions (2026-11-06) [D]
+
+Recorded from the owner's review of PR #89. These approve documentation and planning only: **no E5 production code,
+implementation branch, MRT or multimodal work is authorized.** Issue #82 and the repository secret stay untouched.
+
+| ID | Ruling | Conditions and what stays open |
+|---|---|---|
+| PR #89 | Approved in principle | Merge once this decision record is in and CI is green |
+| A1 | **Approved** | A small ordered-leg model with `WalkLeg` and `BusLeg` only. The direct planner, `BusOption` and `DirectBusOptions` keep their behaviour. No unused MRT or multimodal classes |
+| F1 | **Approved, detour limit provisional** | Bounded one-transfer search, forward service order, different services, loop prevention, duplicate elimination. The 2.5 detour ratio is provisional: compare 2.0, 2.5 and 3.0 on representative fixtures and recommend the final value by coverage and plausibility (Gate 2) |
+| F2 | **Approved conditionally** | Same-stop transfers allowed; transfers between stops within 150 m straight line may be considered. Straight-line distance is not proof of a safe or accessible walk; transfer walking is labelled as estimated. If the existing data cannot tell a plausible walk from a barrier or an inaccessible crossing, recommend same-stop only for the first release (Gate 2) |
+| F3 | **Approved: option 1** | Search one-transfer journeys only when the current planner finds no direct bus. Direct-bus results, order, scores, arrivals and map are unchanged. No transfer journey enters direct-bus ranking in E5 |
+| F4 | **Approved** | Waiting time excluded and disclosed. No fabricated headways or transfer-arrival times. No live arrivals at transfer stops in E5 |
+| F5 | **Approved as provisional targets** | The §10.4 budgets are initial targets. Before implementation: reproducible Chrome (dart2js) benchmarks, kept as a development-only benchmark with fixed inputs and run instructions; report real measurements and recommend changes if a target proves unrealistic |
+| F6 | **Approved** | Exact user-facing wording finalized in Gate 2 |
+| F7 | **Approved** | Reuse the busrouter data. No new provider, host, API key or dependency without separate approval |
+| F8 | **Approved (concept)** | Leg-list journey card and two-ride map. Detailed UI and accessibility requirements finalized in Gate 2 |
+| G0-1 | **Approved** | Proceed to the E5 Gate 2 plan-only PR; no separate Gate 1 report unless new findings materially change the design. Resolve the detour, transfer-walk and Chrome-performance questions before the final plan |
+
+Consequences for §1–§12 (inference from the rulings, not a ruling): a fixed §8.3 transfer penalty no longer changes any
+result, since under F3 option 1 transfers are only ranked against each other;
+the transfer-stop live ETAs of §8.4 are out of E5; option 2 of §8.1 is not taken in E5.
