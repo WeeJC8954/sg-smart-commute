@@ -1,15 +1,17 @@
-// ArriveLah DTO parsing (guide v2.1 §10, §18). The fixtures are real
-// responses captured once on 2026-10-02 (test/fixtures/arrivelah/).
+// ArriveLah DTO parsing (guide v2.1 §10, §18). The full bodies are
+// hand-made synthetic ones (test/fixtures/arrivelah/synthetic_arrivelah.dart,
+// owner decisions A-4a and A-4c), decoded from JSON text like a live answer.
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
 import 'package:sg_smart_commute/features/bus_arrival/data/arrivelah_parser.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival.dart';
 
-Object? fixture(String name) =>
-    jsonDecode(File('test/fixtures/arrivelah/$name').readAsStringSync());
+import '../../fixtures/arrivelah/synthetic_arrivelah.dart';
+
+DateTime after(int minutes, [int seconds = 0]) =>
+    arriveLahClock.add(Duration(minutes: minutes, seconds: seconds));
 
 Map<String, dynamic> bus({
   Object? time = '2026-10-02T11:05:00+08:00',
@@ -37,41 +39,42 @@ StopArrivals one(Map<String, dynamic>? next, {Object? no = '10'}) =>
       'services': [
         {'no': no, 'next': next, 'subsequent': null, 'next2': null},
       ],
-    }, '03019');
+    }, busyStopCode);
 
 void main() {
-  group('real fixture: stop 03019 (OUE Bayfront)', () {
-    final stop = parseArriveLah(fixture('stop_03019.json'), '03019');
+  group('synthetic busy stop $busyStopCode', () {
+    final stop = parseArriveLah(jsonDecode(busyStopBody), busyStopCode);
     ServiceArrivals svc(String no) =>
         stop.services.singleWhere((s) => s.serviceNo == no);
 
     test('every listed service, in the provider order', () {
       expect(stop.services.map((s) => s.serviceNo), [
-        '10',
-        '100',
-        '107',
-        '130',
-        '131',
-        '167',
-        '196',
-        '196A',
-        '57',
-        '70',
+        'F10',
+        'F100',
+        'F2',
+        'F2A',
+        'F5',
+        'F7',
+        'F8',
+        'F9',
+        'F11',
+        'F12',
       ]);
     });
 
     test('next, next2, next3 read; the legacy "subsequent" copy skipped', () {
-      final ten = svc('10');
+      final ten = svc('F10');
       expect(ten.arrivals, hasLength(3));
       expect(ten.arrivals.map((a) => a.estimatedArrival), [
-        DateTime.utc(2026, 10, 2, 3, 0, 57), // 11:00:57+08:00
-        DateTime.utc(2026, 10, 2, 3, 19, 45),
-        DateTime.utc(2026, 10, 2, 3, 29, 4),
+        after(1, 5), // 12:01:05+08:00
+        after(9, 40),
+        after(21, 15),
       ]);
       final a = ten.arrivals.first;
       expect(a.estimatedArrival!.isUtc, isTrue);
-      expect(a.serviceNo, '10');
-      expect(a.busStopCode, '03019');
+      expect(a.estimatedArrival, DateTime.utc(2001, 2, 3, 4, 1, 5));
+      expect(a.serviceNo, 'F10');
+      expect(a.busStopCode, busyStopCode);
       expect(a.load, BusLoad.seatsAvailable);
       expect(a.wheelchairAccessible, isTrue);
       expect(a.type, BusType.doubleDeck);
@@ -81,30 +84,61 @@ void main() {
     });
 
     test('partial entries: a null slot is simply absent', () {
-      expect(svc('167').arrivals, hasLength(2)); // next3: null
-      expect(svc('196A').arrivals, hasLength(1)); // only next
-      expect(svc('100').arrivals.first.load, BusLoad.standingAvailable);
-      expect(svc('100').arrivals.first.type, BusType.singleDeck);
+      expect(svc('F2').arrivals, hasLength(2)); // next3: null
+      expect(svc('F2A').arrivals, hasLength(1)); // only next
+      expect(svc('F100').arrivals.first.load, BusLoad.standingAvailable);
+      expect(svc('F100').arrivals.first.type, BusType.singleDeck);
+    });
+
+    test('limited standing, bendy, not marked accessible and schedule-based '
+        'buses in a full body', () {
+      final hundred = svc('F100').arrivals[1];
+      expect(hundred.load, BusLoad.limitedStanding);
+      expect(hundred.type, BusType.bendy);
+      expect(svc('F7').arrivals.first.wheelchairAccessible, isFalse);
+      expect(svc('F7').arrivals.map((a) => a.monitored), [true, false]);
+      expect(svc('F9').arrivals.map((a) => a.monitored), [false, false, false]);
+    });
+
+    test('times come from "time", never from the stale "duration_ms"', () {
+      expect(svc('F8').arrivals.map((a) => a.estimatedArrival), [
+        after(0, -20), // 20 s past: kept as data
+        after(7, 30),
+        after(16),
+      ]);
     });
   });
 
-  test('real fixture: loop interchange 75009 keeps visit numbers and '
-      'schedule-based (monitored 0) estimates', () {
-    final stop = parseArriveLah(fixture('stop_75009_loop.json'), '75009');
-    final loop = stop.services.singleWhere((s) => s.serviceNo == '291');
-    expect(loop.arrivals.map((a) => a.visitNumber), [2, 2, 1]);
-    expect(loop.arrivals.map((a) => a.monitored), [true, true, false]);
+  group('synthetic loop terminal $loopStopCode', () {
+    final stop = parseArriveLah(jsonDecode(loopStopBody), loopStopCode);
+
+    test('keeps visit numbers and schedule-based (monitored 0) estimates', () {
+      final loop = stop.services.singleWhere((s) => s.serviceNo == 'F29');
+      expect(loop.arrivals.map((a) => a.visitNumber), [2, 2, 1]);
+      expect(loop.arrivals.map((a) => a.monitored), [true, true, false]);
+      final other = stop.services.singleWhere((s) => s.serviceNo == 'F30');
+      expect(other.arrivals.map((a) => a.visitNumber), [2, 1, 2]);
+    });
+
+    test('a service listed twice keeps both entries, in order', () {
+      final twice = stop.services.where((s) => s.serviceNo == 'F31').toList();
+      expect(twice, hasLength(2));
+      expect(twice.map((s) => s.arrivals.first.estimatedArrival), [
+        after(6),
+        after(2),
+      ]);
+    });
   });
 
   group('failure and empty bodies (all observed with HTTP 200)', () {
     test('unknown stop → empty service list, not a failure', () {
-      final stop = parseArriveLah(fixture('stop_99999_empty.json'), '99999');
+      final stop = parseArriveLah(jsonDecode(emptyStopBody), unknownStopCode);
       expect(stop.services, isEmpty);
     });
 
     test('{"error": …} → BusArrivalUnavailable', () {
       expect(
-        () => parseArriveLah(fixture('error_body.json'), 'abc'),
+        () => parseArriveLah(jsonDecode(errorBody), 'abc'),
         throwsA(isA<BusArrivalUnavailable>()),
       );
       expect(
@@ -117,7 +151,7 @@ void main() {
       'no services list (e.g. the instruction page) → InvalidApiResponse',
       () {
         expect(
-          () => parseArriveLah(fixture('no_id_instruction.json'), ''),
+          () => parseArriveLah(jsonDecode(noIdInstructionBody), ''),
           throwsA(isA<InvalidApiResponse>()),
         );
         expect(

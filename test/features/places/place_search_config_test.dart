@@ -2,7 +2,6 @@
 // (debounce, cache TTL, minimum query length). These tests check two things:
 // every consumer defaults to it, and changing the injected value changes the
 // behaviour, so no second hard-coded copy can hide behind a passing test.
-import 'dart:io';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
@@ -23,9 +22,7 @@ import '../../../integration_test/fakes/fake_environment_repository.dart';
 import '../../../integration_test/fakes/fake_location_service.dart';
 import '../../../integration_test/fakes/fake_place_search_repository.dart';
 import '../../../integration_test/fakes/test_app.dart';
-
-final vivoBody = File('test/fixtures/onemap/mall-vivocity.json')
-    .readAsStringSync();
+import '../../fixtures/onemap/synthetic_onemap.dart';
 
 void main() {
   group('defaults come from PlaceSearchConfig', () {
@@ -104,7 +101,7 @@ void main() {
         expect(repo.queries, ['ionor']);
         // A postal code is always searchable, whatever the minimum.
         expect(
-          PlaceQuery.normalise('098585', minLength: 7).isSearchable,
+          PlaceQuery.normalise('009901', minLength: 7).isSearchable,
           isTrue,
         );
         expect(PlaceQuery.normalise('ion', minLength: 2).isSearchable, isTrue);
@@ -118,15 +115,15 @@ void main() {
         JsonHttpClient(
           MockClient((_) async {
             requests++;
-            return http.Response(vivoBody, 200);
+            return http.Response(mallBody, 200);
           }),
         ),
         clock: DateTime.now,
         minQueryLength: 5,
       );
-      expect(await repo.search('vivo', mode: SearchMode.submit), isEmpty);
+      expect(await repo.search('fake', mode: SearchMode.submit), isEmpty);
       expect(requests, 0);
-      expect(await repo.search('vivoc', mode: SearchMode.submit), hasLength(2));
+      expect(await repo.search('fakem', mode: SearchMode.submit), hasLength(2));
       expect(requests, 1);
     });
 
@@ -137,18 +134,18 @@ void main() {
         JsonHttpClient(
           MockClient((_) async {
             requests++;
-            return http.Response(vivoBody, 200);
+            return http.Response(mallBody, 200);
           }),
         ),
         clock: () => now,
         cacheTtl: const Duration(minutes: 1),
       );
-      await repo.search('VivoCity', mode: SearchMode.submit);
+      await repo.search('Fake Mall', mode: SearchMode.submit);
       now = now.add(const Duration(seconds: 59));
-      await repo.search('VivoCity', mode: SearchMode.submit);
+      await repo.search('Fake Mall', mode: SearchMode.submit);
       expect(requests, 1, reason: 'still cached at 59 s');
       now = now.add(const Duration(seconds: 1));
-      await repo.search('VivoCity', mode: SearchMode.submit);
+      await repo.search('Fake Mall', mode: SearchMode.submit);
       expect(requests, 2, reason: 'expired at 1 min');
     });
 

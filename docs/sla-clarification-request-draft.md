@@ -33,10 +33,14 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
   it (`docs/onemap-runtime-assessment.md` §6, S4).
 - **Left out on purpose:**
   - bus data and arrivals (LTA's, not SLA's; see `docs/lta-clarification-request-draft.md`);
-  - the OneMap fixtures already in Git history (A-4b). Add question 9 below if you want SLA's view.
-- **Optional question 9:** "Earlier versions of the repository's tests contained a few saved OneMap search responses
-  (about six searches). May these remain in the repository's history, or should they be removed?" Check A-4b's status
-  first: if the fixtures were replaced, say so.
+  - the OneMap data already in Git history. Add question 9 below if you want SLA's view.
+- **Optional question 9:** "Earlier versions of the repository contained saved OneMap search responses: a few in the
+  tests, and in development logs the results of a 51-query search evaluation and the first characters of a few
+  responses. All were replaced by made-up data or removed in November 2026, but they remain in the repository's
+  history. May they remain there, or should they be removed?" The facts: the eight test files in
+  `test/fixtures/onemap/` were replaced by synthetic data (A-4b, PR #98, merged 2026-11-07); the 51-query
+  `docs/probe-output/place-search-eval.json` was removed and the probe outputs' body heads redacted (PR #101, merged
+  2026-11-07; `docs/captured-data-inventory.md`).
 
 ---
 
