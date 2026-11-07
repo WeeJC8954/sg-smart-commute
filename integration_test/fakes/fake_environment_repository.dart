@@ -5,6 +5,13 @@ import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_models.dart';
 import 'package:sg_smart_commute/features/environment/domain/environment_repository.dart';
 
+// The region and forecast-area positions below come from NEA data:
+// contains information from the PM2.5 and 2-hour Weather Forecast datasets of
+// the National Environment Agency, accessed on 1 October 2026 from
+// data.gov.sg, which is made available under the terms of the Singapore Open
+// Data Licence version 1.0, https://data.gov.sg/open-data-licence
+// (test/fixtures/NOTICE.md). The readings and forecasts are invented.
+
 /// Fixed instant used by widget and integration tests: 12:12 SGT.
 final fakeNow = DateTime.utc(2026, 10, 1, 4, 12);
 
