@@ -65,3 +65,5 @@ test/fixtures/busrouter/snapshot-*/
 test/fixtures/busrouter/**/*.json
 # Likewise the OneMap search responses (test/fixtures/onemap/README.md, owner decisions A-4b, A-4c).
 test/fixtures/onemap/**/*.json
+# The ArriveLah test data is synthetic Dart too (test/fixtures/arrivelah/README.md); no captured JSON.
+test/fixtures/arrivelah/**/*.json
