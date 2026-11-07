@@ -150,3 +150,7 @@ change in `app_config.dart` and the footer, and needs approval as a UI change.
 | A-5b | Add the SODL notice and licence link to the arrivals credit (Gap 1) | Approve, as a small separate change |
 | A-5c | Make every live-busrouter dev tool optional and documented as such (§5.3) | Approve; documentation only |
 | A-5d | Whether to assess OneMap's runtime use (tokenless search without the registration its terms require for web applications; tiles accepted in P2-M0) the same way | Approve, as a separate assessment: it is outside A-5's busrouter scope but has the same shape |
+
+**Update 2026-11-07 (A-5a):** the owner approved drafting O1. The draft is `docs/lta-clarification-request-draft.md`,
+**not sent** (it needs the owner's explicit approval). Until LTA answers, the runtime use stays not shown to be
+permitted.
