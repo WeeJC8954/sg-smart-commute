@@ -80,13 +80,13 @@ class BasemapAttributionRow extends ConsumerWidget {
           errorBuilder: (_, _, _) => const SizedBox.square(dimension: 20),
         ),
         const SizedBox(width: 4),
-        _AttributionLink(
+        AttributionLink(
           BasemapAttribution.oneMap,
           BasemapEndpoints.oneMapSite,
           key: const Key('attribution-onemap'),
         ),
         Text(BasemapAttribution.contributors, style: style),
-        _AttributionLink(
+        AttributionLink(
           BasemapAttribution.sla,
           BasemapEndpoints.slaSite,
           key: const Key('attribution-sla'),
@@ -96,8 +96,11 @@ class BasemapAttributionRow extends ConsumerWidget {
   }
 }
 
-class _AttributionLink extends ConsumerWidget {
-  const _AttributionLink(this.label, this.uri, {super.key});
+/// A short underlined text link with a 48 px touch target and the shared focus
+/// ring; a link that will not open only shows a note. Also used by the home
+/// footer for the open-data licence (A-5b).
+class AttributionLink extends ConsumerWidget {
+  const AttributionLink(this.label, this.uri, {super.key});
 
   final String label;
   final Uri uri;
