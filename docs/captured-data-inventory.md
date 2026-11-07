@@ -18,7 +18,7 @@ reuses their licence readings and does not re-read the terms.
   - 51 rows of live search results in `docs/probe-output/place-search-eval.json`;
   - the NEA test fixtures (`test/fixtures/*.json`);
   - the MRT asset (`assets/mrt_stations.json`).
-- **[C]** Out of scope here: `test/fixtures/onemap/` and `test/fixtures/arrivelah/` (replaced by open PRs #98 and #99),
+- **[C]** Out of scope here: `test/fixtures/onemap/` and `test/fixtures/arrivelah/` (replaced by synthetic data in PR #98, merged 2026-11-07, and open PR #99),
   and `integration_test/fakes/fake_place_search_repository.dart` (another change; listed in §3.4 only).
 - **[P]** Redact the probe bodies and remove the evaluation JSON: nothing reads them. Make
   `tool/place_search_eval.dart`, which writes its JSON into `docs/` by default, write to `build/`. Done in the
@@ -77,7 +77,8 @@ PRs #95 (A-5c) and #94 (A-5b):
 |---|---|---|---|---|---|---|---|
 | `two-hr-forecast.json`, `uv.json`, `pm25.json`, `psi.json` | 5,917; 775; 623; 1,453 | `226a115`, 2026-10-01 | `curl`, once per dataset (`docs/testing.md`, 2026-10-01 M1 row) | `test/features/environment/nea_parsers_test.dart`, `environment_locator_test.dart`, `test/core/retry_after_provider_test.dart` | Unmodified data.gov.sg real-time responses of 2026-10-01: 47 forecast areas, regions, readings, timestamps | SODL | **Keep** (tests need real payloads, CLAUDE.md "NEA parser tests"); **add the SODL notice** (§5, C-1) [P] |
 | `busrouter/synthetic_busrouter.dart`, `README.md` | — | PR #92 (A-1) | Hand-made | Three busrouter test files | Synthetic (`F` codes, "(fake)" names) | Project | **Keep** |
-| `onemap/*`, `arrivelah/*` | — | — | — | — | Captured responses | OneMap, ArriveLah | **Handled** by PRs #98 and #99; not touched here |
+| `onemap/synthetic_onemap.dart`, `README.md` | — | PR #98 (A-4b) | Hand-made | The OneMap test files | Synthetic search responses | Project | **Keep** |
+| `arrivelah/*` | — | — | — | — | Captured responses | ArriveLah | **Handled** by PR #99; not touched here |
 
 ### 3.3 `assets/`
 

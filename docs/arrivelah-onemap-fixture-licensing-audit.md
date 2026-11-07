@@ -1,6 +1,9 @@
 # ArriveLah and OneMap Fixture Licensing Audit (owner ruling A-4)
 
-**Status:** audit only, 2026-11-06, for owner review. No fixture, test or history is changed, and no third party is
+**Status:** audit, 2026-11-06. Owner rulings: A-4b approved, with A-4c "replace them too": the eight OneMap files are
+removed from the tree and replaced by synthetic bodies (`test/fixtures/onemap/README.md`, branch
+`test/synthetic-onemap-fixtures`, 2026-11-07); their history stays. ArriveLah (A-4a) is handled separately. The rest of
+this document is the audit as written for review; it changes no fixture, test or history, and no third party is
 contacted. It is not legal advice: a conclusion that depends on reading terms is tagged **[A]**.
 
 **Tags:** **[C]** confirmed (read from the files, the sources or Git, or measured); **[A]** assumption or reading not
