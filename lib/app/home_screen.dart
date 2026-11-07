@@ -62,26 +62,30 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   const EnvironmentDashboard(),
                   const SizedBox(height: 12),
+                  // One credit per source (C-6): only the data.gov.sg and
+                  // DataMall sources carry the open-data licence notice.
+                  const _LicenceNotice(
+                    neaLicenceNotice,
+                    key: Key('nea-licence-notice'),
+                    linkKey: Key('nea-licence-link'),
+                  ),
+                  const _LicenceNotice(
+                    mrtLicenceNotice,
+                    key: Key('mrt-licence-notice'),
+                    linkKey: Key('mrt-licence-link'),
+                  ),
+                  const _LicenceNotice(
+                    arrivalsLicenceNotice,
+                    key: Key('arrivals-licence-notice'),
+                    linkKey: Key('open-data-licence-link'),
+                  ),
                   Text(
-                    'Data: $neaSourceLabel (Singapore Open Data Licence) · '
-                    '$oneMapAttribution · $busrouterAttribution · '
-                    '$arriveLahAttribution · $mrtAttribution',
+                    oneMapAttribution,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  Wrap(
-                    key: const Key('arrivals-licence-notice'),
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        arrivalsLicenceNotice,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      AttributionLink(
-                        openDataLicenceLabel,
-                        openDataLicenceUri,
-                        key: const Key('open-data-licence-link'),
-                      ),
-                    ],
+                  Text(
+                    busrouterAttribution,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -91,6 +95,36 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A source's open-data licence notice, then the link to the licence.
+class _LicenceNotice extends StatelessWidget {
+  const _LicenceNotice(this.notice, {super.key, required this.linkKey});
+
+  final String notice;
+  final Key linkKey;
+
+  // Its own semantics node holding the notice, then the link as a node of its
+  // own: a screen reader hears each notice with its link, not every credit
+  // merged into one label before three links, nor the whole notice as a link.
+  @override
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    child: Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(notice, style: Theme.of(context).textTheme.bodySmall),
+        Semantics(
+          container: true,
+          child: AttributionLink(
+            openDataLicenceLabel,
+            openDataLicenceUri,
+            key: linkKey,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// [child] at most [maxWidth] wide, centred in the list.
