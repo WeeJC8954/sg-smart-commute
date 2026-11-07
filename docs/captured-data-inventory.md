@@ -170,3 +170,14 @@ Proposal:
 | C-5 | `tool/e5_transfer_bench/expected_results.txt`: keep (derived output with LTA stop codes and service numbers as identifiers), or reduce it to counts | Keep: it is the benchmark's check, it holds no stop names from lta.gov.sg (its README says so), and identifiers are not records [A] |
 | C-6 | Give the NEA and MRT credits in the app footer a notice and link in the A-5b form, or rely on the arrivals link | Consider with the runtime assessments (A-5, A-5b) |
 | C-7 | History: the redacted bodies and the removed JSON stay in `main`'s history (since `d3d0706`, `67fec7b` and `055a6dd`) | Leave it as it is, as recommended for A-2 |
+
+## 7. Owner decisions, 2026-11-07
+
+- **C-1 approved.** The NEA fixtures' notice is `test/fixtures/NOTICE.md` (source, retrieval date, the Singapore Open
+  Data Licence v1.0 and its link); `fake_environment_repository.dart` carries the same notice in a comment. The notice
+  names only the NEA data and says that no other test data is under that licence.
+- **C-2 approved, with a change to §5 item 2:** the asset's runtime schema is not changed. The licence link and notice
+  are in `docs/data-sources.md` (the MRT asset's licence row) and in `tool/build_mrt_asset.dart`'s header; the asset's
+  existing `source` block already names the dataset, publisher, licence and retrieval date.
+- **C-3 approved conditionally**, **C-4 and C-5 for further review**, **C-6 approved** (source-specific notices),
+  **C-7 deferred** (no history rewrite; exposure stays documented in §6). Each is handled in its own change.
