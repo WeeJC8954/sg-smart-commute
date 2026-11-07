@@ -32,7 +32,7 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
   That is the point of asking. Do not send it if you are not willing to accept "no" and switch search off or replace
   it (`docs/onemap-runtime-assessment.md` §6, S4).
 - **Left out on purpose:**
-  - bus data and arrivals (LTA's, not SLA's; see the LTA draft on branch `docs/lta-clarification-draft`);
+  - bus data and arrivals (LTA's, not SLA's; see `docs/lta-clarification-request-draft.md`);
   - the OneMap fixtures already in Git history (A-4b). Add question 9 below if you want SLA's view.
 - **Optional question 9:** "Earlier versions of the repository's tests contained a few saved OneMap search responses
   (about six searches). May these remain in the repository's history, or should they be removed?" Check A-4b's status

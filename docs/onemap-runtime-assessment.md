@@ -479,7 +479,7 @@ whether the data owner (SLA, LTA, LTA DataMall) or qualified legal advice can se
 | ID | Status |
 |---|---|
 | A-5d-1 | S2 is drafted: `docs/sla-clarification-request-draft.md`, **not sent**. S1 holds meanwhile. Whether and when to send it is the owner's decision |
-| A-5d-2 | Kept for a separate PR by the owner. The verified link limits (§4.4 update) bear on the wording: link the licence at data.gov.sg, not OneMap's legal page, and add no new sla.gov.sg link |
+| A-5d-2 | Kept for a separate PR by the owner. The verified link limits (§4.4 update) bear on the wording: link the licence at data.gov.sg (main already has `openDataLicenceUri` for it, from A-5b), not OneMap's legal page, and add no new sla.gov.sg link |
 | A-5d-3 | Behaviour unchanged. Compared with the verified terms: **no confirmed incompatibility**. The Android disk cache is a possible reading under 3(b)(i) [A], and is asked about in the letter (§4.5 update) |
 | A-5d-5 | Reassessed with the verified requirements: **still not now**. Register only if SLA asks for it (§4.3 update) |
 
@@ -620,7 +620,7 @@ rights.
 | Q5 | What attribution does SLA want for search: wording, an SODL notice, and which links (given Terms of Use 8(b) and SLA's website hyperlink clause)? | A-5d §4.4 | **SLA** |
 | Q6 | May the developer keep calling OneMap from the hand-run dev tools for local development and evaluation? | A-5d §2, §7 | **SLA** |
 | Q7 | Were the captured OneMap search results committed in `test/fixtures/onemap/` (and kept in history) permitted? | A-4 | **SLA** (permission) or **legal advice** (risk; history removal) |
-| Q8 | **busrouter / LTA website content:** does LTA's "To use the Contents of this website … the user must seek permission in writing" reach stop, service and route-line data obtained through sgbusdata and busrouter.sg? Is the app's use permitted? | A-5 §5.1 | **LTA** (permission; letter drafted on branch `docs/lta-clarification-draft`, not sent); **legal advice** on whether the clause binds third-party recipients and how far stop codes, positions and stop orders are protected |
+| Q8 | **busrouter / LTA website content:** does LTA's "To use the Contents of this website … the user must seek permission in writing" reach stop, service and route-line data obtained through sgbusdata and busrouter.sg? Is the app's use permitted? | A-5 §5.1 | **LTA** (permission; letter drafted in `docs/lta-clarification-request-draft.md`, not sent); **legal advice** on whether the clause binds third-party recipients and how far stop codes, positions and stop orders are protected |
 | Q9 | Does LTA's "caching … prohibited" clause reach the app's in-session copy and the browser's HTTP cache of the busrouter files? | A-5 §4 | **LTA**; legal advice can give a reading |
 | Q10 | **ArriveLah / DataMall proxy:** is DataMall Bus Arrival data relayed by ArriveLah (with the operator's AccountKey, which clause 10(b) says to keep confidential; clause 4's Threshold of 10 million calls a day binds the caller) a dataset the app may use under the SODL? Does the app's notice then satisfy the licence? | A-5 §5.1, A-4 | **LTA DataMall** (data owner); **legal advice** on whether a proxy-obtained copy is licensed |
 | Q11 | Third-party patches inside the busrouter data: SimplyGo name corrections, OneMap and Citymapper route patches | A-5 §5.4 | **LTA** (SimplyGo is LTA's fare system [A]), **SLA** (OneMap patches); **legal advice** for Citymapper, which is neither |
