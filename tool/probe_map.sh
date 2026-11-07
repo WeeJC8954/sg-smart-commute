@@ -2,7 +2,12 @@
 # Phase 2 M0 map feasibility probe: basemap tiles and walking-route endpoints.
 # Read-only GETs, no credentials: one request per endpoint, plus one map view
 # of OneMap tiles (40) in parallel to test its shared-host limit. Not part of the app.
-# Usage: bash tool/probe_map.sh > docs/probe-output/map-probes.txt
+# Usage: bash tool/probe_map.sh   (output to the terminal; see the note below)
+# OPTIONAL, development only (owner decision A-5c): it fetches live busrouter
+# data, mostly LTA website content whose use is not shown to be permitted
+# (docs/runtime-data-rights-assessment.md §5.3). CI, the tests and normal
+# development never need it; run it by hand only with the owner's approval.
+# Never commit what it downloads.
 set -u
 ORIGIN="https://example.com"
 UA="sg-smart-commute-p2m0-probe (university course project)"

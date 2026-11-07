@@ -12,6 +12,11 @@
 // service's direction, and the stop count must be the shortest such segment.
 // The nearest MRT comes from the bundled asset and is checked against a
 // brute-force pass over every exit in the raw asset JSON. Results go to stdout.
+// OPTIONAL, development only (owner decision A-5c): it fetches live busrouter
+// data, mostly LTA website content whose use is not shown to be permitted
+// (docs/runtime-data-rights-assessment.md §5.3). CI, the tests and normal
+// development never need it; run it by hand only with the owner's approval.
+// Never commit what it downloads.
 import 'dart:convert';
 import 'dart:io';
 
