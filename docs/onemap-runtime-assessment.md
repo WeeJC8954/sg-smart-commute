@@ -14,8 +14,27 @@ themselves grant permission.
 `docs/arrivelah-onemap-fixture-licensing-audit.md` (A-4, the OneMap fixtures), `docs/map-feasibility.md` §4.1–§4.2
 (the P2-M0 tile decision), `docs/data-sources.md` § OneMap.
 
+**Update 2026-11-07 (owner decisions A-5d-1, A-5d-3, A-5d-5).** The official terms were read again, raw, with `curl`
+(02:53–03:02 UTC), and each quote here was checked against that text (§9). The caching behaviour is compared with
+the verified terms (§4.5 update), registration is reassessed (§4.3 update), the remaining open questions say who can
+settle each (§10), and a letter to SLA is drafted, **not sent** (`docs/sla-clarification-request-draft.md`). Still
+docs only, and still no third party contacted.
+
 ## 1. Summary
 
+- **Update 2026-11-07 [C].** The raw re-read changes four readings (details in §9.2 and §9.3):
+  - The API Terms of Service open with "The Agency may offer datasets through an API." They also say they "do not
+    grant you any rights over: … any intellectual property found in content accessible through the APIs." They are
+    the standard government template: data.gov.sg's API terms are the same apart from the host, and LTA DataMall's
+    add clauses. So they do not say that search results are SODL "datasets"; that stays open (§10, Q2).
+  - The registration checkbox also accepts an "Open Data Policy", and agrees to receive SLA's information about
+    OneMap. §4.3 quoted it wrongly.
+  - SLA's answers on ask.gov.sg can now be read raw. One says "The Terms and Conditions for the use of APIs can be
+    viewed at API Terms of Service (onemap.gov.sg)". It shows how SLA itself points API users to the API terms.
+  - The contact address is verified on the API docs' own "Contact Us" page: `onemap@sla.gov.sg`.
+- **Update 2026-11-07, caching [C/A].** No published OneMap term mentions caching. Measured against the verified
+  terms, the app's caches show **no confirmed incompatibility**. The Android disk tile cache is the closest point
+  to Terms of Use 3(b)'s "store", which is a reading only [A] (§4.5 update).
 - **[C]** The app uses two OneMap services at runtime: tokenless place search (`/api/common/elastic/search`) and the
   keyless `Default`/`Night` raster tiles with the OneMap logo. It sends no token, key or account data, and has none.
 - **[C] Search is documented as token-only.** The API docs (read 2026-11-07) still show "Search API now requires
@@ -92,6 +111,18 @@ date.
 | OSMF tile usage policy | https://operations.osmfoundation.org/policies/tiles/ | WebFetch | Read; quotes as returned |
 | Photon README | https://github.com/komoot/photon | WebFetch | Read; quotes as returned |
 
+**Update 2026-11-07.** Every row above was read again raw (02:53–03:02 UTC), and the quotes in §4 and §6 were checked
+against that text. Three statuses change:
+- **ask.gov.sg answers: now verified.** `curl` with a browser `User-Agent` answered 200, and the answers were read
+  raw (§9.1).
+- **OSMF policies and Photon README: now verified.** They were read raw (the README from
+  `raw.githubusercontent.com`), and the quotes in §6 S4, S4b and S6 are verbatim.
+- **"Developer Agreement": still not verified.** The page still shows "We have moved!", and the API docs bundle does
+  not name it.
+
+Some pages do show a date. The Terms of Use, API Terms of Service and SODL pages on OneMap still show none, and the
+basemap docs footer says "Copyright © 2024". §9.1 lists each source's date.
+
 Live requests: §4.7. Avast's HTTPS scanning did not break `curl` here (it uses Windows' certificate store).
 
 ## 4. Assessment by topic
@@ -165,7 +196,7 @@ unclear: the basemap docs point to the "Terms of Use", not the API terms.
   is a user who "has accepted the terms and conditions of the Developer Agreement". Clause 2 lets SLA "restrict access
   to some parts of the Site e.g. to Registered Developers only".
 - Registration page (bundle string): "By registering for an account, I acknowledge and accept the [Privacy Statement]
-  and [API Terms of Service] of OneMap." It posts to `/api/public/user/registerUser` and `confirmRegistration`
+  and [API Terms of Service] of OneMap." (**not verbatim**: corrected in the update below.) It posts to `/api/public/user/registerUser` and `confirmRegistration`
   (email and password, confirmation code).
 - Authentication API: "This API authenticates users' credentials (email and password) as a POST request body to
   generate an access token." "Each token is valid for 3 days. … When it expires, the user needs to re-authenticate
@@ -189,6 +220,52 @@ unclear: the basemap docs point to the "Terms of Use", not the API terms.
   accepted the API terms. It would not meet the search page's token requirement, and the app would be exactly as it is
   now. It is still a third-party registration, for the owner to decide (§6, S5).
 
+**Update 2026-11-07: verified requirements and reassessment (A-5d-5).**
+
+*What registration is [C]* (API docs bundle, read 02:55 UTC):
+- **The checkbox, verbatim:** "By registering for an account, I acknowledge and accept the Privacy Statement, Open
+  Data Policy and API Terms Of Use of OneMap. I also agree to receive information about OneMap provided by Singapore
+  Land Authority, including (but not limited to) updates and notifications for OneMap API."
+  - "Privacy Statement" links to `onemap.gov.sg/legal/privacystatement.html`, and "API Terms Of Use" links to
+    `legal/apitermsofservice.html`. "Open Data Policy" has no link, and no page of that name was found.
+- **The form asks for:**
+  - an email address;
+  - a "User Group" (Business, Government Agency, Education, Others) and an industry;
+  - "Which type of application are you developing?" (Mobile Application, Website, Research / Student Projects,
+    Others);
+  - "What is the proposed use of the data/API?";
+  - how the user learned about OneMap.
+
+  A reCAPTCHA runs on submit.
+- **The second step:** "Enter your confirmation code and set your password to start utilizing Singapore's
+  geospatial data." The password is 12 to 60 characters.
+- **The token:** it comes from email and password, "Each token is valid for 3 days", and "The token does not auto
+  renew when it expires". The search page marks the `Authorization` header "Required".
+
+*Who must register, for what [C/A]:*
+
+| Use | Official text | Registration needed? |
+|---|---|---|
+| Search API | Banner: "Search API now requires token-based authentication. Register your token to ensure uninterrupted service."; `Authorization` "Required" [C] | **Yes, as documented**, for any caller, since only a registered account can get a token [C]. Not enforced today [C] |
+| Map tiles | "The token is not required for the map services." Basemap docs ask only for the logo and attribution [C] | **No token**. Whether the Terms of Use preamble's registration ("use or start building your own Web Application(s) using the API and the Data") still reaches a keyless tile user is not stated [A] |
+| Reverse geocode, routing | Token; 401 without one [C] | Yes; the app does not use them |
+| Old SLA answer (ask.gov.sg, "Updated by SLA 1y ago") | "You may apply for a OneMap API token which allows you to display maps on your website. Please apply for the token at this URL https://developers.onemap.sg/register/ ." [C] | It predates the current docs, which say tiles need no token. Read as outdated [A] |
+
+*Reassessment [A]:*
+- **No compliant token path exists within `CLAUDE.md`.** A token comes only from an account's email and password,
+  lasts 3 days, and must be kept "secure and confidential" (API terms). A public Web or Android bundle cannot hold it,
+  and the app has no server to hold it.
+- **Registration alone meets nothing that matters at runtime.** It may meet the Terms of Use preamble's
+  "online registration process". It does not meet the search page's token requirement. It changes nothing in the
+  app.
+- **It costs the owner something.** The owner would accept the API terms, give SLA personal data, and agree to
+  receive SLA's messages: a personal decision.
+- **Recommendation for A-5d-5: still "not now".**
+  - Ask SLA first (`docs/sla-clarification-request-draft.md`, question 2): who must register, and whether a keyless
+    public client can be accepted at all.
+  - Register only if SLA asks for it. Then record that the app still sends no token.
+  - Registering and then sending no token would not make tokenless search compliant.
+
 ### 4.4 Attribution
 
 | Requirement | Source | What the app shows | Status |
@@ -198,10 +275,26 @@ unclear: the basemap docs point to the "Terms of Use", not the API terms.
 | Links only to the home page, with no implied endorsement | Terms of Use 8(a)–(b) | Links to the home page only; no endorsement wording | **Met [A]** |
 | A "conspicuous notice acknowledging the source of the datasets" with "a link to the most recent version of this Licence" | SODL v1.0, if it governs API data (API Terms of Service) | "Place search: OneMap © Singapore Land Authority": source named, no licence notice or link | **Gap [A]**, if the SODL applies |
 | Search-specific attribution | API docs | None found in the search docs | — |
-| SLA (service level) | Terms of Use clause 2 and 11; API terms "Disclaimers" | No service level is offered ("as is", "as available"; the API terms disclaim "service levels, continued availability") | Nothing to show [C] |
+| SLA (service level) | Terms of Use clause 2 and 11 (**update 2026-11-07:** the disclaimer is clause 10; clause 11 is the indemnity); API terms "Disclaimers" | No service level is offered ("as is", "as available"; the API terms disclaim "service levels, continued availability") | Nothing to show [C] |
 
 Terms of Use 3(b)(ii) also bars "use" of SLA's logos except as 3(a) allows, while the basemap docs require the logo.
 The docs' explicit requirement is read as the permission for that use [A].
+
+**Update 2026-11-07: links in any new credit [C/A]** (this bears on A-5d-2):
+- **OneMap Terms of Use 8(a)–(b):** "You may link to the Site's home page", and "You must not establish a link: … to
+  any part of this Site other than the home page". So a licence link to OneMap's copy
+  (`onemap.gov.sg/legal/opendatalicence.html`) would be a link to a part other than the home page [A].
+  - The same text of SODL v1.0 is at `https://data.gov.sg/open-data-licence`. data.gov.sg's terms say only: "If you
+    create a link or frame to The Website, you do so at your own risk. We reserve the right to object or disable any
+    link or frame to or from The Website." [C]
+- **SLA's own website terms** (`www.sla.gov.sg/terms-of-use`, "Last updated on 28 May 2025") say: "You shall not cache
+  or frame this Site or any part thereof or any of the Contents, nor create hyperlinks to any page of this Site or any
+  of the Contents, without the prior written permission of SLA" [C].
+  - The basemap credit's `https://www.sla.gov.sg/` link is the one OneMap's own required snippet gives. It is read
+    as permitted through that requirement [A].
+  - A new link to sla.gov.sg elsewhere has no such basis [A].
+- **The SODL also says:** "You must not Use the datasets in a way that suggests any official status or that an Agency
+  endorses you or your Use of the datasets." [C]
 
 ### 4.5 Caching and storage
 
@@ -235,6 +328,59 @@ The docs' explicit requirement is read as the permission for that use [A].
 - The Android disk cache is the closest to 3(b)'s "store": tiles stay on disk across sessions, up to 50 MB, though
   each one is revalidated before reuse once stale. It is a cache honouring the server's headers, not an offline pack,
   but the terms do not mention caching. Recorded as a residual point for SLA (§6, S2).
+
+**Update 2026-11-07: behaviour from code against verified terms (A-5d-3; no behaviour changed).**
+
+*Behaviour, from the code at `bbd9329` and flutter_map 8.3.2's source in the pub cache [C]:*
+
+| Item | Behaviour |
+|---|---|
+| Search cache | `PlaceSearchConfig.cacheTtl` = 5 min; `maxCachedQueries` = 50 (least recently used evicted first; expired entries dropped on every write); failures not cached. `OneMapPlaceSearchRepository` keeps the parsed `Place` values (id, display name, address, postal code, latitude, longitude, type), not the raw response, in a Dart map in memory; nothing reaches disk or `shared_preferences` |
+| Search pacing | `OneMapRateLimit`: 1 request per 1 s window per running app, retries included; debounce 350 ms; at least 3 characters or a 6-digit postcode; at most 100 characters; page 1 only (≤ 10 results) |
+| Tiles, Android | `OneMapTileProvider` = `NetworkTileProvider` + `BuiltInMapCachingProvider.getOrCreateInstance(maxCacheSize: MapConfig.tileCacheMaxBytes)`, which is 50,000,000 bytes. Files go in an `fm_cache` folder under the platform cache directory, "which may be cleared by the OS at any time". Freshness comes from `Cache-Control: max-age` (OneMap sends `max-age=14400`, 4 h, observed by A-5d at 02:33 UTC). A fresh tile is shown from disk with no request. A stale one is revalidated with `If-None-Match` / `If-Modified-Since`, and a 304 refreshes its metadata. **A stale tile is never shown when the request fails**: the code evicts it and reports the error. The size cap "is applied only when the instance is created", so the cache "may exceed this limit while the program is running" |
+| Tiles, Web | The built-in provider is a no-op ("they will noop"). The browser's HTTP cache applies OneMap's headers; the app adds no cache, service-worker tile cache or storage |
+| Prefetch, offline | None: tiles are requested only while the map is open, for the visible area plus flutter_map's default one-tile `panBuffer` |
+
+*Official terms on caching and storage, verified raw [C]:*
+- **OneMap Terms of Use 3(a):** "SLA grants to you a non-transferable, non-exclusive, royalty-free, revocable licence
+  to access, view, download, print or otherwise use the SLA Data and the SLA Material for any usage, subject to the
+  terms and conditions set out in these Terms of Use."
+- **3(b)(i):** "Except as expressly permitted in Clause 3(a) above, you shall not: store, download, archive, print,
+  distribute, publicly display, reproduce, publish, post, communicate, copy, modify, edit, translate, adapt, transmit,
+  upload in any medium or combine or integrate with or incorporate into any other materials, any part of the Site or
+  any SLA Data or SLA Material".
+- **Clause 6 (termination):** "you … must promptly destroy and/or permanently erase all copies of the SLA Data and SLA
+  Material in your possession, custody or control."
+- **API Terms of Service:** no caching or storage clause. They refer to "additional terms, including limitations on
+  Use, found on the individual pages of each API".
+- **API docs:** no caching rule for search results or tiles. The only caching text is about the token: "you can use a
+  utility like tokenCache to store the token temporarily for reuse without additional API calls".
+- **Basemap docs:** no caching rule.
+- **SODL v1.0** (if it applies): "use, access, download, copy, distribute, transmit, modify and adapt the datasets".
+- **The server's own headers:** tiles `max-age=14400, s-maxage=14400, must-revalidate`; search responses have none.
+
+*Comparison:*
+
+| Behaviour | Against the verified terms | Finding |
+|---|---|---|
+| In-memory search cache (5 min, ≤ 50 queries) | No term mentions caching. 3(a) allows to "download … or otherwise use … for any usage". Whether a 5-minute in-memory copy is "store" or "copy" under 3(b) is a reading | **No confirmed incompatibility.** Possible reading only [A]: low, as it is transient and never written to storage |
+| Android disk tile cache (trimmed to 50 MB when first opened in each run, kept across sessions, OS-clearable) | No term mentions caching. The server's `Cache-Control` invites caching for 4 h and requires revalidation after, which the code does. The bytes stay on disk past 4 h, stale, until revalidated, trimmed or cleared. 3(b) names "store" and "archive", unless 3(a) covers it | **No confirmed incompatibility.** The **closest possible conflict [A]**: a persistent on-device copy of SLA Data could be read as "store" under 3(b)(i). It is a cache that honours headers, not an offline pack |
+| Browser HTTP cache (Web) | Same headers; the browser decides | **No confirmed incompatibility** [A] |
+| Clause 6 erase-on-termination | Only on termination. An installed Android app cannot erase users' caches remotely; the OS may clear them; the cap trims when the cache is first opened in each run | Nothing applies today. It is a point to ask about if SLA ever terminates [A] |
+
+**Confirmed incompatibilities: none.** No verified clause names caching, and none sets a period, size or place that the
+app exceeds.
+
+**For an owner decision, as possible readings only [A]:**
+- the Android disk tile cache under 3(b)(i) "store";
+- the in-memory search cache under the same clause, much weaker.
+
+Both are put to SLA in the letter (question 4). A-5d-3's recommendation is unchanged: keep the behaviour until SLA
+answers. If the owner wants to remove the closest point without waiting, an in-memory-only tile cache on Android is a
+code change for its own PR (not proposed here).
+
+**Correction to the table above [C]:** for "Tiles, Android", the 50 MB cap is applied when the cache is first opened in each run. It is not
+a hard ceiling during a session.
 
 ### 4.6 Android and Web
 
@@ -291,12 +437,15 @@ any time without notice, which the terms allow (clause 2; API terms "Suspension 
 3. **[A]** Do the API terms cover tiles, and is a header-honouring disk cache on Android "store" under 3(b)?
 4. **[A]** What happened to the "Developer Agreement"? The terms still name it, and its old URL has moved.
 
+**Update 2026-11-07.** §10 lists these questions with the others across A-4, A-5 and A-5d. For each one it says
+whether the data owner (SLA, LTA, LTA DataMall) or qualified legal advice can settle it.
+
 ## 6. Options
 
 | ID | Option | What it involves | Against the hard constraints | Assessment |
 |---|---|---|---|---|
 | S1 | **Accept and document** (status quo): keep tokenless search, the enforcement handling and the tiles | This document; owner's decision | Fits | Keeps the app. The documented requirement stays unmet; enforcement may come without notice, and the app then shows "requires sign-in" with no place search. Revisit before any wider release |
-| S2 | **Ask SLA in writing** (OneMap's contact page, `http://www.onemap.gov.sg/apidocs/contactus`, named in the API docs): tokenless search from a public client-only app at ≤ 1 request/s; whether the SODL governs API data; the Android tile cache | A letter from the owner, **drafted only, not sent** | Fits (no change unless SLA answers) | The only route to an authoritative answer. SLA may say no, or not answer |
+| S2 | **Ask SLA in writing** (OneMap's contact page, `http://www.onemap.gov.sg/apidocs/contactus`, named in the API docs): tokenless search from a public client-only app at ≤ 1 request/s; whether the SODL governs API data; the Android tile cache. **Update 2026-11-07:** that page's text gives `onemap@sla.gov.sg` ("If you have any questions, please reach out to us. … Feel free send us feedback at onemap@sla.gov.sg"). The August 2025 workshop page asks token enquirers to write there with "Name of Application", "Endpoints used" and "Expected Traffic". Draft: `docs/sla-clarification-request-draft.md` | A letter from the owner, **drafted only, not sent** | Fits (no change unless SLA answers) | The only route to an authoritative answer. SLA may say no, or not answer |
 | S3 | **Register and use a token** | An account, then a token in the app or on a server | **Breaks both rules**: a credential in a public bundle, or a server. The API terms' confidentiality clause also rules out the bundle | Out of scope |
 | S4 | **Replace search with Photon** (komoot public demo) | A new adapter (`PlaceSearchRepository` already exists as the seam), a CSP host, ODbL attribution | Fits: keyless, CORS `*` | README: "reasonable limit"; "Extensive usage will be throttled or completely banned"; no availability guarantee. Weaker in Singapore: no HDB block resolution, wrong acronyms (`docs/api-feasibility.md`). A public demo server's fair use for a distributed app is its own question [A] |
 | S4b | **Replace search with Nominatim** (OSMF) | As S4, submit-only | Fits for submit; **not for type-ahead** | Policy: "an absolute maximum of 1 request per second" summed across all users; "stock User-Agents as set by http libraries will not do"; autocomplete "you must not implement such a service on the client side". Removes type-ahead; weaker in Singapore |
@@ -324,3 +473,155 @@ any time without notice, which the terms allow (clause 2; API terms "Suspension 
 | A-5d-4 | Send an app-identifying `User-Agent` on Android search requests | **Optional, low priority**: no published OneMap rule requires it; it would be a production change in its own PR |
 | A-5d-5 | Register a OneMap account and accept the API terms without using a token (S5) | **Not now**: it changes nothing in the app and is a third-party registration. Reconsider only if SLA asks for it in answer to S2 |
 | A-5d-6 | Treat the live-OneMap dev tools like A-5c (optional, run by hand, never in CI) | **Approve**; documentation only |
+
+**Update 2026-11-07 (owner decisions of 2026-11-07).**
+
+| ID | Status |
+|---|---|
+| A-5d-1 | S2 is drafted: `docs/sla-clarification-request-draft.md`, **not sent**. S1 holds meanwhile. Whether and when to send it is the owner's decision |
+| A-5d-2 | Kept for a separate PR by the owner. The verified link limits (§4.4 update) bear on the wording: link the licence at data.gov.sg (main already has `openDataLicenceUri` for it, from A-5b), not OneMap's legal page, and add no new sla.gov.sg link |
+| A-5d-3 | Behaviour unchanged. Compared with the verified terms: **no confirmed incompatibility**. The Android disk cache is a possible reading under 3(b)(i) [A], and is asked about in the letter (§4.5 update) |
+| A-5d-5 | Reassessed with the verified requirements: **still not now**. Register only if SLA asks for it (§4.3 update) |
+
+## 9. Verified terms (2026-11-07, raw)
+
+### 9.1 Sources
+
+Every row was read with `curl` into the session scratchpad and extracted to text with a small script that strips tags.
+Nothing was summarised by a model. "Date on page" is the page's own "last updated" text, if any.
+
+| Source | URL | Read (UTC) | Date on page |
+|---|---|---|---|
+| OneMap Terms of Use | https://www.onemap.gov.sg/legal/termsofuse.html | 02:53 | None |
+| OneMap API Terms of Service | https://www.onemap.gov.sg/legal/apitermsofservice.html | 02:53 | None |
+| SODL v1.0, OneMap copy | https://www.onemap.gov.sg/legal/opendatalicence.html | 02:53 | None |
+| OneMap "Developer Agreement" | https://www.onemap.gov.sg/legal/developeragreement.html | 02:53 | **Not verified**: "We have moved! Visit us at our new site https://www.onemap.gov.sg." |
+| OneMap basemap docs | https://www.onemap.gov.sg/docs/maps/ | 02:53 | "Copyright © 2024" (footer) |
+| OneMap attribution snippet | https://www.onemap.gov.sg/docs/maps/resources/code-attr.txt | 02:53 | None |
+| OneMap API docs (single-page app) | https://www.onemap.gov.sg/apidocs/ → bundle `/apidocs/static/js/main.18cfd432.js` (1,363,539 B, the same file as A-5d's) | 02:55 | "©2025 OneMap. All rights reserved" (footer) |
+| SLA website Terms of Use | https://www.sla.gov.sg/terms-of-use | 02:53 | "Last updated on 28 May 2025" |
+| SLA answers on ask.gov.sg (5) | https://ask.gov.sg/sla/questions/ + `cmbt7ovwe00als5f6glia8wmv`, `cmbt7ovwe00ahs5f68ql9se2p`, `cmbt7ovwd00ads5f697i3bmzi`, `cmbt7ovwd00afs5f63pdyi1y9`, `cmbt7ovwe00ajs5f64epszmwk` | 02:59 | Each "Updated by SLA 1y ago" |
+| LTA website Terms of Use | https://www.lta.gov.sg/content/ltagov/en/terms-of-use.html | 02:53 | "Last updated 03 December 2021" |
+| LTA DataMall API Terms of Service | https://datamall.lta.gov.sg/content/datamall/en/api-terms-of-service.html | 02:54 | "Last updated 09 July 2025" |
+| LTA DataMall website Terms of Use | https://datamall.lta.gov.sg/content/datamall/en/term-of-use.html | 02:54 | "Last updated 25 August 2022" |
+| SODL v1.0, DataMall copy | https://datamall.lta.gov.sg/content/datamall/en/SingaporeOpenDataLicence.html | 02:54 | "Last updated 14 December 2020" |
+| SODL v1.0, data.gov.sg | https://data.gov.sg/open-data-licence | 02:53 | None |
+| data.gov.sg Privacy & Terms (with its API Terms of Service) | https://data.gov.sg/privacy-and-terms | 02:55 | None |
+| busrouter-sg and arrivelah READMEs | https://raw.githubusercontent.com/cheeaun/busrouter-sg/master/README.md, …/arrivelah/master/README.md | 02:57 | None |
+| OSMF Nominatim and tile policies, Photon README | https://operations.osmfoundation.org/policies/nominatim/, …/tiles/, https://raw.githubusercontent.com/komoot/photon/master/README.md | 03:01 | None |
+
+`https://datamall.lta.gov.sg/content/datamall/en/tnc.html` answered 404. The three DataMall URLs above are the ones
+DataMall's home page links to.
+
+### 9.2 Clauses relied on, verbatim [C]
+
+The quotes in §4 were checked against this text. They are verbatim except those in §9.3. Further clauses:
+
+- **OneMap Terms of Use.**
+  - 3(b)(ii): "remove, obscure, modify, alter or use any copyright notices, registered or unregistered trademarks,
+    service marks or logos owned by or proprietary to SLA, or do anything which may constitute an infringement of any
+    of the intellectual property rights of SLA or our third-party licensors."
+  - Clause 2: "We reserve the right to deny or restrict access to this Site by any person, or to block access from a
+    particular internet address to this Site, at any time without prior notice and without ascribing any reasons
+    whatsoever."
+  - Clause 9: "Currently, no charge is imposed for accessing or using any part of this Site."
+  - The "User" definition reads, as published: ""User" or "you" means the mapping data application programming
+    interface owned by or licensed to SLA to allow you to build experimental, innovative, web based applications using
+    the Data." "the API" and "the Data" are not defined.
+- **OneMap API Terms of Service.**
+  - "The Agency may offer datasets through an API. Use of the datasets is governed by the Singapore Open Data Licence
+    ." ("Singapore Open Data Licence" links to `opendatalicence.html`.)
+  - "You can use, access, call, command, query or request the API, whether commercially or non-commercially
+    ("Use")."
+  - "These Terms of Service do not grant you any rights over: any personal data should any personal data be included
+    or exposed through the APIs, inadvertently or otherwise; and any intellectual property found in content
+    accessible through the APIs."
+  - "The Agency may terminate these Terms of Service or suspend your access to the API for any reason whatsoever."
+  - Apart from the host it names, the text is the same as data.gov.sg's API Terms of Service. LTA DataMall's version
+    numbers the clauses and adds some (clauses 4, 5, 10(d) and 10(e)).
+- **SODL v1.0.** The same text on all three hosts, apart from where sub-licensees are sent ("onemap.gov.sg" or
+  "data.gov.sg").
+  - The example notice: "[Contains information from {name of dataset} accessed on {date of access of dataset} from
+    {source of data} which is made available under the terms of the Singapore Open Data Licence version 1.0 {URL link
+    to licence}]".
+  - "“Dataset” includes any data, or information within the dataset, that is offered for use under the terms of this
+    Licence."
+- **data.gov.sg terms, clause 2:** "The use of Datasets on The Website is wholly governed by the Singapore Open Data
+  Licence . Access to datasets via application programming interfaces (APIs) is governed by the API Terms of Service
+  ."
+- **OneMap basemap docs:** "Under our Terms of Use , by using our base map services, you MUST include the OneMap logo
+  and attribution:". "Terms of Use" links to `legal/termsofuse.html`, and the footer's "Contact Us" is
+  `mailto:onemap@sla.gov.sg`.
+- **Attribution snippet** (raw HTML): logo `om_logo.png` at 20 × 20, then `OneMap` linked to
+  `https://www.onemap.gov.sg/`, `&copy;&nbsp;contributors&nbsp;&#124;&nbsp;`, then `Singapore Land Authority` linked to
+  `https://www.sla.gov.sg/`.
+- **OneMap API docs.**
+  - Contact page: "If you have any questions, please reach out to us." and "Feel free send us feedback at
+    onemap@sla.gov.sg and we will get back to you as soon as possible!"
+  - Workshop page: "Users onboard the token-based authentication will have a higher API call limit capped at 250; and
+    further request for higher limits can be discussed on a case-by-case basis." Then: "Interested parties can contact
+    the SLA team at onemap@sla.gov.sg, and include the following details to allow us to better assist you: Name of
+    Application; Endpoints used; Expected Traffic". No unit is given for "250". No other number appears in the
+    bundle.
+- **SLA website Terms of Use** (these govern `www.sla.gov.sg`, not OneMap).
+  - "You may view, download and print the Contents for your personal, internal and non-commercial use, provided that
+    you keep intact all accompanying copyright and other proprietary notices."
+  - The hyperlink clause is quoted in §4.4's update.
+  - "Where permission is required by these Terms of Use for use of this Site or the Contents, you may apply for
+    permission by writing to SLA at 55 Newton Road, #12-01 Revenue House, Singapore 307987".
+- **SLA answers on ask.gov.sg.**
+  - "I am a web designer … How do I go about it?": "Please refer to our OneMap APIs page at
+    http://www.onemap.sg/api/help/ . The Terms and Conditions for the use of APIs can be viewed at API Terms of
+    Service (onemap.gov.sg) . Do contact OneMap Helpdesk at onemap@sla.gov.sg should you need any assistance."
+  - "How may I obtain approval for the use of OneMap?": quoted in §4.3's update. It adds: "For assistance, please
+    contact us at 1800 323 9829 or email us at onemap@sla.gov.sg".
+  - Two answers about printed and e-mailed maps ask for "the OneMap logo and the copyright statement "© 2013 OneMap"".
+    That is a different use from the app's.
+- **LTA website Terms of Use.** The three quotes in A-5 §4 are verbatim.
+- **LTA DataMall API Terms of Service.**
+  - Clause 1 and clause 10(b) as quoted in A-5 and A-4: verbatim.
+  - New, clause 4: "You can call the APIs up to 10 million times a day (the "Threshold"). If you exceed the Threshold,
+    the Agency may, without warning, suspend or terminate your right to Use the API at its discretion."
+  - Clause 8(b): no rights over "any intellectual property found in content accessible through the APIs".
+- **LTA DataMall website Terms of Use.**
+  - Clause 5 repeats LTA's "seek permission in writing" clause.
+  - Clause 13: "Except as set forth below, caching and links to, and the framing of this website or any of the
+    Contents are prohibited."
+  - Clause 23: "The Contents of this website are strictly for your personal and non-commercial use only."
+  - These clauses cover the website's Contents. The API datasets are under the API Terms of Service and the SODL [A].
+- **busrouter-sg and arrivelah READMEs.** The quotes in A-5 §4 and A-4 §3 are verbatim as rendered. The raw Markdown
+  writes the lta.gov.sg URL as `<https://www.lta.gov.sg/>`.
+
+### 9.3 Corrections to earlier text
+
+| Where | Earlier | Verified |
+|---|---|---|
+| §4.3, registration checkbox | "I acknowledge and accept the [Privacy Statement] and [API Terms of Service] of OneMap." | Not verbatim. The full text is in the §4.3 update: it adds an "Open Data Policy" and consent to receive SLA's information |
+| §4.4, last row | "Terms of Use clause 2 and 11" | The "as is" disclaimer is clause 10 (clause 4(f) cites "Clause 4(e)", which fixes the numbering) |
+| §4.5, "Tiles, Android" | "kept on disk up to the 50 MB cap … until trimmed by the cap" | The cap is applied when the cache instance is created (the first map opening in each run of the app); during a run the cache may exceed it (flutter_map source) |
+| §3, ask.gov.sg | Not verified (403) | Verified raw (§9.1) |
+| §3, OSMF and Photon | WebFetch quotes | Verified raw; the quotes in §6 are verbatim |
+| §1 and §4.1, API terms | "Use of the datasets is governed by the Singapore Open Data Licence." | Verbatim, but it follows "The Agency may offer datasets through an API." The terms also exclude "any intellectual property found in content accessible through the APIs". Whether search results are SODL "datasets" is open (§10, Q2) |
+| A-4 §3 and A-5 §4 | The SODL, DataMall, LTA, OneMap and README quotes | All verbatim; no correction |
+
+## 10. Remaining uncertainty: who can settle each question
+
+"Data owner" means a written answer or permission from the body that owns the data. "Legal advice" means a qualified
+lawyer's reading of the published terms. Advice can assess risk; it cannot grant a permission the terms reserve to the
+owner. ArriveLah's and busrouter's maintainer can describe their own arrangements but cannot grant LTA's or SLA's
+rights.
+
+| # | Open question | Docs | Who can settle |
+|---|---|---|---|
+| Q1 | May a public, client-only Web and Android app call OneMap search **without a token**, while the docs mark the token "Required"? | A-5d §4.1 | **SLA** only |
+| Q2 | Do the API Terms of Service, and so the SODL, govern search results (and tiles), next to or instead of Terms of Use 3(b)? Are the results SODL "datasets"? | A-5d §4.1, §9.2 | **SLA**; legal advice can give a reading of the text |
+| Q3 | Is the Android disk tile cache, or the 5-minute in-memory search cache, "store" under 3(b)(i)? | A-5d §4.5 | **SLA**; legal advice can give a reading |
+| Q4 | Who must register, for which APIs; what replaced the "Developer Agreement"; what is the "Open Data Policy" the checkbox names? | A-5d §4.3 | **SLA** only |
+| Q5 | What attribution does SLA want for search: wording, an SODL notice, and which links (given Terms of Use 8(b) and SLA's website hyperlink clause)? | A-5d §4.4 | **SLA** |
+| Q6 | May the developer keep calling OneMap from the hand-run dev tools for local development and evaluation? | A-5d §2, §7 | **SLA** |
+| Q7 | Were the captured OneMap search results committed in `test/fixtures/onemap/` (and kept in history) permitted? | A-4 | **SLA** (permission) or **legal advice** (risk; history removal) |
+| Q8 | **busrouter / LTA website content:** does LTA's "To use the Contents of this website … the user must seek permission in writing" reach stop, service and route-line data obtained through sgbusdata and busrouter.sg? Is the app's use permitted? | A-5 §5.1 | **LTA** (permission; letter drafted in `docs/lta-clarification-request-draft.md`, not sent); **legal advice** on whether the clause binds third-party recipients and how far stop codes, positions and stop orders are protected |
+| Q9 | Does LTA's "caching … prohibited" clause reach the app's in-session copy and the browser's HTTP cache of the busrouter files? | A-5 §4 | **LTA**; legal advice can give a reading |
+| Q10 | **ArriveLah / DataMall proxy:** is DataMall Bus Arrival data relayed by ArriveLah (with the operator's AccountKey, which clause 10(b) says to keep confidential; clause 4's Threshold of 10 million calls a day binds the caller) a dataset the app may use under the SODL? Does the app's notice then satisfy the licence? | A-5 §5.1, A-4 | **LTA DataMall** (data owner); **legal advice** on whether a proxy-obtained copy is licensed |
+| Q11 | Third-party patches inside the busrouter data: SimplyGo name corrections, OneMap and Citymapper route patches | A-5 §5.4 | **LTA** (SimplyGo is LTA's fare system [A]), **SLA** (OneMap patches); **legal advice** for Citymapper, which is neither |
+| Q12 | Do the captured third-party responses still in Git history (busrouter: A-2, A-3; ArriveLah and OneMap: A-4; the probe-output bodies and search evaluation: `docs/captured-data-inventory.md`, C-7) need removal? | A-4, busrouter audit | **Legal advice**; the data owners could permit them instead |

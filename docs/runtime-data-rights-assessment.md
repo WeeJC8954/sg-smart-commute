@@ -154,3 +154,8 @@ change in `app_config.dart` and the footer, and needs approval as a UI change.
 **Update 2026-11-07 (A-5a):** the owner approved drafting O1. The draft is `docs/lta-clarification-request-draft.md`,
 **not sent** (it needs the owner's explicit approval). Until LTA answers, the runtime use stays not shown to be
 permitted.
+
+**Update 2026-11-07.** The terms quoted in §4 were read again raw: all are verbatim. DataMall's API terms also set a
+Threshold of "10 million times a day" (clause 4). The open questions of this assessment are listed with A-5d's in
+`docs/onemap-runtime-assessment.md` §10 (Q8–Q12), each with whether LTA, LTA DataMall or legal advice can settle it.
+They include the busrouter/LTA website-content question and the ArriveLah/DataMall proxy question.
