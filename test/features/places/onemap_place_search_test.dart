@@ -1,9 +1,10 @@
 // OneMap parser and repository (guide v2.1 §8, §18 "Repository tests").
-// Fixtures in test/fixtures/onemap/ are real tokenless responses captured with
-// curl on 2026-10-01. Payloads built inline are synthetic and say so.
+// All data is synthetic: the full response bodies come from
+// test/fixtures/onemap/synthetic_onemap.dart (owner decisions A-4b, A-4c;
+// README.md there lists the cases), and the rows built inline below are
+// synthetic too.
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
@@ -15,15 +16,9 @@ import 'package:sg_smart_commute/features/places/data/onemap_parser.dart';
 import 'package:sg_smart_commute/features/places/data/onemap_place_search_repository.dart';
 import 'package:sg_smart_commute/features/places/domain/place.dart';
 
-Object? fixture(String name) =>
-    jsonDecode(File('test/fixtures/onemap/$name.json').readAsStringSync());
+import '../../fixtures/onemap/synthetic_onemap.dart';
 
-String fixtureBody(String name) =>
-    File('test/fixtures/onemap/$name.json').readAsStringSync();
-
-const tokenMissing =
-    'Authentication token missing. Please create an account and generate or '
-    'renew your API Token.';
+const tokenMissing = syntheticTokenMessage;
 
 /// A synthetic OneMap result row.
 Map<String, String> row(
@@ -54,63 +49,78 @@ String body(List<Map<String, String>> rows) => jsonEncode({
 });
 
 void main() {
-  group('parseOneMapSearch (real fixtures)', () {
+  group('parseOneMapSearch (synthetic full bodies)', () {
     test('postal code: building name, address, postcode kept as a string', () {
-      final places = parseOneMapSearch(fixture('postal-098585'));
+      final places = parseOneMapSearch(jsonDecode(postalLeadingZeroBody));
       expect(places, hasLength(1));
       final p = places.single;
-      expect(p.displayName, 'VIVOCITY');
-      expect(p.postalCode, '098585'); // leading zero preserved
-      expect(p.address, '1 HARBOURFRONT WALK VIVOCITY SINGAPORE 098585');
+      expect(p.displayName, 'FAKE PLAZA (fake)');
+      expect(p.postalCode, '009901'); // leading zero preserved
+      expect(p.address, '1 FAKE ROAD FAKE PLAZA (fake) SINGAPORE 009901');
       expect(p.type, PlaceType.building);
       expect(p.source, PlaceSource.oneMap);
-      expect(p.latitude, closeTo(1.2642, 0.001));
-      expect(p.longitude, closeTo(103.8223, 0.001));
+      expect(p.latitude, closeTo(1.221, 0.0001));
+      expect(p.longitude, closeTo(103.731, 0.0001));
     });
 
     test('HDB block: an address (no building), exact block postcode', () {
-      final places = parseOneMapSearch(fixture('hdb-123-amk-ave-6'));
+      final places = parseOneMapSearch(jsonDecode(hdbBlockBody));
       expect(
         places.first.displayName,
-        '123 ANG MO KIO AVENUE 6 SINGAPORE 560123',
+        '901 FAKE ROAD 9 SINGAPORE 990901 (fake)',
       );
-      expect(places.first.postalCode, '560123');
+      expect(places.first.postalCode, '990901');
       expect(places.first.type, PlaceType.address);
       expect(places[1].postalCode, isNull); // "NIL"
     });
 
     test('MRT: typed as station; "NIL" postcode becomes null; codes kept', () {
-      final places = parseOneMapSearch(fixture('mrt-bishan'));
+      final places = parseOneMapSearch(jsonDecode(mrtStationBody));
       expect(places.first.type, PlaceType.mrtStation);
       expect(places.first.postalCode, isNull);
       expect(
         places.map((p) => p.displayName),
-        containsAll(['BISHAN MRT STATION (CC15)', 'BISHAN MRT STATION (NS17)']),
+        containsAll([
+          'FAKE MRT STATION (FK1) (fake)',
+          'FAKE MRT STATION (FK2) (fake)',
+        ]),
       );
+      expect(places.last.displayName, 'FAKE LRT STATION (FL1) (fake)');
+      expect(places.last.type, PlaceType.mrtStation);
     });
 
     test('street: several results, duplicates kept for the user to choose', () {
-      final places = parseOneMapSearch(fixture('street-orchard-road'));
+      final places = parseOneMapSearch(jsonDecode(streetBody));
       expect(places.length, greaterThan(1));
-      expect(
-        places.where((p) => p.displayName == 'ORCHARD ROAD'),
-        hasLength(2),
-      );
+      final roads = places.where((p) => p.displayName == 'FAKE ROAD (fake)');
+      expect(roads, hasLength(2));
+      expect(roads.map((p) => p.type), [PlaceType.address, PlaceType.building]);
+      // The provider's order is kept, and the row north of the SG box is
+      // dropped.
+      expect(places.map((p) => p.displayName), [
+        'THE FAKE HOTEL ON FAKE ROAD (fake)',
+        'FAKE ROAD (fake)',
+        'FAKE ROAD (fake)',
+        'FAKE ROAD - ERP(99) (fake)',
+        'FAKE ROAD CHAPEL (fake)',
+      ]);
     });
 
-    test('mall: VivoCity and VivoCity station are both offered', () {
-      final names = parseOneMapSearch(fixture('mall-vivocity'))
+    test('mall: the mall and the station named after it are both offered', () {
+      final names = parseOneMapSearch(jsonDecode(mallBody))
           .map((p) => p.displayName);
-      expect(names, ['VIVOCITY', 'VIVOCITY STATION (S1)']);
+      expect(names, ['FAKE MALL (fake)', 'FAKE MALL STATION (FS1) (fake)']);
     });
 
     test('"error" + empty results (genuine no match, e.g. 000000) → []', () {
-      expect(parseOneMapSearch(fixture('postal-000000')), isEmpty);
-      expect(parseOneMapSearch(fixture('hdb-blk-raw')), isEmpty);
+      expect(parseOneMapSearch(jsonDecode(postalNoMatchBody)), isEmpty);
+      expect(parseOneMapSearch(jsonDecode(blockNoMatchBody)), isEmpty);
     });
 
     test('"error" + results is normal tokenless behaviour', () {
-      expect(parseOneMapSearch(fixture('postal-238801')), hasLength(1));
+      final json = jsonDecode(tokenWithResultBody) as Map<String, dynamic>;
+      expect(json['error'], isNotNull);
+      expect(parseOneMapSearch(json), hasLength(1));
     });
   });
 
@@ -140,6 +150,25 @@ void main() {
         jsonDecode(body([row('X', postal: '12345')])),
       );
       expect(places.single.postalCode, isNull);
+    });
+
+    test('the name is SEARCHVAL, even when BUILDING and ADDRESS differ', () {
+      final p = parseOneMapSearch(
+        jsonDecode(
+          body([row('NAME', building: 'OTHER BUILDING', address: 'ADDR')]),
+        ),
+      ).single;
+      expect(p.displayName, 'NAME');
+      expect(p.address, 'ADDR');
+      expect(p.type, PlaceType.building);
+    });
+
+    test('an empty or blank field counts as missing, like "NIL"', () {
+      final p = parseOneMapSearch(
+        jsonDecode(body([row('ROAD', building: '', address: '  ')])),
+      ).single;
+      expect(p.address, isNull);
+      expect(p.type, PlaceType.address);
     });
 
     test('malformed bodies → InvalidApiResponse', () {
@@ -208,14 +237,12 @@ void main() {
     });
 
     test('sends the normalised query to OneMap search', () async {
-      final r = repo(
-        (_) => http.Response(fixtureBody('hdb-123-amk-ave-6'), 200),
-      );
-      await r.search('  Blk 123   Ang Mo Kio Ave 6 ', mode: SearchMode.submit);
+      final r = repo((_) => http.Response(hdbBlockBody, 200));
+      await r.search('  Blk 901   Fake Road 9 ', mode: SearchMode.submit);
       final uri = requests.single;
       expect(uri.host, 'www.onemap.gov.sg');
       expect(uri.path, '/api/common/elastic/search');
-      expect(uri.queryParameters['searchVal'], '123 Ang Mo Kio Ave 6');
+      expect(uri.queryParameters['searchVal'], '901 Fake Road 9');
       expect(uri.queryParameters['returnGeom'], 'Y');
       expect(uri.queryParameters['getAddrDetails'], 'Y');
     });
@@ -223,9 +250,9 @@ void main() {
     test(
       'leading-zero postal code: exact match kept, string compared',
       () async {
-        final r = repo((_) => http.Response(fixtureBody('postal-098585'), 200));
-        final places = await r.search('098585', mode: SearchMode.typeahead);
-        expect(places.single.postalCode, '098585');
+        final r = repo((_) => http.Response(postalLeadingZeroBody, 200));
+        final places = await r.search('009901', mode: SearchMode.typeahead);
+        expect(places.single.postalCode, '009901');
       },
     );
 
@@ -264,13 +291,16 @@ void main() {
     );
 
     test('a postal code with no results at all → [] (no match)', () async {
-      final r = repo((_) => http.Response(fixtureBody('postal-000000'), 200));
+      final r = repo((_) => http.Response(postalNoMatchBody, 200));
       expect(await r.search('000000', mode: SearchMode.submit), isEmpty);
     });
 
     test('a non-postal query is not postcode-filtered', () async {
-      final r = repo((_) => http.Response(fixtureBody('mall-vivocity'), 200));
-      expect(await r.search('VivoCity', mode: SearchMode.submit), hasLength(2));
+      final r = repo((_) => http.Response(mallBody, 200));
+      expect(
+        await r.search('Fake Mall', mode: SearchMode.submit),
+        hasLength(2),
+      );
     });
 
     test('401 and 403 (token enforcement) → ApiUnauthorized', () async {
@@ -279,7 +309,7 @@ void main() {
           (_) => http.Response('{"message":"Unauthorized"}', status),
         );
         await expectLater(
-          r.search('VivoCity', mode: SearchMode.submit),
+          r.search('Fake Mall', mode: SearchMode.submit),
           throwsA(isA<ApiUnauthorized>()),
           reason: 'HTTP $status',
         );
@@ -289,15 +319,15 @@ void main() {
     test('timeout and network failure → NetworkUnavailable', () async {
       final slow = repo((_) async {
         await Future<void>.delayed(const Duration(seconds: 1));
-        return http.Response(fixtureBody('mall-vivocity'), 200);
+        return http.Response(mallBody, 200);
       });
       await expectLater(
-        slow.search('VivoCity', mode: SearchMode.submit),
+        slow.search('Fake Mall', mode: SearchMode.submit),
         throwsA(isA<NetworkUnavailable>()),
       );
       final offline = repo((_) => throw http.ClientException('offline'));
       await expectLater(
-        offline.search('VivoCity', mode: SearchMode.submit),
+        offline.search('Fake Mall', mode: SearchMode.submit),
         throwsA(isA<NetworkUnavailable>()),
       );
     });
@@ -306,7 +336,7 @@ void main() {
       for (final text in ['<html>', '{"results": 3}', '[]']) {
         final r = repo((_) => http.Response(text, 200));
         await expectLater(
-          r.search('VivoCity', mode: SearchMode.submit),
+          r.search('Fake Mall', mode: SearchMode.submit),
           throwsA(isA<InvalidApiResponse>()),
           reason: text,
         );
@@ -314,7 +344,7 @@ void main() {
     });
 
     test('short queries make no request', () async {
-      final r = repo((_) => http.Response(fixtureBody('mall-vivocity'), 200));
+      final r = repo((_) => http.Response(mallBody, 200));
       expect(await r.search('vi', mode: SearchMode.typeahead), isEmpty);
       expect(await r.search('   ', mode: SearchMode.submit), isEmpty);
       expect(requests, isEmpty);
@@ -323,30 +353,27 @@ void main() {
     test(
       'results are cached per normalised query for 5 min; then refetched',
       () async {
-        final r = repo((_) => http.Response(fixtureBody('mall-vivocity'), 200));
-        await r.search('VivoCity', mode: SearchMode.typeahead);
-        await r.search('  VivoCity ', mode: SearchMode.submit);
+        final r = repo((_) => http.Response(mallBody, 200));
+        await r.search('Fake Mall', mode: SearchMode.typeahead);
+        await r.search('  Fake Mall ', mode: SearchMode.submit);
         expect(requests, hasLength(1));
         now = now.add(const Duration(minutes: 5));
-        await r.search('VivoCity', mode: SearchMode.submit);
+        await r.search('Fake Mall', mode: SearchMode.submit);
         expect(requests, hasLength(2));
       },
     );
 
     test('a pasted multi-KB query is cut before it is sent', () async {
-      final r = repo((_) => http.Response(fixtureBody('mall-vivocity'), 200));
-      await r.search('VivoCity ${'x' * 5000}', mode: SearchMode.submit);
+      final r = repo((_) => http.Response(mallBody, 200));
+      await r.search('Fake Mall ${'x' * 5000}', mode: SearchMode.submit);
       final sent = requests.single.queryParameters['searchVal']!;
       expect(sent.length, PlaceSearchConfig.maxQueryLength);
-      expect(sent, startsWith('VivoCity x'));
+      expect(sent, startsWith('Fake Mall x'));
     });
 
     test('the cache holds at most maxCachedQueries, evicting the least '
         'recently used', () async {
-      final r = repo(
-        (_) => http.Response(fixtureBody('mall-vivocity'), 200),
-        maxCachedQueries: 2,
-      );
+      final r = repo((_) => http.Response(mallBody, 200), maxCachedQueries: 2);
       await r.search('aaa', mode: SearchMode.submit);
       await r.search('bbb', mode: SearchMode.submit);
       await r.search('aaa', mode: SearchMode.submit); // hit: aaa is recent
@@ -360,7 +387,7 @@ void main() {
     });
 
     test('expired entries are dropped when a new one is written', () async {
-      final r = repo((_) => http.Response(fixtureBody('mall-vivocity'), 200));
+      final r = repo((_) => http.Response(mallBody, 200));
       for (final q in ['aaa', 'bbb', 'ccc']) {
         await r.search(q, mode: SearchMode.typeahead);
       }
@@ -373,16 +400,17 @@ void main() {
     test('failures are not cached', () async {
       var fail = true;
       final r = repo(
-        (_) => fail
-            ? http.Response('down', 400)
-            : http.Response(fixtureBody('mall-vivocity'), 200),
+        (_) => fail ? http.Response('down', 400) : http.Response(mallBody, 200),
       );
       await expectLater(
-        r.search('VivoCity', mode: SearchMode.submit),
+        r.search('Fake Mall', mode: SearchMode.submit),
         throwsA(isA<ApiUnavailable>()),
       );
       fail = false;
-      expect(await r.search('VivoCity', mode: SearchMode.submit), hasLength(2));
+      expect(
+        await r.search('Fake Mall', mode: SearchMode.submit),
+        hasLength(2),
+      );
     });
 
     test(

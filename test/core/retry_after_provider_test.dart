@@ -16,6 +16,8 @@ import 'package:sg_smart_commute/features/places/domain/place.dart';
 import 'package:sg_smart_commute/features/places/place_providers.dart';
 import 'package:sg_smart_commute/main.dart';
 
+import '../fixtures/onemap/synthetic_onemap.dart';
+
 http.Response fixture(String path) => http.Response.bytes(
   File('test/fixtures/$path').readAsBytesSync(),
   200,
@@ -40,7 +42,11 @@ void main() {
             sent.add(request.url);
             final url = request.url;
             if (url.host == OneMapEndpoints.host) {
-              return fixture('onemap/mall-vivocity.json');
+              return http.Response(
+                mallBody,
+                200,
+                headers: {'content-type': 'application/json'},
+              );
             }
             final dataset = url.pathSegments.last;
             if (dataset == 'pm25' && ++pm25Calls == 1) {
@@ -87,8 +93,8 @@ void main() {
     // OneMap is another host: place search still works.
     final places = await container
         .read(placeSearchRepositoryProvider)
-        .search('VivoCity', mode: SearchMode.submit);
-    expect(places.map((p) => p.displayName), contains('VIVOCITY'));
+        .search('Fake Mall', mode: SearchMode.submit);
+    expect(places.map((p) => p.displayName), contains('FAKE MALL (fake)'));
     expect(sent.last.host, OneMapEndpoints.host);
 
     // Retry after the hold: the tile's provider loads normally.
