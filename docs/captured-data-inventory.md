@@ -20,8 +20,9 @@ reuses their licence readings and does not re-read the terms.
   - the MRT asset (`assets/mrt_stations.json`).
 - **[C]** Out of scope here: `test/fixtures/onemap/` and `test/fixtures/arrivelah/` (replaced by open PRs #98 and #99),
   and `integration_test/fakes/fake_place_search_repository.dart` (another change; listed in §3.4 only).
-- **[P]** Redact the probe bodies and remove the evaluation JSON: nothing reads them. Make the three tools that wrote
-  them, or whose usage line sends them, write outside the repository. Done in the `chore/redact-probe-output` PR.
+- **[P]** Redact the probe bodies and remove the evaluation JSON: nothing reads them. Make
+  `tool/place_search_eval.dart`, which writes its JSON into `docs/` by default, write to `build/`. Done in the
+  `chore/redact-probe-output` PR. The two probe scripts already print to the terminal since PR #95 (A-5c).
 - **[C]** The NEA fixtures and the MRT asset are data.gov.sg datasets under the Singapore Open Data Licence (SODL).
   The licence permits copying and distribution with a notice and a link. Tests and the app need them, so they stay.
   Neither carries the licence link; the NEA fixtures carry no notice at all. §5 proposes how to add both.
@@ -32,7 +33,8 @@ reuses their licence readings and does not re-read the terms.
 
 ## 2. Method [C]
 
-Searched on `main` at `bbd9329` (2026-11-07):
+Searched on `main` at `bbd9329` (2026-11-07); the tool headers and attribution rows re-checked at `8a3e8d3`, after
+PRs #95 (A-5c) and #94 (A-5b):
 - every file under `docs/probe-output/` (including `map-spike/`), `test/fixtures/`, `assets/`, `integration_test/fakes/`,
   `tool/` and `docs/images/`, read or viewed;
 - `test/`, `integration_test/`, `lib/` and `tool/` for provider field names (`SEARCHVAL`, `visit_number`,
@@ -60,7 +62,7 @@ Searched on `main` at `bbd9329` (2026-11-07):
 
 | Path | Bytes | Added | Written by | Consumers | Content | Class | Recommendation |
 |---|---|---|---|---|---|---|---|
-| `curl-probes.txt` | 7,238 | `d3d0706`, 2026-10-01 | `bash tool/probe_apis.sh` (usage line redirects into `docs/`) | `docs/api-feasibility.md` (evidence table) | Status lines, CORS headers, byte counts **and a 220-character head of each body**: data.gov.sg forecast, UV, PM2.5 and PSI records; busrouter stops, services and a route polyline; ArriveLah arrivals; OneMap results; Photon and Nominatim results (OSM ids, names, addresses); a data.gov.sg signed-URL response; DataMall and OneMap error texts | SODL, LTA-web, ArriveLah, OneMap, ODbL | **Redact** every body; keep status, headers and bytes [P] |
+| `curl-probes.txt` | 7,238 | `d3d0706`, 2026-10-01 | `bash tool/probe_apis.sh` (its usage line redirected into `docs/` until PR #95) | `docs/api-feasibility.md` (evidence table) | Status lines, CORS headers, byte counts **and a 220-character head of each body**: data.gov.sg forecast, UV, PM2.5 and PSI records; busrouter stops, services and a route polyline; ArriveLah arrivals; OneMap results; Photon and Nominatim results (OSM ids, names, addresses); a data.gov.sg signed-URL response; DataMall and OneMap error texts | SODL, LTA-web, ArriveLah, OneMap, ODbL | **Redact** every body; keep status, headers and bytes [P] |
 | `map-probes.txt` | 6,932 | `67fec7b`, 2026-10-03 | `bash tool/probe_map.sh` (same) | `docs/map-feasibility.md` §1, §4; `docs/testing.md` run log; `docs/p2-m4-map-hardening-implementation-plan.md` | Tile probes (`<binary>`, no data) plus 200-character bodies: OpenFreeMap style and TileJSON, busrouter `routes.min.json`, OSRM, FOSSGIS OSRM, Valhalla and BRouter routes (geometry), OneMap search, OneMap routing error | ODbL, LTA-web, OneMap | **Redact** each non-binary body; keep the rest [P] |
 | `walking-routers-p2m4.txt` | 2,510 | `055a6dd`, 2026-10-04 | The inline script of `docs/p2-m4-map-hardening-implementation-plan.md` Task 1 | `docs/map-feasibility.md` §6.1; `docs/testing.md`; the P2-M4 plan | One FOSSGIS OSRM body (route geometry), then headers, a terms-page hash and a clause check (short quotes of the FOSSGIS terms) | ODbL; clause quotes are short | **Redact** the body; keep the clause check, which records the decision's evidence [P] |
 | `route-geometry.txt` | 578 | `67fec7b`, 2026-10-03 | `dart run tool/route_geometry_probe.dart` (stdout) | `docs/map-feasibility.md` §5; `docs/testing.md` | Counts and percentages of a matcher run, one ride (Bus 10, 03019 → 14141, 4,426 m) | Derived | **Keep** (busrouter audit §2 reached the same reading) |
@@ -96,8 +98,7 @@ Searched on `main` at `bbd9329` (2026-11-07):
 
 | Path | Embedded or written data | Class | Recommendation |
 |---|---|---|---|
-| `probe_apis.sh` | Prints body heads to stdout; its usage line sends them to `docs/probe-output/curl-probes.txt` | — | **Change the usage line** to `build/` and say why [P] |
-| `probe_map.sh` | Same, usage line to `docs/probe-output/map-probes.txt` | — | **Same** [P] |
+| `probe_apis.sh`, `probe_map.sh` | Print body heads to the terminal. Since PR #95 (A-5c) the usage lines no longer redirect into `docs/`, and the headers say to run them only with the owner's approval and never commit the output | — | **No action** |
 | `place_search_eval.dart` | Writes `docs/probe-output/place-search-eval.json` by default; embeds the 51-query list with expected keywords and postcodes (project-written) | Project | **Write to `build/probe-output/`** and say so in its header [P] |
 | `route_geometry_probe.dart`, `api_probe_app.dart`, `journey_smoke.dart` | stdout only; one ride; status lines; 12 place pairs as OneMap query, name and postcode (public names) | Project, Derived | **Keep** |
 | `map_performance_probe.dart` | One position (Bishan); writes `build/` | Project | **Keep** |
@@ -125,10 +126,10 @@ Branch `chore/redact-probe-output`, for review:
   `body: [redacted 2026-11-07: captured <provider> data, see docs/captured-data-inventory.md]`. Status lines, CORS and
   cache headers, byte counts, timings and the clause check stay.
 - `docs/probe-output/place-search-eval.json` is removed, and `.gitignore` refuses a new copy there.
-- `tool/place_search_eval.dart` writes `build/probe-output/place-search-eval.json` (git-ignored). The usage lines of
-  `tool/probe_apis.sh` and `tool/probe_map.sh` send output to `build/probe-output/`, and their headers say that the
-  output holds captured provider data and stays out of the repository. No download is added.
-- `docs/api-feasibility.md`, `docs/map-feasibility.md` and `docs/testing.md` (the probe commands) are updated to match.
+- `tool/place_search_eval.dart` writes `build/probe-output/place-search-eval.json` (git-ignored), and its header says
+  the raw results are captured provider records. No download is added.
+- `docs/api-feasibility.md`, `docs/map-feasibility.md` and the probe section of `docs/testing.md` say what was redacted
+  and removed.
 - History is not rewritten: the original bodies stay in `main`'s history (as for A-2).
 
 ## 5. Meeting the SODL notice condition [P]
@@ -138,21 +139,24 @@ link to the most recent version of this Licence" [C, from that audit]. What the 
 - **NEA fixtures:** no notice. JSON has no comments, and nothing next to the files names the source.
 - **`fake_environment_repository.dart`:** no notice for the copied positions.
 - **MRT asset:** a `source` block naming the dataset, publisher and "Singapore Open Data Licence v1.0", but no link.
-- **README and the app's footer:** "Singapore Open Data Licence" by name, no link.
+- **README and the app's footer:** since PR #94 (A-5b), the footer has a notice for arrival times with a link to the
+  licence (`openDataLicenceUri`), and the README links it in the arrivals credit. The NEA and MRT credits on the same
+  footer name the licence without their own link.
 
 Proposal:
 1. **C-1:** add `test/fixtures/NOTICE.md` (Markdown, which the folder's JSON-refusing rules do not block) naming the
    four data.gov.sg datasets, the retrieval date (2026-10-01) and the licence link
    `https://data.gov.sg/open-data-licence`, and add one comment line with the same notice to
-   `fake_environment_repository.dart`. A suggested form, following the attribution statement data.gov.sg publishes
-   [A: its exact current wording not re-read in this inventory]: "Contains information from the 2-hour Weather Forecast,
+   `fake_environment_repository.dart`. A suggested form, following the arrivals notice of A-5b (`arrivalsLicenceNotice` in
+   `lib/core/config/app_config.dart`) [A: data.gov.sg's own suggested wording not re-read in this inventory]: "Contains information from the 2-hour Weather Forecast,
    UV Index, PM2.5 and PSI datasets accessed on 1 October 2026 from data.gov.sg, which is made available under the
    terms of the Singapore Open Data Licence version 1.0, https://data.gov.sg/open-data-licence".
 2. **C-2:** add a `licenceUrl` field to the asset's `source` block through `tool/build_mrt_asset.dart` and rebuild the
    asset offline from the same input (`--input … --retrieved 2026-10-01`), so the data does not change; extend the
    asset test in `mrt_test.dart` to expect it.
-3. **C-6 (outside this approval, noted only):** the app's footer and the README name the licence without a link. Making
-   "Singapore Open Data Licence" a link would touch `lib/`; it belongs to the runtime assessments, not this inventory.
+3. **C-6 (outside this approval, noted only):** whether the one licence link in the footer (A-5b, for arrivals) also
+   serves the NEA and MRT credits, or each needs its own notice in the A-5b form. This touches `lib/` and belongs to the
+   runtime assessments, not to this inventory.
 
 ## 6. Decisions requiring owner approval
 
@@ -163,5 +167,5 @@ Proposal:
 | C-3 | `docs/probe-output/map-spike/*.jpg`: keep, or remove the OneMap and CARTO screenshots (OneMap clause 3(b) names "publicly display" and "reproduce"), or all eight | Remove the OneMap and CARTO ones, keeping the run-log text that describes them; keep the OSM ones only if the attribution question is settled (collapsed to an icon in the spike) |
 | C-4 | `docs/images/*.png` (README screenshots with live OneMap tiles, LTA stop names, ArriveLah times) | Owner's call: they show the product. If they stay, the README's attribution line names the providers. New screenshots over the fake providers would drop the LTA and ArriveLah data, but the map tiles would still be OneMap's |
 | C-5 | `tool/e5_transfer_bench/expected_results.txt`: keep (derived output with LTA stop codes and service numbers as identifiers), or reduce it to counts | Keep: it is the benchmark's check, it holds no stop names from lta.gov.sg (its README says so), and identifiers are not records [A] |
-| C-6 | Link the licence in the app footer and the README | Consider with the runtime assessments (A-5, A-5d) |
+| C-6 | Give the NEA and MRT credits in the app footer a notice and link in the A-5b form, or rely on the arrivals link | Consider with the runtime assessments (A-5, A-5b) |
 | C-7 | History: the redacted bodies and the removed JSON stay in `main`'s history (since `d3d0706`, `67fec7b` and `055a6dd`) | Leave it as it is, as recommended for A-2 |
