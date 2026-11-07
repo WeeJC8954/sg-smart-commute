@@ -104,13 +104,26 @@ class _LicenceNotice extends StatelessWidget {
   final String notice;
   final Key linkKey;
 
+  // Its own semantics node holding the notice, then the link as a node of its
+  // own: a screen reader hears each notice with its link, not every credit
+  // merged into one label before three links, nor the whole notice as a link.
   @override
-  Widget build(BuildContext context) => Wrap(
-    crossAxisAlignment: WrapCrossAlignment.center,
-    children: [
-      Text(notice, style: Theme.of(context).textTheme.bodySmall),
-      AttributionLink(openDataLicenceLabel, openDataLicenceUri, key: linkKey),
-    ],
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    child: Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(notice, style: Theme.of(context).textTheme.bodySmall),
+        Semantics(
+          container: true,
+          child: AttributionLink(
+            openDataLicenceLabel,
+            openDataLicenceUri,
+            key: linkKey,
+          ),
+        ),
+      ],
+    ),
   );
 }
 

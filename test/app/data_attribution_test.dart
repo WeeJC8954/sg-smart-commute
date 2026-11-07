@@ -3,6 +3,7 @@
 // C-6: the NEA and MRT sources get their own notice and link; OneMap and
 // busrouter keep their credits with no licence notice.
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 
@@ -113,6 +114,38 @@ void main() {
       );
     }
     expect(find.textContaining('Data: '), findsNothing);
+  });
+
+  testWidgets('a screen reader hears each notice, then its own link', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pumpTall(tester, FakeLinkOpener());
+
+    for (final (noticeKey, linkKey, source) in [
+      ('nea-licence-notice', 'nea-licence-link', 'National Environment'),
+      ('mrt-licence-notice', 'mrt-licence-link', 'MRT Station Exit'),
+      ('arrivals-licence-notice', 'open-data-licence-link', 'LTA DataMall'),
+    ]) {
+      // Its own node, labelled with this source only (not merged with the
+      // other credits), and the link inside it, so each link is read in context.
+      final group = tester.getSemantics(find.byKey(Key(noticeKey)));
+      expect(group.label, contains(source));
+      expect(group.label, isNot(contains('OneMap')));
+      expect(group.label.split('contain information').length, 2);
+      expect(group.flagsCollection.isLink, isFalse);
+      // The link is a node of its own, named by the licence only.
+      final linkNode = tester.getSemantics(find.byKey(Key(linkKey)));
+      expect(linkNode, isNot(same(group)));
+      expect(linkNode.label, 'Singapore Open Data Licence version 1.0');
+      expect(linkNode.flagsCollection.isLink, isTrue);
+      SemanticsNode? up = linkNode.parent;
+      while (up != null && up != group) {
+        up = up.parent;
+      }
+      expect(up, same(group), reason: '$linkKey inside $noticeKey');
+    }
+    handle.dispose();
   });
 
   testWidgets('a licence link that cannot be opened only shows a note', (
