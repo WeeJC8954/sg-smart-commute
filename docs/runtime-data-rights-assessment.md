@@ -40,7 +40,7 @@ permission.
 | `https://data.busrouter.sg/v1/stops.min.json` | First bus journey of a session | Stop names, codes and positions (card steps, map markers) | "Bus data: busrouter.sg (data © LTA)" (app footer) |
 | `https://data.busrouter.sg/v1/services.min.json` | Same | Services and their stop order (the planner; "toward" names) | Same |
 | `https://data.busrouter.sg/v1/routes.min.json` | Open map with a bus ride | The ride's line, drawn on the map | Same |
-| `https://arrivelah2.busrouter.sg/?id=<stop>` | Per displayed boarding stop | Next arrival times | "Arrivals: ArriveLah (LTA DataMall)" (footer, and under the arrivals) |
+| `https://arrivelah2.busrouter.sg/?id=<stop>` | Per displayed boarding stop | Next arrival times | "Arrivals: ArriveLah (LTA DataMall)" (footer, and under the arrivals); since 2026-11-07 (A-5b) "Arrivals: LTA DataMall via ArriveLah (Singapore Open Data Licence)", plus the licence notice and link in the footer |
 
 Bundled assets: `assets/mrt_stations.json` (data.gov.sg, SODL, credited in-app) and the app icon. No busrouter data
 is bundled [C].
