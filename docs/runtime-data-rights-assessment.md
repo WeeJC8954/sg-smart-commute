@@ -84,6 +84,8 @@ read 2026-11-06.
   - CORS `*`, no key and a public URL do not change this.
 - **DataMall content (road names, arrivals).** Under the SODL, use is permitted with the notice and link [C].
   - **Gap 1 [C]:** the app's credits name LTA DataMall but give no SODL notice or link.
+    **Update 2026-11-07 (A-5b):** the footer now shows the notice and the link, and the arrivals credit names the
+    licence. This closes Gap 1 only; Gap 2 and ArriveLah's own terms are unchanged.
   - **Gap 2 [A]:** whether a copy relayed by a proxy (ArriveLah) or re-hosted (sgbusdata) is a dataset "offered for use
     under the terms of this Licence" is not established. The licence attaches to the data, which suggests yes, but
     that is unconfirmed.
