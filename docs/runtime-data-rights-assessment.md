@@ -97,8 +97,8 @@ read 2026-11-06.
   - after PR #92 (A-1), no busrouter data is in the tree;
   - the captured files remain in history since 2026-10-02, and the E5 snapshot in PR #90's refs (A-2 and A-3,
     deferred);
-  - the ArriveLah captures (DataMall data, no notice) and the OneMap captures are pending A-4
-    (`docs/arrivelah-onemap-fixture-licensing-audit.md`).
+  - the ArriveLah captures (DataMall data, no notice) were replaced by synthetic data on 2026-11-07 (A-4a, A-4c) and
+    remain in history; the OneMap captures are pending A-4 (`docs/arrivelah-onemap-fixture-licensing-audit.md`).
 
 ### 5.3 Local development and benchmark downloads
 

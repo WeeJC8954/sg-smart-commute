@@ -1,11 +1,12 @@
 // Service matching and ETA formatting (guide v2.1 §10, §18).
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/features/bus_arrival/data/arrivelah_parser.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival.dart';
+
+import '../../fixtures/arrivelah/synthetic_arrivelah.dart';
 
 final t0 = DateTime.utc(2026, 10, 2, 3);
 
@@ -112,7 +113,7 @@ void main() {
             'next3': {'time': '9999-01-01T00:00:00+08:00'},
           },
         ],
-      }, '03019');
+      }, busyStopCode);
       // The parser keeps well-formed times as data; the bounds apply when
       // the arrivals are selected for display.
       expect(parsed.services.single.arrivals, hasLength(3));
@@ -150,24 +151,44 @@ void main() {
       );
     });
 
-    test('real fixture: loop 291 at Tampines Int (75009) → one departure', () {
-      final real = parseArriveLah(
-        jsonDecode(
-          File('test/fixtures/arrivelah/stop_75009_loop.json')
-              .readAsStringSync(),
-        ),
-        '75009',
-      );
-      final departures = nextArrivals(
-        real,
-        '291',
-        now: t0,
-        boardsAtLoopTerminal: true,
-      );
-      expect(
-        departures.single.estimatedArrival,
-        DateTime.utc(2026, 10, 2, 3, 5),
-      );
+    group('synthetic loop terminal $loopStopCode', () {
+      final parsed = parseArriveLah(jsonDecode(loopStopBody), loopStopCode);
+      final now = arriveLahClock;
+
+      test('loop F29 → one departure, the visit-1 bus', () {
+        final departures = nextArrivals(
+          parsed,
+          'F29',
+          now: now,
+          boardsAtLoopTerminal: true,
+        );
+        expect(
+          departures.single.estimatedArrival,
+          DateTime.utc(2001, 2, 3, 4, 5),
+        );
+        expect(nextArrivals(parsed, 'F29', now: now), hasLength(3));
+      });
+
+      test('loop F30: the visit-1 bus between two visit-2 buses', () {
+        expect(
+          nextArrivals(
+            parsed,
+            'F30',
+            now: now,
+            boardsAtLoopTerminal: true,
+          ).single.estimatedArrival,
+          now.add(const Duration(minutes: 4)),
+        );
+      });
+
+      test('a service listed twice: both entries merged, soonest first', () {
+        expect(
+          nextArrivals(parsed, 'F31', now: now).map((a) => a.estimatedArrival),
+          [
+            for (final m in [2, 6, 11]) now.add(Duration(minutes: m)),
+          ],
+        );
+      });
     });
   });
 

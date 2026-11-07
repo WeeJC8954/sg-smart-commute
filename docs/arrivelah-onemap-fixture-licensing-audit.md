@@ -6,6 +6,11 @@ removed from the tree and replaced by synthetic bodies (`test/fixtures/onemap/RE
 this document is the audit as written for review; it changes no fixture, test or history, and no third party is
 contacted. It is not legal advice: a conclusion that depends on reading terms is tagged **[A]**.
 
+**ArriveLah update, 2026-11-07:** the owner approved A-4a and A-4c. All five ArriveLah files were replaced by
+synthetic bodies, `test/fixtures/arrivelah/synthetic_arrivelah.dart` (cases in its `README.md`), in their own PR
+(branch `test/synthetic-arrivelah-fixtures`); `.gitignore` refuses JSON in that folder. The captured files remain in
+history. The inventory below describes the files as audited.
+
 **Tags:** **[C]** confirmed (read from the files, the sources or Git, or measured); **[A]** assumption or reading not
 verified; **[P]** proposal, needs approval.
 
