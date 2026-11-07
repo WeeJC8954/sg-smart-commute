@@ -8,12 +8,13 @@ Raw evidence (committed):
 | File | What |
 |---|---|
 | `docs/probe-output/flutter-doctor.txt` | `flutter doctor -v` environment check (step 1) |
-| `docs/probe-output/curl-probes.txt` | `bash tool/probe_apis.sh` — status, CORS headers, payload heads |
+| `docs/probe-output/curl-probes.txt` | `bash tool/probe_apis.sh` — status, CORS headers, byte counts (the payload heads were redacted on 2026-11-07 as captured provider data, `docs/captured-data-inventory.md`) |
 | `docs/probe-output/flutter-web-chrome.txt` | `flutter run -d chrome -t tool/api_probe_app.dart` — real browser (CORS enforced) |
 | `docs/probe-output/flutter-android-emulator.txt` | same probe app on the Android emulator |
-| `docs/probe-output/place-search-eval.txt` / `.json` | `dart run tool/place_search_eval.dart` — 51-query place-search evaluation |
+| `docs/probe-output/place-search-eval.txt` | `dart run tool/place_search_eval.dart` — 51-query place-search evaluation: match indices, distances and the summary. Its raw results (`.json`, the providers' names, addresses and coordinates) were removed on 2026-11-07; the tool now writes them to `build/probe-output/` |
 
-Re-run any of them with the commands above. None needs credentials.
+Re-run any of them with the commands above. None needs credentials. Some fetch live data whose use needs the owner's
+approval (`docs/testing.md`, "Feasibility probes").
 
 ------------------------------------------------------------------------
 

@@ -11,7 +11,7 @@ Access-Control-Allow-Origin: *
 Content-Type: application/json; charset=UTF-8
 HTTP/1.1 200 OK
 bytes: 709
-body: {"code":"Ok","routes":[{"legs":[{"steps":[],"weight":75.95,"summary":"","duration":685.9,"distance":852.5}],"weight_name":"routability","geometry":"_xyFynzxRB?`@@vDLV@X@^ZGV?DAV?D?FG?G?ANEFAGCO@}@K??}@m@Ce@EiAGKDI?kAIiAII?kAIk@G[aA[aAGKBQ@EDQICBKDO]EIADkAk@QmAY","weight":75.95,"duration":685.9,"dist
+body: [redacted 2026-11-07: captured FOSSGIS OSRM (OSM) data, see docs/captured-data-inventory.md]
 
 === FOSSGIS OSRM routed-foot, CORS preflight
 Access-Control-Allow-Headers: X-Requested-With, Content-Type
