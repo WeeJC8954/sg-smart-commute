@@ -1,5 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
+// The matcher on busrouter-shaped routes. The services, stops and route lines
+// are hand-made and synthetic (test/fixtures/busrouter/synthetic_busrouter.dart,
+// owner decision A-1), each built for one case below.
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -9,13 +10,11 @@ import 'package:sg_smart_commute/features/map/domain/polyline_codec.dart';
 import 'package:sg_smart_commute/features/map/domain/ride_geometry.dart';
 import 'package:sg_smart_commute/features/map/domain/route_geometry.dart';
 
-Map<String, dynamic> _fixture(String name) => jsonDecode(
-  File('test/fixtures/busrouter/geometry/$name.json').readAsStringSync(),
-) as Map<String, dynamic>;
+import '../../fixtures/busrouter/synthetic_busrouter.dart';
 
-final _routes = _fixture('routes');
-final _services = _fixture('services');
-final _stops = _fixture('stops');
+final _routes = geometryRoutesJson;
+final _services = geometryServicesJson;
+final _stops = geometryStopsJson;
 
 RouteGeometry get geometry => RouteGeometry({
   for (final e in _routes.entries) e.key: (e.value as List).cast<String>(),
@@ -70,56 +69,57 @@ void expectDecodesTo(String encoded, List<LatLng> expected) {
 }
 
 void main() {
-  test('Bus 10, 03019 → 14141 (M3 smoke ride): drawn, 4,426 m', () {
-    final from = indexIn('10', 0, '03019');
-    final r = ride('10', 0, from, from + 9);
+  test('a long ride on a bent line, F10/0 F1013 → F1022 (10 stops): drawn, '
+      '3,641 m', () {
+    final from = indexIn('F10', 0, 'F1013');
+    final r = ride('F10', 0, from, from + 9);
     expect(r.stops.length, 10);
-    expectDrawn(matchRide(r, geometry), r, 4426);
+    expectDrawn(matchRide(r, geometry), r, 3641);
   });
 
-  test('normal direction, geometry as given: 4/0 loop service 0 → 1', () {
-    final r = ride('4', 0, 0, 1);
-    expectDrawn(matchRide(r, geometry), r, 499);
+  test('normal direction, geometry as given: F4/0 loop service 0 → 1', () {
+    final r = ride('F4', 0, 0, 1);
+    expectDrawn(matchRide(r, geometry), r, 504);
   });
 
   test('closed loop whose geometry starts at another stop (doubled): '
-      '115/0 0 → 1', () {
-    final r = ride('115', 0, 0, 1);
-    expectDrawn(matchRide(r, geometry), r, 325);
+      'F115/0 0 → 1', () {
+    final r = ride('F115', 0, 0, 1);
+    expectDrawn(matchRide(r, geometry), r, 400);
   });
 
-  test('an open line is never doubled: 10/1 0 → 1 → notMatched '
+  test('an open line is never doubled: F10/1 0 → 1 → notMatched '
       '(only the artificial join would match, a straight stand-in)', () {
-    final line = matchRide(ride('10', 1, 0, 1), geometry);
+    final line = matchRide(ride('F10', 1, 0, 1), geometry);
     expect((line as RideLineUnavailable).gap, RideLineGap.notMatched);
   });
 
-  test('geometry stored reversed: 46/1 0 → 1', () {
-    final r = ride('46', 1, 0, 1);
-    expectDrawn(matchRide(r, geometry), r, 65);
+  test('geometry stored reversed: F46/1 0 → 1', () {
+    final r = ride('F46', 1, 0, 1);
+    expectDrawn(matchRide(r, geometry), r, 305);
   });
 
   test('repeated stop: each occurrence gives its own slice', () {
-    final first = ride('11', 0, 6, 8), second = ride('11', 0, 17, 19);
-    expect(first.stops.first, second.stops.first); // both board at 80199
-    expectDrawn(matchRide(first, geometry), first, 1088);
-    expectDrawn(matchRide(second, geometry), second, 306);
+    final first = ride('F11', 0, 6, 8), second = ride('F11', 0, 17, 19);
+    expect(first.stops.first, second.stops.first); // both board at F1199
+    expectDrawn(matchRide(first, geometry), first, 1000);
+    expectDrawn(matchRide(second, geometry), second, 300);
   });
 
-  test('geometry that does not fit the ride: markers only (2B/0 0 → 3)', () {
-    final line = matchRide(ride('2B', 0, 0, 3), geometry);
+  test('geometry that does not fit the ride: markers only (F2B/0 0 → 3)', () {
+    final line = matchRide(ride('F2B', 0, 0, 3), geometry);
     expect((line as RideLineUnavailable).gap, RideLineGap.notMatched);
   });
 
   test('missing service or direction → noGeometry', () {
-    final r = ride('10', 0, 0, 1);
+    final r = ride('F10', 0, 0, 1);
     final noService = MapRide(
       service: 'NOPE',
       sourceDirection: 0,
       stops: r.stops,
     );
     final noDirection = MapRide(
-      service: '10',
+      service: 'F10',
       sourceDirection: 5,
       stops: r.stops,
     );
@@ -132,10 +132,10 @@ void main() {
   });
 
   test('malformed polyline → malformedGeometry', () {
-    final r = ride('10', 0, 0, 1);
+    final r = ride('F10', 0, 0, 1);
     for (final bad in ['_p~iF~ps|U_', '_p~iF']) {
       final g = RouteGeometry({
-        '10': [bad],
+        'F10': [bad],
       });
       expect(
         (matchRide(r, g) as RideLineUnavailable).gap,
@@ -145,20 +145,20 @@ void main() {
   });
 
   test('a malformed line for one service fails only that service\'s ride', () {
-    // Through the parser, as loaded: 46's lines are corrupt, the rest are the
-    // captured file. The parser keeps lines encoded, so the file still loads.
+    // Through the parser, as loaded: F46's lines are corrupt, the rest are the
+    // fixture's. The parser keeps lines encoded, so the file still loads.
     final g = parseBusrouterRoutes({
       ..._routes,
-      '46': ['_p~iF~ps|U_', '_p~iF'],
+      'F46': ['_p~iF~ps|U_', '_p~iF'],
     });
-    final bad = ride('46', 1, 0, 1);
+    final bad = ride('F46', 1, 0, 1);
     expect(
       (matchRide(bad, g) as RideLineUnavailable).gap,
       RideLineGap.malformedGeometry,
     );
-    final from = indexIn('10', 0, '03019');
-    final good = ride('10', 0, from, from + 9);
-    expectDrawn(matchRide(good, g), good, 4426);
+    final from = indexIn('F10', 0, 'F1013');
+    final good = ride('F10', 0, from, from + 9);
+    expectDrawn(matchRide(good, g), good, 3641);
   });
 
   group('synthetic', () {

@@ -278,8 +278,10 @@ never plans and never changes the service, direction, boarding or alighting stop
 - **CSP**: no change. `data.busrouter.sg` is already in `connect-src`; `test/web/content_security_policy_test.dart`
   gains `BusrouterEndpoints.routes` in its provider set.
 - Test seam: `routeGeometryRepositoryProvider`; `buildTestApp` fakes it with `FakeRouteGeometryRepository`
-  (`integration_test/fakes/fake_route_geometry.dart`), so no test fetches `routes.min.json`. Matcher tests use the
-  fixtures in `test/fixtures/busrouter/geometry/`, captured once by `tool/capture_route_geometry_fixtures.dart`.
+  (`integration_test/fakes/fake_route_geometry.dart`), so no test fetches `routes.min.json`. Matcher tests use
+  hand-made synthetic routes (`test/fixtures/busrouter/synthetic_busrouter.dart`). They replaced, on 2026-11-06, the
+  fixtures first captured from busrouter by `tool/capture_route_geometry_fixtures.dart` (removed with them), because
+  that data's redistribution rights could not be established (`docs/busrouter-fixture-licensing-audit.md`).
 - Not in P2-M2: walking lines or routers (P2-M3 adds straight dashed "est." connectors), transfers, option sync
   (the map shows the suggested option), live vehicles, automatic OSM fallback, map-based planning.
 

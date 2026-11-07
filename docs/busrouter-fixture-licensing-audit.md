@@ -1,6 +1,8 @@
 # busrouter Fixture Licensing Audit (owner ruling G2-11)
 
-**Status:** audit only, 2026-11-06, for owner review. It changes no fixture, test or history. It does not contact any
+**Status:** audit, 2026-11-06. Owner rulings of 2026-11-06: A-1 approved, and done in its own PR (the five files are
+removed from the tree; their history stays); A-2 and A-3 deferred; A-4 approved (a separate audit); A-5, a runtime
+data-rights assessment, required before E5 Gate 3. The rest of this document is the audit as written for review. It changes no fixture, test or history. It does not contact any
 third party. It is not legal advice: where a conclusion depends on reading terms, it is tagged **[A]**.
 
 **Why:** in E5 Gate 2, the redistribution rights of a full busrouter snapshot could not be established

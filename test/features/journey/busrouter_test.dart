@@ -1,27 +1,28 @@
-// busrouter parsing, the repository, and the planner on real routes. The
-// fixtures in test/fixtures/busrouter/ are unmodified subsets of the live
-// files (downloaded 2026-10-01): services 4 (loop), 184 (one direction), 265
-// (stop 54009 twice), 647 (43589 twice in a row), 65 and 160, every stop they
-// use, and 46239 Larkin Ter (across the Causeway).
+// busrouter parsing, the repository, and the planner on busrouter-shaped
+// routes. The data is hand-made and synthetic
+// (test/fixtures/busrouter/synthetic_busrouter.dart, owner decision A-1):
+// services F4 (loop), F184 (one direction), F265 (stop F2650 twice), F647
+// (F6479 twice in a row), F65 and F160, every stop they use, and F9999 (across
+// the border, outside the app's GPS box).
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
 import 'package:sg_smart_commute/core/errors/app_failure.dart';
+import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/http/json_http_client.dart';
 import 'package:sg_smart_commute/features/journey/data/busrouter_parser.dart';
 import 'package:sg_smart_commute/features/journey/data/busrouter_repository.dart';
 import 'package:sg_smart_commute/features/journey/domain/bus_network.dart';
 import 'package:sg_smart_commute/features/journey/domain/direct_bus_planner.dart';
 
-final String stopsBody = File('test/fixtures/busrouter/stops.subset.json')
-    .readAsStringSync();
-final String servicesBody = File('test/fixtures/busrouter/services.subset.json')
-    .readAsStringSync();
+import '../../fixtures/busrouter/synthetic_busrouter.dart';
+
+final String stopsBody = syntheticStopsBody;
+final String servicesBody = syntheticServicesBody;
 
 BusNetwork realNetwork() {
   final stops = parseBusrouterStops(jsonDecode(stopsBody));
@@ -37,31 +38,28 @@ void main() {
   group('stops: [longitude, latitude, name, road]', () {
     test('longitude first in the source, latitude first in the model', () {
       final stops = parseBusrouterStops({
-        '01012': [103.85405, 1.29685, 'Hotel Grand Pacific', 'Victoria St'],
+        '00123': [103.85405, 1.29685, 'Sample Stop (fake)', 'Sample Rd'],
       });
-      final s = stops['01012']!;
+      final s = stops['00123']!;
       expect(s.position.latitude, 1.29685);
       expect(s.position.longitude, 103.85405);
-      expect(s.name, 'Hotel Grand Pacific');
-      expect(s.road, 'Victoria St');
-      expect(s.code, '01012'); // leading zero kept
+      expect(s.name, 'Sample Stop (fake)');
+      expect(s.road, 'Sample Rd');
+      expect(s.code, '00123'); // leading zeros kept
     });
 
-    test('real fixture: 75009 Tampines Int parses with the right order', () {
+    test('fixture: F0400 Loop Int parses with the right order', () {
       final stops = parseBusrouterStops(jsonDecode(stopsBody));
-      final t = stops['75009']!;
-      expect(t.name, 'Tampines Int');
-      expect(t.position.latitude, closeTo(1.354, 0.01));
-      expect(t.position.longitude, closeTo(103.943, 0.01));
+      final t = stops['F0400']!;
+      expect(t.name, 'Loop Int (fake)');
+      expect(t.position.latitude, closeTo(1.35, 0.01));
+      expect(t.position.longitude, closeTo(103.94, 0.01));
     });
 
-    test(
-      '46239 Larkin Ter (outside the app GPS box) is valid transport data',
-      () {
-        final stops = parseBusrouterStops(jsonDecode(stopsBody));
-        expect(stops['46239']!.position.latitude, closeTo(1.4955, 0.0001));
-      },
-    );
+    test('F9999 (outside the app GPS box) is valid transport data', () {
+      final stops = parseBusrouterStops(jsonDecode(stopsBody));
+      expect(stops['F9999']!.position.latitude, closeTo(1.4955, 0.0001));
+    });
 
     test('a swapped lat/lng entry is rejected by the range check', () {
       final good = {
@@ -107,28 +105,31 @@ void main() {
   });
 
   group('services: {name, routes: [[codes], [codes]?]}', () {
-    test('real fixture: directions and order preserved', () {
+    test('fixture: directions and order preserved', () {
       final net = realNetwork();
-      expect(net.services.keys, containsAll(['4', '184', '265', '647', '65']));
-      expect(net.services['65']!.directions, hasLength(2));
-      expect(net.services['4']!.directions, hasLength(1)); // loop
-      expect(net.services['184']!.directions, hasLength(1)); // one way
-      final loop = net.services['4']!.directions.single;
-      expect(loop.first, '75009');
-      expect(loop.last, '75009');
-      final r265 = net.services['265']!.directions.single;
+      expect(
+        net.services.keys,
+        containsAll(['F4', 'F184', 'F265', 'F647', 'F65']),
+      );
+      expect(net.services['F65']!.directions, hasLength(2));
+      expect(net.services['F4']!.directions, hasLength(1)); // loop
+      expect(net.services['F184']!.directions, hasLength(1)); // one way
+      final loop = net.services['F4']!.directions.single;
+      expect(loop.first, 'F0400');
+      expect(loop.last, 'F0400');
+      final r265 = net.services['F265']!.directions.single;
       expect(
         [
           for (var i = 0; i < r265.length; i++)
-            if (r265[i] == '54009') i,
+            if (r265[i] == 'F2650') i,
         ],
         [13, 28],
       );
-      final r647 = net.services['647']!.directions[1];
+      final r647 = net.services['F647']!.directions[1];
       expect(
         [
           for (var i = 0; i < r647.length; i++)
-            if (r647[i] == '43589') i,
+            if (r647[i] == 'F6479') i,
         ],
         [22, 23],
       );
@@ -240,7 +241,7 @@ void main() {
     });
   });
 
-  group('planner on real busrouter routes (10 m radius: exact stops only)', () {
+  group('planner on the fixture routes (10 m radius: exact stops only)', () {
     const exact = PlannerConfig(
       stopRadiusMeters: 10,
       widenedStopRadiusMeters: 10,
@@ -253,84 +254,86 @@ void main() {
           (o) => o.service.number == service,
         );
 
-    test('loop 4: mid-loop to Tampines Int boards forward to the end', () {
-      final r = net.services['4']!.directions.single;
+    test('loop F4: mid-loop to Loop Int boards forward to the end', () {
+      final r = net.services['F4']!.directions.single;
       final opt = only(
-        '4',
+        'F4',
         planDirectBus(
           net,
           net.stops[r[5]]!.position,
-          net.stops['75009']!.position,
+          net.stops['F0400']!.position,
           config: exact,
         ),
       );
       expect(opt.board.code, r[5]);
-      expect(opt.alight.code, '75009');
+      expect(opt.alight.code, 'F0400');
       expect(opt.stops, r.length - 1 - 5);
       expect(opt.isLoop, isTrue);
-      expect(opt.towardName, 'Tampines Int');
+      expect(opt.towardName, 'Loop Int (fake)');
     });
 
-    test('loop 4: an opposite-side stop on the return leg gives the shorter '
+    test('loop F4: an opposite-side stop on the return leg gives the shorter '
         'ride, and is chosen', () {
-      // 76231 "Opp Blk 390 Tampines Ave 7" (index 5) and 76239 "Blk 390
-      // Tampines Ave 7" (index 22) are 29.1 m apart. With both in range,
-      // riding from 76239 back to Tampines Int (5 stops) beats 22 stops.
+      // Index 5 (out) and index 22 (back) are opposite each other, 29.1 m
+      // apart. With both in range, riding from index 22 back to Loop Int
+      // (5 stops) beats 22 stops.
+      final r = net.services['F4']!.directions.single;
+      expect(
+        haversineMeters(net.stops[r[5]]!.position, net.stops[r[22]]!.position),
+        closeTo(29.1, 0.5),
+      );
       final opt = only(
-        '4',
+        'F4',
         planDirectBus(
           net,
-          net.stops['76231']!.position,
-          net.stops['75009']!.position,
+          net.stops[r[5]]!.position,
+          net.stops['F0400']!.position,
           config: const PlannerConfig(
             stopRadiusMeters: 40,
             widenedStopRadiusMeters: 40,
           ),
         ),
       );
-      expect(opt.board.code, '76239');
+      expect(opt.board.code, r[22]);
       expect(opt.stops, 5);
     });
 
-    test(
-      'loop 4: from Tampines Int, the first occurrence (index 0) is used',
-      () {
-        final r = net.services['4']!.directions.single;
-        final opt = only(
-          '4',
-          planDirectBus(
-            net,
-            net.stops['75009']!.position,
-            net.stops[r[5]]!.position,
-            config: exact,
-          ),
-        );
-        expect(opt.stops, 5);
-      },
-    );
+    test('loop F4: from Loop Int, the first occurrence (index 0) is used', () {
+      final r = net.services['F4']!.directions.single;
+      final opt = only(
+        'F4',
+        planDirectBus(
+          net,
+          net.stops['F0400']!.position,
+          net.stops[r[5]]!.position,
+          config: exact,
+        ),
+      );
+      expect(opt.stops, 5);
+    });
 
-    test('one-direction 184: forward matches, reverse does not', () {
-      final r = net.services['184']!.directions.single;
+    test('one-direction F184: forward matches, reverse does not', () {
+      final r = net.services['F184']!.directions.single;
       final a = net.stops[r[3]]!.position;
       final b = net.stops[r[40]]!.position;
-      expect(only('184', planDirectBus(net, a, b, config: exact)).stops, 37);
+      expect(only('F184', planDirectBus(net, a, b, config: exact)).stops, 37);
       final reverse = planDirectBus(net, b, a, config: exact);
       expect(
         reverse is DirectBusOptions &&
-            reverse.options.any((o) => o.service.number == '184'),
+            reverse.options.any((o) => o.service.number == 'F184'),
         isFalse,
       );
     });
 
     test(
-      '265: 54009 appears at 13 and 28; the shortest valid segment wins',
+      'F265: F2650 appears at 13 and 28; the shortest valid segment wins',
       () {
-        final r = net.services['265']!.directions.single;
-        final from = net.stops['54009']!.position;
+        final r = net.services['F265']!.directions.single;
+        final from = net.stops['F2650']!.position;
         // To index 30: from 13 is 17 stops, from 28 is 2 → 2.
         expect(
           only(
-            '265',
+            'F265',
             planDirectBus(net, from, net.stops[r[30]]!.position, config: exact),
           ).stops,
           2,
@@ -338,7 +341,7 @@ void main() {
         // To index 20: only the occurrence at 13 precedes it → 7.
         expect(
           only(
-            '265',
+            'F265',
             planDirectBus(net, from, net.stops[r[20]]!.position, config: exact),
           ).stops,
           7,
@@ -346,14 +349,14 @@ void main() {
       },
     );
 
-    test('647: 43589 twice in a row (22, 23); the first after o counts', () {
-      final r = net.services['647']!.directions[1];
+    test('F647: F6479 twice in a row (22, 23); the first after o counts', () {
+      final r = net.services['F647']!.directions[1];
       final opt = only(
-        '647',
+        'F647',
         planDirectBus(
           net,
           net.stops[r[10]]!.position,
-          net.stops['43589']!.position,
+          net.stops['F6479']!.position,
           config: exact,
         ),
       );
@@ -361,10 +364,10 @@ void main() {
       expect(opt.stops, 12); // index 10 → 22, not 23
     });
 
-    test('65: two directions; the direction where o precedes d is used', () {
-      final dir0 = net.services['65']!.directions[0];
+    test('F65: two directions; the direction where o precedes d is used', () {
+      final dir0 = net.services['F65']!.directions[0];
       final opt = only(
-        '65',
+        'F65',
         planDirectBus(
           net,
           net.stops[dir0[5]]!.position,
@@ -411,7 +414,7 @@ void main() {
       final r = repo(ok);
       expect(stopsCalls + servicesCalls, 0);
       final net = await r.load();
-      expect(net.stops, hasLength(367));
+      expect(net.stops, hasLength(224));
       expect(net.services, hasLength(6));
       expect((stopsCalls, servicesCalls), (1, 1));
     });
