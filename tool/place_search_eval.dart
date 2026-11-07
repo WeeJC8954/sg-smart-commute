@@ -7,6 +7,12 @@
 //
 //   dart run tool/place_search_eval.dart
 //
+// OPTIONAL, development only (owner decision A-5d-6): it calls OneMap (SLA)
+// live, whose runtime use is not shown to be permitted
+// (docs/onemap-runtime-assessment.md), and Photon and Nominatim. CI, the tests
+// and normal development never need it; run it by hand only with the owner's
+// approval, and never commit its raw results.
+//
 // Respects public usage policies: Nominatim is called at most once per
 // second, never for type-ahead prefixes, and identifies the app.
 import 'dart:convert';
