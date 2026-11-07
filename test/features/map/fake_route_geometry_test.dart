@@ -18,7 +18,7 @@ void main() {
       ]),
       '_p~iF~ps|U_ulLnnqC_mqNvxq`@',
     );
-    const track = [LatLng(1.3510, 103.8490), LatLng(1.2645, 103.8226)];
+    const track = [LatLng(1.3510, 103.8490), LatLng(1.3002, 103.7753)];
     final back = decodePolyline(encodePolyline(track));
     expect(back.length, 2);
     for (var i = 0; i < 2; i++) {

@@ -10,9 +10,9 @@
 // and the tile cache goes with it, so a second run would start cold.
 //
 // The journey is the integration tests' fake one (GPS at Bishan, a direct bus
-// to VivoCity with its ride line, both walking connectors and both MRT pins),
-// but the tiles are live OneMap tiles through the app's OneMapTileProvider, so
-// tile decoding and drawing are measured too. Only the tiles of the map on
+// to the synthetic Bay Mall with its ride line, both walking connectors and
+// both MRT pins), but the tiles are live OneMap tiles through the app's
+// OneMapTileProvider, so tile decoding and drawing are measured too. Only the tiles of the map on
 // screen are requested: the fitted view and what the scripted pans reveal, in
 // light and then dark mode (docs/map-feasibility.md §4.2). Android only: it
 // imports the shared fakes from integration_test/, which a Web build cannot.
@@ -54,8 +54,8 @@ void main() {
     await searchAndPick(
       tester,
       field: const Key('destination-field'),
-      query: 'VivoCity',
-      result: 'VIVOCITY',
+      query: 'Bay Mall',
+      result: 'BAY MALL (fake)',
     );
     await pumpUntilFound(tester, find.byKey(const Key('journey-suggested')));
     await scrollToAndTap(tester, find.byKey(const Key('show-map')));

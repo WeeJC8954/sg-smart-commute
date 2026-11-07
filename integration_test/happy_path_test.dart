@@ -96,13 +96,13 @@ void main() {
     await searchAndPick(
       tester,
       field: const Key('destination-field'),
-      query: 'VivoCity',
-      result: 'VIVOCITY',
+      query: 'Bay Mall',
+      result: 'BAY MALL (fake)',
     );
-    await pumpUntilFound(tester, find.text('To: VIVOCITY'));
+    await pumpUntilFound(tester, find.text('To: BAY MALL (fake)'));
     // Choosing a destination does not change the GPS origin.
     expect(find.text('From: Current location'), findsOneWidget);
-    expect(places.queries, ['vivocity']);
+    expect(places.queries, ['bay mall']);
 
     // M3: direct-bus recommendation (fake network) and MRT alternative.
     await pumpUntilFound(tester, find.byKey(const Key('journey-suggested')));
@@ -112,7 +112,7 @@ void main() {
     expect(
       find.descendant(
         of: suggested,
-        matching: find.text('Take Bus F20 toward VivoCity (fake)'),
+        matching: find.text('Take Bus F20 toward Bay Mall (fake)'),
       ),
       findsOneWidget,
     );
@@ -173,7 +173,7 @@ void main() {
     expect(
       find.descendant(
         of: suggested,
-        matching: find.text('Take Bus F20 toward VivoCity (fake)'),
+        matching: find.text('Take Bus F20 toward Bay Mall (fake)'),
       ),
       findsOneWidget,
     );

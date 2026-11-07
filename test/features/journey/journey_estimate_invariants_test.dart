@@ -165,7 +165,7 @@ void main() {
       geometry = FakeRouteGeometryRepository();
     });
 
-    Future<void> toVivoCity(WidgetTester tester) async {
+    Future<void> toBayMall(WidgetTester tester) async {
       tester.view.physicalSize = const Size(1080, 5000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -184,14 +184,14 @@ void main() {
         ),
       );
       await tester.pump();
-      await searchAndPick(tester, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(tester, 'Bay Mall', 'BAY MALL (fake)');
       await tester.pump();
       expect(find.byKey(tripKey('BSH2', 'F20')), findsOneWidget);
     }
 
     testWidgets('arrivals: one request per boarding stop, and Refresh '
         'changes no estimate', (tester) async {
-      await toVivoCity(tester);
+      await toBayMall(tester);
       expect(arrivals.calls, {'BSH2': 1, 'BSH1': 1});
       final trips = [
         for (final k in [tripKey('BSH2', 'F20'), tripKey('BSH1', 'F10')])
@@ -207,17 +207,17 @@ void main() {
 
     testWidgets('no route geometry while the map is closed; one load when '
         'it opens, as before E2', (tester) async {
-      await toVivoCity(tester);
+      await toBayMall(tester);
       expect(geometry.loads, 0);
       await tapVisible(tester, find.byKey(const Key('show-map')));
       expect(geometry.loads, 1);
     });
 
     testWidgets('bus data loads once across a new destination', (tester) async {
-      await toVivoCity(tester);
+      await toBayMall(tester);
       expect(bus.loads, 1);
       await tapVisible(tester, find.byKey(const Key('change-destination')));
-      await searchAndPick(tester, 'ION Orchard', 'ION ORCHARD');
+      await searchAndPick(tester, 'City Tower', 'CITY TOWER (fake)');
       expect(find.byKey(tripKey('BSH1', 'F30')), findsOneWidget);
       expect(bus.loads, 1);
       expect(geometry.loads, 0);
@@ -226,7 +226,7 @@ void main() {
     testWidgets('selecting an option keeps every estimate and loads nothing', (
       tester,
     ) async {
-      await toVivoCity(tester);
+      await toBayMall(tester);
       await tapVisible(tester, find.byKey(const Key('select-option-F10')));
       expect(find.byKey(const Key('selected-option-F10')), findsOneWidget);
       for (final k in [

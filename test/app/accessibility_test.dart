@@ -104,8 +104,8 @@ void main() {
       isNot(isSemantics(isHeader: true)),
     );
 
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
     expect(
       tester.getSemantics(find.text(DestinationCard.prompt)),
       isSemantics(isHeader: true),
@@ -117,8 +117,8 @@ void main() {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, gpsApp());
     await tester.pump();
-    await type(tester, destinationField, 'VivoCity');
-    await pick(tester, 'VIVOCITY');
+    await type(tester, destinationField, 'Bay Mall');
+    await pick(tester, 'BAY MALL (fake)');
 
     expect(find.bySemanticsLabel('Change origin'), findsOneWidget);
     expect(find.bySemanticsLabel('Change destination'), findsOneWidget);
@@ -132,13 +132,13 @@ void main() {
     env
       ..failForecast = const NetworkUnavailable()
       ..failPsi = const NetworkUnavailable();
-    places.failures['vivocity'] = const NetworkUnavailable();
+    places.failures['bay mall'] = const NetworkUnavailable();
     await pumpApp(tester, gpsApp());
     await tester.pump();
 
     expect(find.bySemanticsLabel('Retry 2-hr forecast'), findsOneWidget);
     expect(find.bySemanticsLabel('Retry 24-hr PSI'), findsOneWidget);
-    await type(tester, destinationField, 'VivoCity');
+    await type(tester, destinationField, 'Bay Mall');
     expect(find.bySemanticsLabel('Retry place search'), findsOneWidget);
     expect(find.text('Retry'), findsNWidgets(3));
     semantics.dispose();
@@ -148,7 +148,7 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    places.failures['vivocity'] = const NetworkUnavailable();
+    places.failures['bay mall'] = const NetworkUnavailable();
     await pumpApp(tester, deniedApp());
 
     await type(tester, originField, 'zz');
@@ -165,18 +165,18 @@ void main() {
       isSemantics(isLiveRegion: true),
     );
 
-    await type(tester, originField, '098585');
+    await type(tester, originField, '009902');
     expect(
       tester.getSemantics(find.text('1 match. Tap it to confirm.')),
       isSemantics(isLiveRegion: true),
     );
     // The results themselves are not announced as they appear.
     expect(
-      tester.getSemantics(find.text('VIVOCITY')),
+      tester.getSemantics(find.text('BAY MALL (fake)')),
       isNot(isSemantics(isLiveRegion: true)),
     );
 
-    await type(tester, originField, 'VivoCity');
+    await type(tester, originField, 'Bay Mall');
     expect(
       tester.getSemantics(find.text(const NetworkUnavailable().message)),
       isSemantics(isLiveRegion: true),
@@ -189,8 +189,8 @@ void main() {
     // The launch fallback prompt doesn't take focus (no keyboard unasked).
     expect(fieldFocused(tester, originField), isFalse);
 
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
     expect(buttonFocused(tester, 'change-origin'), isTrue);
     // The destination prompt appears unfocused too.
     expect(fieldFocused(tester, destinationField), isFalse);
@@ -204,8 +204,8 @@ void main() {
     await tester.pump();
     expect(buttonFocused(tester, 'change-origin'), isTrue);
 
-    await type(tester, destinationField, 'VivoCity');
-    await pick(tester, 'VIVOCITY');
+    await type(tester, destinationField, 'Bay Mall');
+    await pick(tester, 'BAY MALL (fake)');
     expect(buttonFocused(tester, 'change-destination'), isTrue);
 
     await tester.tap(find.byKey(const Key('change-destination')));
@@ -262,8 +262,8 @@ void main() {
       tester,
       buildTestApp(location: location, environment: env, places: places),
     );
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
 
     location.reset();
     await tester.tap(find.byKey(const Key('retry-location')));
@@ -395,15 +395,15 @@ void main() {
       final location = await fallback(tester);
       await retryAndTimeOut(tester, location);
 
-      await type(tester, originField, 'Tampines Hub');
+      await type(tester, originField, 'East Hub');
       location.fix(bishan);
       await tester.pump();
       expect(find.text('From: Current location'), findsNothing);
       expect(find.byKey(const Key('use-current-location')), findsOneWidget);
 
-      await pick(tester, 'OUR TAMPINES HUB');
+      await pick(tester, 'EAST HUB (fake)');
       expect(
-        tester.getSemantics(find.text('From: OUR TAMPINES HUB')),
+        tester.getSemantics(find.text('From: EAST HUB (fake)')),
         isNot(isSemantics(isLiveRegion: true)),
       );
       semantics.dispose();

@@ -89,7 +89,7 @@ void main() {
     await tester.pump();
   }
 
-  /// Bishan by GPS → VivoCity, F10 selected, the map open.
+  /// Bishan by GPS → Bay Mall, F10 selected, the map open.
   Future<void> journey(
     WidgetTester tester, {
     Size size = const Size(1080, 5000),
@@ -113,10 +113,10 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.enterText(key('destination-field'), 'VivoCity');
+    await tester.enterText(key('destination-field'), 'Bay Mall');
     await tester.pump(pastSearchDebounce);
     await tester.pump();
-    await tester.tap(find.text('VIVOCITY'));
+    await tester.tap(find.text('BAY MALL (fake)'));
     await tester.pump();
     await tester.pump();
     await tapVisible(tester, key('select-option-F10'));

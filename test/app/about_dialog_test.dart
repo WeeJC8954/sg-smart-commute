@@ -335,11 +335,11 @@ void main() {
     await tester.pump();
     await tester.enterText(
       find.byKey(const Key('destination-field')),
-      'VivoCity',
+      'Bay Mall',
     );
     await tester.pump(pastSearchDebounce);
     await tester.pump();
-    await tester.tap(find.text('VIVOCITY'));
+    await tester.tap(find.text('BAY MALL (fake)'));
     await tester.pump();
     await tester.pump();
     for (final key in ['select-option-F10', 'show-map']) {

@@ -80,11 +80,11 @@ void main() {
       ..hold('BSH2')
       ..hold('BSH1');
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
 
     // The static route is already there while arrivals load.
     expect(
-      inKey('journey-suggested', 'Take Bus F20 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F20 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(inKey(f20, OptionArrivals.checking), findsOneWidget);
@@ -131,7 +131,7 @@ void main() {
   testWidgets('screen readers hear the ETAs in words', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     // The journey card is read as one merged node.
     final label = tester
         .getSemantics(find.byKey(const Key('journey-card')))
@@ -149,10 +149,10 @@ void main() {
       'BSH2': const StopArrivals(services: []),
     };
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(inKey(f20, OptionArrivals.noArrival), findsOneWidget);
     expect(
-      inKey('journey-suggested', 'Take Bus F20 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F20 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(find.textContaining('0 min'), findsNothing);
@@ -183,7 +183,7 @@ void main() {
       ),
     };
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(inKey(f20, OptionArrivals.noArrival), findsOneWidget);
     expect(find.textContaining('0 min'), findsNothing);
   });
@@ -192,17 +192,17 @@ void main() {
       'route and MRT stay; Retry recovers', (tester) async {
     arrivals.failure = const NetworkUnavailable();
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
 
     final message = 'Live arrivals: ${const NetworkUnavailable().message}';
     expect(inKey(f20, message), findsOneWidget);
     expect(inKey(f10, message), findsOneWidget);
     expect(
-      inKey('journey-suggested', 'Take Bus F20 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F20 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(
-      inKey('journey-suggested', 'Alight at VIV1 — VivoCity (fake)'),
+      inKey('journey-suggested', 'Alight at BAY1 — Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(
@@ -249,7 +249,7 @@ void main() {
   ) async {
     arrivals.failures['BSH2'] = const BusArrivalUnavailable();
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(
       inKey(f20, 'Live arrivals: ${const BusArrivalUnavailable().message}'),
       findsOneWidget,
@@ -261,7 +261,7 @@ void main() {
       'announced once, on the first failed option (#66)', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(
       inKey(f10, 'Next buses: 4 min · 12 min (scheduled)'),
       findsOneWidget,
@@ -293,7 +293,7 @@ void main() {
   testWidgets('manual refresh: inside the cache TTL no request is made; '
       'after it, new ETAs appear; the route is not reloaded', (tester) async {
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(arrivals.totalCalls, 2);
 
     now = now.add(const Duration(seconds: 5));
@@ -322,7 +322,7 @@ void main() {
   testWidgets('ETAs count down between checks without a request, then ask '
       'for a refresh once the check is outdated', (tester) async {
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(inKey(f20, 'Next buses: Arr · 7 min · 19 min'), findsOneWidget);
 
     // Two minutes later, one UI tick: counted from the clock, not the check.
@@ -356,7 +356,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     // F20's first bus was due at +30 s; 3 min later it is 2.5 min past.
     now = now.add(const Duration(minutes: 2, seconds: 59));
     await tester.pump(AppTimings.uiTick);
@@ -369,13 +369,13 @@ void main() {
       ..hold('BSH2')
       ..hold('BSH1');
     await pumpApp(tester, app());
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(inKey(f20, OptionArrivals.checking), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('change-destination')));
     await tester.pump();
-    await pick(tester, 'ION Orchard', 'ION ORCHARD');
-    // Bishan → ION Orchard: F30 at BSH1 only.
+    await pick(tester, 'City Tower', 'CITY TOWER (fake)');
+    // Bishan → City Tower: F30 at BSH1 only.
     expect(find.byKey(const Key(f20)), findsNothing);
     expect(inKey(f30, OptionArrivals.checking), findsOneWidget);
 
@@ -412,7 +412,7 @@ void main() {
         clock: () => now,
       ),
     );
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     expect(inKey(f30, 'Next buses: 2 min'), findsOneWidget); // journey A
 
     arrivals
@@ -431,7 +431,11 @@ void main() {
       };
     await tester.tap(find.byKey(const Key('change-destination')));
     await tester.pump();
-    await pick(tester, 'ION Orchard', 'ION ORCHARD'); // journey B: F30 @ BSH1
+    await pick(
+      tester,
+      'City Tower',
+      'CITY TOWER (fake)',
+    ); // journey B: F30 @ BSH1
     expect(inKey(f30, OptionArrivals.checking), findsOneWidget);
     expect(find.text('Next buses: 2 min'), findsNothing);
 
@@ -445,7 +449,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, app());
-    await pick(tester, 'Bishan MRT', 'BISHAN MRT STATION (NS17)');
+    await pick(tester, 'North MRT', 'NORTH MRT STATION (FN2) (fake)');
     expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
     expect(find.byKey(const Key('arrivals-refresh')), findsNothing);
     expect(arrivals.totalCalls, 0);
@@ -463,7 +467,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await tester.pumpWidget(app());
       await tester.pump();
-      await pick(tester, 'VivoCity', 'VIVOCITY');
+      await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
       await tester.pump();
 
       final footer = find.byKey(const Key('arrivals-footer'));
@@ -495,7 +499,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
     await tester.pump();
-    await pick(tester, 'VivoCity', 'VIVOCITY');
+    await pick(tester, 'Bay Mall', 'BAY MALL (fake)');
     await tester.pump();
     final footer = tester.getRect(find.byKey(const Key('arrivals-footer')));
     final refresh = tester.getRect(find.byKey(const Key('arrivals-refresh')));

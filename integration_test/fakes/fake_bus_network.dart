@@ -8,18 +8,23 @@ import 'package:sg_smart_commute/features/journey/data/mrt_asset_repository.dart
 import 'package:sg_smart_commute/features/journey/domain/bus_network.dart';
 import 'package:sg_smart_commute/features/journey/domain/bus_network_repository.dart';
 import 'package:sg_smart_commute/features/journey/domain/mrt.dart';
+import 'package:sg_smart_commute/features/places/domain/place.dart';
 
-/// A small fake bus network around the fake places (integration_test/fakes/
-/// fake_place_search_repository.dart) and the fake GPS fix at Bishan
-/// (1.3508, 103.8485). Service numbers start with F so they can never be
-/// mistaken for real data. Bishan → VivoCity:
+import 'fake_place_search_repository.dart';
+
+/// A small fake bus network around the synthetic places (integration_test/
+/// fakes/fake_place_search_repository.dart, README_places.md) and the fake GPS
+/// fix at Bishan (1.3508, 103.8485). Service numbers start with F so they can
+/// never be mistaken for real data. Each place's stop sits a few metres from
+/// it ([_near]); MID1 and MID2 are placed so the rides keep the lengths (and
+/// so the estimated minutes) the tests expect. Bishan → Bay Mall:
 ///
-///   F20  BSH2 → VIV1  2 stops  walk 2 + 1  score 6   (Suggested)
-///   F10  BSH1 → VIV1  3 stops  walk 1 + 1  score 6.5
-///   F30  BSH1 → VIV1  3 stops  walk 1 + 1  score 6.5 (ties F10 → number)
+///   F20  BSH2 → BAY1  2 stops  walk 2 + 1  score 6   (Suggested)
+///   F10  BSH1 → BAY1  3 stops  walk 1 + 1  score 6.5
+///   F30  BSH1 → BAY1  3 stops  walk 1 + 1  score 6.5 (ties F10 → number)
 ///
-/// Bishan → ION Orchard: F30 BSH1 → ION1, 1 stop. Tampines Hub → ION Orchard:
-/// no direct bus (F40 only reaches MID1).
+/// Bishan → City Tower: F30 BSH1 → CTY1, 1 stop. East Hub → City Tower: no
+/// direct bus (F40 only reaches MID1).
 BusNetwork fakeBusNetwork() {
   BusStop s(String code, String name, double lat, double lng) => BusStop(
     code: code,
@@ -30,27 +35,27 @@ BusNetwork fakeBusNetwork() {
   final stops = [
     s('BSH1', 'Bishan Int (fake)', 1.3510, 103.8490),
     s('BSH2', 'Opp Bishan Stn (fake)', 1.3500, 103.8480),
-    s('VIV1', 'VivoCity (fake)', 1.2645, 103.8226),
-    s('ION1', 'Orchard Stn (fake)', 1.3042, 103.8318),
-    s('TPH1', 'Tampines Hub (fake)', 1.3532, 103.9402),
-    s('MID1', 'Midway (fake)', 1.3000, 103.8500),
-    s('MID2', 'Halfway (fake)', 1.2800, 103.8300),
+    _near(fakeBayMall, 'BAY1', 'Bay Mall (fake)', 0.0002, 0.0003),
+    _near(fakeCityTower, 'CTY1', 'City Tower Stn (fake)', 0.0002, -0.0002),
+    _near(fakeEastHub, 'EST1', 'East Hub (fake)', 0.0002, -0.0003),
+    s('MID1', 'Midway (fake)', 1.3200, 103.8300),
+    s('MID2', 'Halfway (fake)', 1.3100, 103.7900),
   ];
   BusService svc(String number, List<List<String>> directions) =>
       BusService(number: number, name: 'Fake $number', directions: directions);
   final services = [
     svc('F10', [
-      ['BSH1', 'MID1', 'MID2', 'VIV1'],
-      ['VIV1', 'MID2', 'MID1', 'BSH2'],
+      ['BSH1', 'MID1', 'MID2', 'BAY1'],
+      ['BAY1', 'MID2', 'MID1', 'BSH2'],
     ]),
     svc('F20', [
-      ['BSH2', 'MID1', 'VIV1'],
+      ['BSH2', 'MID1', 'BAY1'],
     ]),
     svc('F30', [
-      ['BSH1', 'ION1', 'MID2', 'VIV1'],
+      ['BSH1', 'CTY1', 'MID2', 'BAY1'],
     ]),
     svc('F40', [
-      ['TPH1', 'MID1'],
+      ['EST1', 'MID1'],
     ]),
   ];
   return BusNetwork(
@@ -58,6 +63,23 @@ BusNetwork fakeBusNetwork() {
     services: {for (final x in services) x.number: x},
   );
 }
+
+/// A stop at [place]'s position moved by [dLat], [dLng] degrees.
+BusStop _near(
+  Place place,
+  String code,
+  String name,
+  double dLat,
+  double dLng,
+) => BusStop(
+  code: code,
+  position: _offset(place, dLat, dLng),
+  name: name,
+  road: 'Fake Rd',
+);
+
+LatLng _offset(Place place, double dLat, double dLng) =>
+    LatLng(place.latitude + dLat, place.longitude + dLng);
 
 /// Controllable [BusNetworkRepository]: returns [network], or throws
 /// [failure]; [hold] keeps the load pending until [release].
@@ -84,22 +106,31 @@ class FakeBusNetworkRepository implements BusNetworkRepository {
   }
 }
 
-const fakeMrtStations = [
-  MrtStation(
+/// The fake MRT asset: one station by the fake GPS fix (its exit a few metres
+/// from the fix) and one by each synthetic destination, its exit placed from
+/// that place, so every place's nearest station is its own.
+final fakeMrtStations = [
+  const MrtStation(
     name: 'BISHAN MRT STATION',
-    exits: [MrtExit(code: 'Exit A', position: LatLng(1.3510, 103.8483))],
+    exits: [MrtExit(code: 'Exit A', position: LatLng(1.3512, 103.8481))],
   ),
   MrtStation(
-    name: 'HARBOURFRONT MRT STATION',
-    exits: [MrtExit(code: 'Exit E', position: LatLng(1.2653, 103.8220))],
+    name: 'FAKE BAY MRT STATION',
+    exits: [
+      MrtExit(code: 'Exit E', position: _offset(fakeBayMall, 0.0010, -0.0003)),
+    ],
   ),
   MrtStation(
-    name: 'ORCHARD MRT STATION',
-    exits: [MrtExit(code: 'Exit 1', position: LatLng(1.3040, 103.8318))],
+    name: 'FAKE CITY MRT STATION',
+    exits: [
+      MrtExit(code: 'Exit 1', position: _offset(fakeCityTower, 0, -0.0002)),
+    ],
   ),
   MrtStation(
-    name: 'TAMPINES MRT STATION',
-    exits: [MrtExit(code: 'Exit A', position: LatLng(1.3540, 103.9450))],
+    name: 'FAKE EAST MRT STATION',
+    exits: [
+      MrtExit(code: 'Exit A', position: _offset(fakeEastHub, 0.0010, 0.0045)),
+    ],
   ),
 ];
 

@@ -114,7 +114,7 @@ Future<FakeLocationService> fallback(WidgetTester tester) async {
 }
 
 Future<void> typeOrigin(WidgetTester tester) async {
-  await tester.enterText(originField, 'Tampines Hub');
+  await tester.enterText(originField, 'East Hub');
   await tester.pump(pastSearchDebounce);
   await tester.pump();
 }
@@ -123,7 +123,7 @@ Future<void> typeOrigin(WidgetTester tester) async {
 Future<void> offerChip(WidgetTester tester) async {
   final location = await fallback(tester);
   await typeOrigin(tester);
-  await tester.tap(find.text('OUR TAMPINES HUB'));
+  await tester.tap(find.text('EAST HUB (fake)'));
   await tester.pump();
   await tester.pump(); // "Change" focused after the pick
   location.fix(bishan); // late: only offered
@@ -254,7 +254,7 @@ void main() {
         ),
       );
       await typeOrigin(tester);
-      await tester.tap(find.text('OUR TAMPINES HUB'));
+      await tester.tap(find.text('EAST HUB (fake)'));
       await settle(tester);
       expect(focusIn(change), isTrue);
       location.reset();
@@ -458,7 +458,7 @@ void main() {
         expect(focused, hasLength(1), reason: 'one focused node');
         expect(
           focused.single.getSemanticsData().label,
-          contains('From: OUR TAMPINES HUB'),
+          contains('From: EAST HUB (fake)'),
           reason: "the route card's own node, not a new one",
         );
       } finally {
