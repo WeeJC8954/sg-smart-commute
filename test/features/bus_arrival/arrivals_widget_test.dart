@@ -120,7 +120,8 @@ void main() {
       isA<Text>().having(
         (t) => t.data,
         'data',
-        'Arrivals: ArriveLah (LTA DataMall) · checked 12:12 SGT',
+        'Arrivals: LTA DataMall via ArriveLah (Singapore Open Data Licence) '
+            '· checked 12:12 SGT',
       ),
     );
     // F10 and F30 board at BSH1: one request serves both.
