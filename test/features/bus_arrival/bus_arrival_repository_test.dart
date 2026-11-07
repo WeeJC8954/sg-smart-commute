@@ -2,7 +2,6 @@
 // §18): success, network error, timeout, malformed, HTTP failure, TTL,
 // concurrent dedup, failures not cached.
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -14,9 +13,7 @@ import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival.dart';
 import 'package:sg_smart_commute/features/bus_arrival/domain/bus_arrival_cache.dart';
 
 import '../../../integration_test/fakes/fake_bus_arrival_repository.dart';
-
-final stop03019 = File('test/fixtures/arrivelah/stop_03019.json')
-    .readAsStringSync();
+import '../../fixtures/arrivelah/synthetic_arrivelah.dart';
 
 ArriveLahBusArrivalRepository repo(
   Future<http.Response> Function(http.Request) handler, {
@@ -39,17 +36,15 @@ void main() {
         final requested = <Uri>[];
         final r = repo((req) async {
           requested.add(req.url);
-          return http.Response(stop03019, 200);
+          return http.Response(busyStopBody, 200);
         });
-        final stop = await r.arrivalsAt('03019');
+        final stop = await r.arrivalsAt(busyStopCode);
         expect(
           requested.single.toString(),
-          'https://arrivelah2.busrouter.sg/?id=03019',
+          'https://arrivelah2.busrouter.sg/?id=$busyStopCode',
         );
         expect(stop.services, hasLength(10));
-        // Captured at about 11:00 SGT.
-        final capturedAt = DateTime.utc(2026, 10, 2, 3);
-        expect(nextArrivals(stop, '57', now: capturedAt), hasLength(3));
+        expect(nextArrivals(stop, 'F5', now: arriveLahClock), hasLength(3));
       },
     );
 
@@ -62,7 +57,7 @@ void main() {
           throw http.ClientException('offline');
         });
         await expectLater(
-          r.arrivalsAt('03019'),
+          r.arrivalsAt(busyStopCode),
           throwsFailure<NetworkUnavailable>(),
         );
         expect(calls, 3); // 1 + 2 retries
@@ -75,7 +70,7 @@ void main() {
         timeout: const Duration(milliseconds: 20),
       );
       await expectLater(
-        r.arrivalsAt('03019'),
+        r.arrivalsAt(busyStopCode),
         throwsFailure<NetworkUnavailable>(),
       );
     });
@@ -83,20 +78,15 @@ void main() {
     test('body is not JSON → InvalidApiResponse', () async {
       final r = repo((_) async => http.Response('<html>oops</html>', 200));
       await expectLater(
-        r.arrivalsAt('03019'),
+        r.arrivalsAt(busyStopCode),
         throwsFailure<InvalidApiResponse>(),
       );
     });
 
     test('HTTP 200 with {"error": …} → BusArrivalUnavailable', () async {
-      final r = repo(
-        (_) async => http.Response(
-          '{"error":"Failed to retrieve bus data.","statusCode":500}',
-          200,
-        ),
-      );
+      final r = repo((_) async => http.Response(errorBody, 200));
       await expectLater(
-        r.arrivalsAt('03019'),
+        r.arrivalsAt(busyStopCode),
         throwsFailure<BusArrivalUnavailable>(),
       );
     });
@@ -122,8 +112,8 @@ void main() {
     test(
       'empty service list (unknown stop) is a valid, empty answer',
       () async {
-        final r = repo((_) async => http.Response('{"services":[]}', 200));
-        expect((await r.arrivalsAt('99999')).services, isEmpty);
+        final r = repo((_) async => http.Response(emptyStopBody, 200));
+        expect((await r.arrivalsAt(unknownStopCode)).services, isEmpty);
       },
     );
   });

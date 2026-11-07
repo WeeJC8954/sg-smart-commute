@@ -18,7 +18,7 @@ reuses their licence readings and does not re-read the terms.
   - 51 rows of live search results in `docs/probe-output/place-search-eval.json`;
   - the NEA test fixtures (`test/fixtures/*.json`);
   - the MRT asset (`assets/mrt_stations.json`).
-- **[C]** Out of scope here: `test/fixtures/onemap/` and `test/fixtures/arrivelah/` (replaced by synthetic data in PR #98, merged 2026-11-07, and open PR #99),
+- **[C]** Out of scope here: `test/fixtures/onemap/` and `test/fixtures/arrivelah/` (replaced by synthetic data in PRs #98 and #99, both merged 2026-11-07),
   and `integration_test/fakes/fake_place_search_repository.dart` (another change; listed in §3.4 only).
 - **[P]** Redact the probe bodies and remove the evaluation JSON: nothing reads them. Make
   `tool/place_search_eval.dart`, which writes its JSON into `docs/` by default, write to `build/`. Done in the
@@ -78,7 +78,7 @@ PRs #95 (A-5c) and #94 (A-5b):
 | `two-hr-forecast.json`, `uv.json`, `pm25.json`, `psi.json` | 5,917; 775; 623; 1,453 | `226a115`, 2026-10-01 | `curl`, once per dataset (`docs/testing.md`, 2026-10-01 M1 row) | `test/features/environment/nea_parsers_test.dart`, `environment_locator_test.dart`, `test/core/retry_after_provider_test.dart` | Unmodified data.gov.sg real-time responses of 2026-10-01: 47 forecast areas, regions, readings, timestamps | SODL | **Keep** (tests need real payloads, CLAUDE.md "NEA parser tests"); **add the SODL notice** (§5, C-1) [P] |
 | `busrouter/synthetic_busrouter.dart`, `README.md` | — | PR #92 (A-1) | Hand-made | Three busrouter test files | Synthetic (`F` codes, "(fake)" names) | Project | **Keep** |
 | `onemap/synthetic_onemap.dart`, `README.md` | — | PR #98 (A-4b) | Hand-made | The OneMap test files | Synthetic search responses | Project | **Keep** |
-| `arrivelah/*` | — | — | — | — | Captured responses | ArriveLah | **Handled** by PR #99; not touched here |
+| `arrivelah/synthetic_arrivelah.dart`, `README.md` | — | PR #99 (A-4a, A-4c) | Hand-made | The ArriveLah test files | Synthetic arrival responses | Project | **Keep** |
 
 ### 3.3 `assets/`
 
@@ -115,7 +115,7 @@ PRs #95 (A-5c) and #94 (A-5b):
 |---|---|---|---|
 | `lib/features/journey/data/mrt_grouping.dart` | Seven code → station-name mappings with OneMap evidence strings (label and distance) | Public names; Derived [A] | **Keep** |
 | `lib/core/config/` (`JourneyConfig`) | Two E2 constants derived offline from DataMall BusRoutes (`docs/data-sources.md`) | Derived (SODL source) | **Keep** |
-| `test/**` outside `test/fixtures/` | Hand-written positions and codes (e.g. `'00123'`, `F` codes, rounded MRT exits in `mrt_test.dart`); real stop codes `03019` and `75009` as identifiers in the ArriveLah tests (#99's scope); Google's documented example polyline in `polyline_codec_test.dart` | Project; identifiers [A] | **Keep** |
+| `test/**` outside `test/fixtures/` | Hand-written positions and codes (e.g. `'00123'`, `F` codes, rounded MRT exits in `mrt_test.dart`); Google's documented example polyline in `polyline_codec_test.dart` | Project; identifiers [A] | **Keep** |
 | `docs/data-sources.md`, `docs/testing.md`, `docs/assumptions.md`, `docs/api-feasibility.md`, `docs/architecture.md` | Response schemas (field names), short error messages, aggregate observations (e.g. "141 buses sampled"), a few stop codes and service numbers | Derived; short functional text [A] | **Keep** |
 | `docs/e5-gate2-implementation-plan.md`, `docs/testing.md` E5 rows | A few benchmark journeys (service numbers, stop codes, stop counts) | Derived [A] | **Keep** (with C-5) |
 | `docs/images/*.png` (3 files, 1,148,408 B, `34a1309`, 2026-10-05; README "Screenshots") | App screenshots with live OneMap tiles, busrouter stop names, ArriveLah arrival times and NEA readings | OneMap, LTA-web, ArriveLah, SODL | **Owner decision C-4** |
