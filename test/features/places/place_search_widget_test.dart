@@ -85,7 +85,14 @@ void main() {
       find.text('1 FAKE WALK BAY MALL (fake) SINGAPORE 009902'),
       findsOneWidget,
     );
-    expect(find.text(oneMapAttribution), findsOneWidget);
+    // Under the results (the footer has its own copy since C-6).
+    expect(
+      find.descendant(
+        of: find.byType(PlaceSearchField),
+        matching: find.text(oneMapAttribution),
+      ),
+      findsOneWidget,
+    );
     // A single exact match is still not selected until tapped.
     expect(originOf(tester).origin, isNull);
 

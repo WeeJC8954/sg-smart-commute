@@ -1,5 +1,7 @@
 // A-5b: the footer's Singapore Open Data Licence notice for the arrival
 // times: the source, then a link to the licence that opens it outside the app.
+// C-6: the NEA and MRT sources get their own notice and link; OneMap and
+// busrouter keep their credits with no licence notice.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
@@ -34,12 +36,6 @@ void main() {
     final handle = tester.ensureSemantics();
     await pumpTall(tester, links);
 
-    expect(
-      find.textContaining(
-        'Arrivals: LTA DataMall via ArriveLah (Singapore Open Data Licence)',
-      ),
-      findsOneWidget,
-    );
     final texts = tester
         .widgetList<Text>(
           find.descendant(of: find.byKey(notice), matching: find.byType(Text)),
@@ -62,6 +58,61 @@ void main() {
     await tester.pump();
     expect(links.opened, [Uri.parse('https://data.gov.sg/open-data-licence')]);
     handle.dispose();
+  });
+
+  testWidgets('each open-data source has its own notice; the others none', (
+    tester,
+  ) async {
+    final links = FakeLinkOpener();
+    await pumpTall(tester, links);
+
+    String noticeText(String key) => tester
+        .widgetList<Text>(
+          find.descendant(
+            of: find.byKey(Key(key)),
+            matching: find.byType(Text),
+          ),
+        )
+        .map((t) => t.data)
+        .join();
+    expect(
+      noticeText('nea-licence-notice'),
+      'Weather, UV and air-quality readings contain information from the '
+      'National Environment Agency (NEA), accessed from data.gov.sg, made '
+      'available under the terms of the Singapore Open Data Licence version 1.0',
+    );
+    expect(
+      noticeText('mrt-licence-notice'),
+      'MRT station exits contain information from the LTA MRT Station Exit '
+      'dataset, accessed on 1 October 2026 from data.gov.sg, made available '
+      'under the terms of the Singapore Open Data Licence version 1.0',
+    );
+
+    for (final key in ['nea-licence-link', 'mrt-licence-link']) {
+      final node = tester.getSemantics(find.byKey(Key(key)));
+      expect(node.flagsCollection.isLink, isTrue);
+      expect(node.linkUrl, Uri.parse('https://data.gov.sg/open-data-licence'));
+      await tester.tap(find.byKey(Key(key)));
+      await tester.pump();
+    }
+    expect(links.opened, [
+      Uri.parse('https://data.gov.sg/open-data-licence'),
+      Uri.parse('https://data.gov.sg/open-data-licence'),
+    ]);
+
+    // OneMap and busrouter: their own credit, no licence named or linked.
+    for (final credit in [
+      'Place search: OneMap © Singapore Land Authority',
+      'Bus data: busrouter.sg (data © LTA)',
+    ]) {
+      final text = find.text(credit);
+      expect(text, findsOneWidget);
+      expect(
+        find.ancestor(of: text, matching: find.byType(Wrap)),
+        findsNothing,
+      );
+    }
+    expect(find.textContaining('Data: '), findsNothing);
   });
 
   testWidgets('a licence link that cannot be opened only shows a note', (
