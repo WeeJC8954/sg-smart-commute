@@ -18,7 +18,7 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 | Auth | None. An optional API key exists for higher limits. It is not used, and it would be public if it ever were |
 | Update cadence | Forecast: 2-hr validity window, update time in the payload; UV, PM2.5 and PSI: hourly readings (`updatedTimestamp` in the payload) |
 | Limits | Anonymous: **6 real-time calls per 10 s** → `429` ([guide](https://guide.data.gov.sg/developer-guide/api-overview/api-rate-limits)) |
-| Licence / attribution | Singapore Open Data Licence. Attribute "Source: NEA / data.gov.sg" |
+| Licence / attribution | Singapore Open Data Licence v1.0, https://data.gov.sg/open-data-licence. Attribute "Source: NEA / data.gov.sg". The captured test fixtures carry their notice in `test/fixtures/NOTICE.md` (C-1, 2026-11-07) |
 | Limitations | Readings are national, regional or area-based, never point-based. UV is not measured at night |
 | Fallback | Show the stale reading with its timestamp, or an unavailable state with Retry. Values are never fabricated |
 | Fields used (M1, confirmed against live payloads 2026-10-01, `test/fixtures/`) | Forecast `items[].forecasts[]` + `update_timestamp` + `valid_period`; UV latest `records[].index[]` entry by `hour`; PM2.5 `items[].readings.pm25_one_hourly`; PSI `items[].readings.psi_twenty_four_hourly` only. The PSI payload also carries `pm25_twenty_four_hourly` and sub-indices: these are never used |
@@ -96,7 +96,7 @@ busrouter `stops.min.json`, ~317 KB) and enforces the timeouts, retries and rate
 | | |
 |---|---|
 | Source | data.gov.sg dataset `d_b39d3a0871985372d7e1637193335da5`, "LTA MRT Station Exit (GEOJSON)", published by the Land Transport Authority. Fetched with `poll-download` (HTTP 201 → a signed URL) |
-| Licence / attribution | Singapore Open Data Licence v1.0. The app shows "MRT exits: LTA via data.gov.sg (Singapore Open Data Licence)" |
+| Licence / attribution | Singapore Open Data Licence v1.0, https://data.gov.sg/open-data-licence. Notice for the bundled asset (C-2, 2026-11-07): "Contains information from the LTA MRT Station Exit (GEOJSON) dataset of the Land Transport Authority, accessed on 1 October 2026 from data.gov.sg, which is made available under the terms of the Singapore Open Data Licence version 1.0, https://data.gov.sg/open-data-licence". The asset's own `source` block names the dataset, its ID, the publisher, the licence and the retrieval date; the link is recorded here and in the generator's header, not in the asset, so its schema is unchanged. The app shows "MRT exits: LTA via data.gov.sg (Singapore Open Data Licence)" |
 | Fields used | `STATION_NA`, `EXIT_CODE`, Point `[lng, lat]`. There is **no line or station-code field**, so the app shows station names only |
 | Generation | `dart run tool/build_mrt_asset.dart` (or `--input exits.geojson --retrieved YYYY-MM-DD` for an offline rebuild). It groups exits with `groupMrtExits`, applies the cited code-only mapping, round-trips the output through the app's parser, and writes sorted, rounded JSON. Two builds from the same input are byte-identical |
 | Recorded in the asset | Source and dataset ID, licence, retrieval date (UTC), the latest feature update in the data, each code-only mapping with its evidence, and validation counts |

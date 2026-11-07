@@ -7,7 +7,18 @@ Research and design only. P2-M0 adds **no app dependency and changes no app beha
 - two dev-only probes (`tool/probe_map.sh` → `docs/probe-output/map-probes.txt`, response bodies redacted on
   2026-11-07 as captured provider data (`docs/captured-data-inventory.md`), and
   `tool/route_geometry_probe.dart` → `docs/probe-output/route-geometry.txt`);
-- screenshots in `docs/probe-output/map-spike/`.
+- screenshots of the spike, formerly in `docs/probe-output/map-spike/`. They were removed on 2026-11-07 (owner
+  decision C-3, `docs/captured-data-inventory.md`): they show OneMap and CARTO tiles, OSM tiles with the attribution
+  collapsed, and a busrouter ride line, and their publication rights were not established. They remain in Git history
+  (added in `6dc0fd3`). What they showed:
+
+  | Screenshot (removed) | Platform | What it showed |
+  |---|---|---|
+  | `web-onemap-default.jpg`, `web-onemap-night.jpg` | Web (Chrome 154) | OneMap Default and Night tiles rendered through `fetch` under the app's CSP; the ride slice (16 points) and the Valhalla walk (0.57 km) drawn; 0 tile errors |
+  | `web-osm.jpg` | Web | OSM standard tiles rendered the same way; 0 tile errors |
+  | `android-onemap-default.jpg`, `android-onemap-night.jpg`, `android-osm.jpg` | Android (Pixel_8_Pro AVD) | The same three basemaps, 0 tile errors, ride (16 points) and walk (33 points) drawn |
+  | `android-carto-watermark.jpg` | Android | CARTO Positron served "API KEY REQUIRED" watermark tiles without a key (the probes show the same for Dark Matter); the ride line drawn over them |
+  | `android-walk-zoom.jpg` | Android | OneMap Default at street level (about z18) after a double-tap zoom: labels sharp, the ride line and the dashed walk start visible |
 
 Observed 2026-10-02/03 (UTC 17:26–18:01 on 2026-10-02). OneMap's terms, basemap docs and attribution snippet
 were re-read on 2026-10-03 (02:06–02:08 UTC) for the basemap decision (§4.2). Toolchain: Flutter 3.47.2 /
