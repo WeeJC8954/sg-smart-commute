@@ -8,6 +8,8 @@
 # (docs/runtime-data-rights-assessment.md §5.3). CI, the tests and normal
 # development never need it; run it by hand only with the owner's approval.
 # Never commit what it downloads.
+# It also calls OneMap (SLA) live, whose runtime use is not shown to be
+# permitted either (A-5d-6, docs/onemap-runtime-assessment.md): same rule.
 set -u
 ORIGIN="https://example.com"
 UA="sg-smart-commute-p2m0-probe (university course project)"
