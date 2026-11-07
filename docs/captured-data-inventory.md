@@ -181,3 +181,16 @@ Proposal:
   existing `source` block already names the dataset, publisher, licence and retrieval date.
 - **C-3 approved conditionally**, **C-4 and C-5 for further review**, **C-6 approved** (source-specific notices),
   **C-7 deferred** (no history rewrite; exposure stays documented in §6). Each is handled in its own change.
+
+## 8. C-3 done (owner approval 2026-11-07, conditional)
+
+The eight `docs/probe-output/map-spike/*.jpg` were reviewed against the condition "publication rights cannot be
+established and not needed for active tests":
+- **Rights not established for any of them.** Five show OneMap tiles (OneMap Terms of Use 3(b) names "publicly
+  display", "reproduce" and "publish"). One shows CARTO watermark tiles (CARTO's terms not read). The two OSM ones also
+  draw a busrouter ride line (LTA-web geometry, redistribution not established), and their OSM attribution is collapsed
+  to an icon. **[A]** for the OSM tiles' own licence (not re-read).
+- **Not needed by any test:** only `docs/map-feasibility.md`, `docs/testing.md` and this inventory cite them.
+
+So all eight were removed from the tree. `docs/map-feasibility.md` now describes what each showed, in original text.
+They remain in Git history (`6dc0fd3`; C-7, no rewrite).
