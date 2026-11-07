@@ -39,11 +39,11 @@ void main() {
 
   test('a direct bus: origin, boarding, alighting, destination, in order, '
       'from the suggested option', () {
-    final plan = planDirectBus(network, bishan, vivoCity.position);
+    final plan = planDirectBus(network, bishan, fakeBayMall.position);
     expect(plan, isA<DirectBusOptions>());
     final suggested = (plan as DirectBusOptions).options.first;
 
-    final scene = sceneTo(vivoCity.position, plan: plan);
+    final scene = sceneTo(fakeBayMall.position, plan: plan);
 
     expect(kinds(scene), [
       MapMarkerKind.origin,
@@ -56,22 +56,22 @@ void main() {
     expect(board.position, same(suggested.board.position));
     expect(board.label, 'Opp Bishan Stn (fake) (BSH2)');
     expect(alight.position, same(suggested.alight.position));
-    expect(alight.label, 'VivoCity (fake) (VIV1)');
+    expect(alight.label, 'Bay Mall (fake) (BAY1)');
     expect(scene.markers.first.position, bishan);
-    expect(scene.markers.last.position, vivoCity.position);
+    expect(scene.markers.last.position, fakeBayMall.position);
   });
 
   test('every other answer, and no answer yet, marks the two ends only', () {
     final plans = <JourneyPlan?>[
       null, // still being found, or failed
       WalkOnly(WalkEstimate.between(bishan, bishan)),
-      planDirectBus(network, tampinesHub.position, ionOrchard.position),
+      planDirectBus(network, fakeEastHub.position, fakeCityTower.position),
       const NoNearbyStops(JourneyEnd.origin, radiusMeters: 800),
       const DirectBusOptions([], radiusMeters: 400),
     ];
     expect(plans[2], isA<NoDirectBus>());
     for (final plan in plans) {
-      final scene = sceneTo(ionOrchard.position, plan: plan);
+      final scene = sceneTo(fakeCityTower.position, plan: plan);
       expect(kinds(scene), [
         MapMarkerKind.origin,
         MapMarkerKind.destination,
@@ -81,8 +81,8 @@ void main() {
   });
 
   test('bounds hold every marker', () {
-    final plan = planDirectBus(network, bishan, vivoCity.position);
-    final scene = sceneTo(vivoCity.position, plan: plan);
+    final plan = planDirectBus(network, bishan, fakeBayMall.position);
+    final scene = sceneTo(fakeBayMall.position, plan: plan);
     final b = scene.bounds;
     for (final m in scene.markers) {
       expect(
@@ -106,16 +106,16 @@ void main() {
   test(
     'the summary names the ends, and the bus and stops when there is one',
     () {
-      final plan = planDirectBus(network, bishan, vivoCity.position);
+      final plan = planDirectBus(network, bishan, fakeBayMall.position);
       expect(
-        sceneTo(vivoCity.position, plan: plan).summary,
+        sceneTo(fakeBayMall.position, plan: plan).summary,
         'Map of the suggested journey: from Current location, bus F20 from '
-        'Opp Bishan Stn (fake) (BSH2) to VivoCity (fake) (VIV1), to '
+        'Opp Bishan Stn (fake) (BSH2) to Bay Mall (fake) (BAY1), to '
         'Destination. Walks are drawn as straight lines, estimates only. '
         'The journey details are listed above.',
       );
       expect(
-        sceneTo(vivoCity.position).summary,
+        sceneTo(fakeBayMall.position).summary,
         'Map of the suggested journey: from Current location, to Destination. '
         'The journey details are listed above.',
       );
@@ -123,26 +123,30 @@ void main() {
   );
 
   test('equal inputs give equal scenes; a new journey does not', () {
-    final plan = planDirectBus(network, bishan, vivoCity.position);
-    final a = sceneTo(vivoCity.position, plan: plan);
+    final plan = planDirectBus(network, bishan, fakeBayMall.position);
+    final a = sceneTo(fakeBayMall.position, plan: plan);
     final b = sceneTo(
-      vivoCity.position,
-      plan: planDirectBus(network, bishan, vivoCity.position),
+      fakeBayMall.position,
+      plan: planDirectBus(network, bishan, fakeBayMall.position),
     );
     expect(a, b);
     expect(a.hashCode, b.hashCode);
-    expect(a, isNot(sceneTo(vivoCity.position))); // stops not known yet
-    expect(a, isNot(sceneTo(ionOrchard.position)));
+    expect(a, isNot(sceneTo(fakeBayMall.position))); // stops not known yet
+    expect(a, isNot(sceneTo(fakeCityTower.position)));
   });
 
   group('the ride (P2-M2)', () {
     final stops = network.stops;
-    final plan = planDirectBus(network, bishan, vivoCity.position);
+    final plan = planDirectBus(network, bishan, fakeBayMall.position);
     final option = (plan as DirectBusOptions).options.first;
 
     test('a direct bus gives the ride: the suggested stops, in order, '
         'boarding to alighting', () {
-      final ride = sceneTo(vivoCity.position, plan: plan, stops: stops).ride!;
+      final ride = sceneTo(
+        fakeBayMall.position,
+        plan: plan,
+        stops: stops,
+      ).ride!;
       final codes = network.services['F20']!.directions[0];
       expect(ride.service, 'F20');
       expect(ride.sourceDirection, 0);
@@ -157,17 +161,17 @@ void main() {
     });
 
     test('no ride without the stops, or for any other answer', () {
-      expect(sceneTo(vivoCity.position, plan: plan).ride, isNull);
+      expect(sceneTo(fakeBayMall.position, plan: plan).ride, isNull);
       final others = <JourneyPlan?>[
         null,
         WalkOnly(WalkEstimate.between(bishan, bishan)),
-        planDirectBus(network, tampinesHub.position, ionOrchard.position),
+        planDirectBus(network, fakeEastHub.position, fakeCityTower.position),
         const NoNearbyStops(JourneyEnd.origin, radiusMeters: 800),
         const DirectBusOptions([], radiusMeters: 400),
       ];
       for (final other in others) {
         expect(
-          sceneTo(ionOrchard.position, plan: other, stops: stops).ride,
+          sceneTo(fakeCityTower.position, plan: other, stops: stops).ride,
           isNull,
           reason: '$other',
         );
@@ -185,7 +189,7 @@ void main() {
         stops: {
           'A': s('A', 1.3510, 103.8490),
           'B': s('B', 1.4200, 103.9000), // north-east of every marker
-          'C': s('C', 1.2645, 103.8226),
+          'C': s('C', 1.3002, 103.7753),
         },
         services: const {
           'R1': BusService(
@@ -197,10 +201,10 @@ void main() {
           ),
         },
       );
-      final detourPlan = planDirectBus(detour, bishan, vivoCity.position);
+      final detourPlan = planDirectBus(detour, bishan, fakeBayMall.position);
       expect(detourPlan, isA<DirectBusOptions>());
       final scene = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         plan: detourPlan,
         stops: detour.stops,
       );
@@ -239,7 +243,7 @@ void main() {
         stops: {
           'A': s('A', 1.3510, 103.8490),
           'B': s('B', 1.3000, 103.8400),
-          'C': s('C', 1.2645, 103.8226),
+          'C': s('C', 1.3002, 103.7753),
         },
         services: const {
           'R3': BusService(
@@ -252,11 +256,11 @@ void main() {
           ),
         },
       );
-      final plan = planDirectBus(dropped, bishan, vivoCity.position);
+      final plan = planDirectBus(dropped, bishan, fakeBayMall.position);
       expect(plan, isA<DirectBusOptions>());
       expect((plan as DirectBusOptions).options.first.direction, 0);
       final scene = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         plan: plan,
         stops: dropped.stops,
       );
@@ -267,7 +271,7 @@ void main() {
     test('two scenes that differ only in the ride are not equal', () {
       const markers = [
         MapMarker(MapMarkerKind.origin, bishan, 'a'),
-        MapMarker(MapMarkerKind.destination, LatLng(1.2643, 103.8223), 'b'),
+        MapMarker(MapMarkerKind.destination, LatLng(1.3000, 103.7750), 'b'),
       ];
       const rideA = MapRide(
         service: 'F20',
@@ -314,7 +318,7 @@ void main() {
         isLoop: option.isLoop,
       );
       final scene = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         plan: DirectBusOptions([mismatched], radiusMeters: 400),
         stops: stops,
       );
@@ -355,13 +359,13 @@ void main() {
         alight: b,
         stops: 1,
         walkToStop: WalkEstimate.between(bishan, a.position),
-        walkFromStop: WalkEstimate.between(b.position, vivoCity.position),
+        walkFromStop: WalkEstimate.between(b.position, fakeBayMall.position),
         score: 1,
         towardName: 'B',
         isLoop: false,
       );
       final scene = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         plan: DirectBusOptions([repeated], radiusMeters: 400),
         stops: {'A': a, 'B': b, 'C': c},
       );
@@ -417,11 +421,18 @@ void main() {
 
   group('the selected option (P2-M3)', () {
     final stops = network.stops;
-    final plan =
-        planDirectBus(network, bishan, vivoCity.position) as DirectBusOptions;
-    // F20 BSH2 → VIV1 (suggested), F10 BSH1 → VIV1, F30 BSH1 → VIV1.
-    MapScene at(int i) =>
-        sceneTo(vivoCity.position, plan: plan, stops: stops, selectedIndex: i);
+    final plan = planDirectBus(
+      network,
+      bishan,
+      fakeBayMall.position,
+    ) as DirectBusOptions;
+    // F20 BSH2 → BAY1 (suggested), F10 BSH1 → BAY1, F30 BSH1 → BAY1.
+    MapScene at(int i) => sceneTo(
+      fakeBayMall.position,
+      plan: plan,
+      stops: stops,
+      selectedIndex: i,
+    );
     LatLng pos(MapScene s, MapMarkerKind k) =>
         s.markers.firstWhere((m) => m.kind == k).position;
 
@@ -432,7 +443,7 @@ void main() {
       expect(s1.serviceNumber, 'F10');
       expect(s1.isAlternative, isTrue);
       expect(pos(s1, MapMarkerKind.boarding), stops['BSH1']!.position);
-      expect(pos(s1, MapMarkerKind.alighting), stops['VIV1']!.position);
+      expect(pos(s1, MapMarkerKind.alighting), stops['BAY1']!.position);
       expect(s1.ride!.service, 'F10');
     });
 
@@ -459,7 +470,7 @@ void main() {
         'the markers', () {
       expect(at(1).walks, [
         MapWalk(bishan, stops['BSH1']!.position),
-        MapWalk(stops['VIV1']!.position, vivoCity.position),
+        MapWalk(stops['BAY1']!.position, fakeBayMall.position),
       ]);
     });
 
@@ -472,7 +483,7 @@ void main() {
         const NoNearbyStops(JourneyEnd.origin, radiusMeters: 800),
       ]) {
         expect(
-          sceneTo(vivoCity.position, plan: p, stops: stops).walks,
+          sceneTo(fakeBayMall.position, plan: p, stops: stops).walks,
           isEmpty,
           reason: '$p',
         );
@@ -485,19 +496,19 @@ void main() {
       final atStop = buildMapScene(
         origin: o.board.position, // the origin is the boarding stop itself
         originLabel: 'Here',
-        destination: vivoCity.position,
+        destination: fakeBayMall.position,
         destinationLabel: 'Destination',
         plan: plan,
         stops: stops,
       );
-      expect(atStop.walks, [MapWalk(o.alight.position, vivoCity.position)]);
+      expect(atStop.walks, [MapWalk(o.alight.position, fakeBayMall.position)]);
     });
 
     test('summary: an alternative says so, and walks are called estimates', () {
       expect(
         at(1).summary,
         'Map of an alternative journey: from Current location, bus F10 from '
-        'Bishan Int (fake) (BSH1) to VivoCity (fake) (VIV1), to Destination. '
+        'Bishan Int (fake) (BSH1) to Bay Mall (fake) (BAY1), to Destination. '
         'Walks are drawn as straight lines, estimates only. '
         'The journey details are listed above.',
       );
@@ -507,7 +518,7 @@ void main() {
   group('MRT markers (P2-M3)', () {
     // The card's own suggestions, from the unchanged journey function.
     final nearO = nearestMrtStation(fakeMrtStations, bishan)!;
-    final nearD = nearestMrtStation(fakeMrtStations, vivoCity.position)!;
+    final nearD = nearestMrtStation(fakeMrtStations, fakeBayMall.position)!;
     final both = (nearOrigin: nearO, nearDestination: nearD);
     const mrtKinds = [
       MapMarkerKind.mrtNearOrigin,
@@ -518,18 +529,18 @@ void main() {
 
     test('the fixtures are the stations the card names', () {
       expect(nearO.station.name, 'BISHAN MRT STATION');
-      expect(nearD.station.name, 'HARBOURFRONT MRT STATION');
+      expect(nearD.station.name, 'FAKE BAY MRT STATION');
     });
 
     test("one marker per present suggestion, at its nearest exit, with the "
         "card's wording", () {
-      final s = sceneTo(vivoCity.position, mrt: both);
+      final s = sceneTo(fakeBayMall.position, mrt: both);
       final o = mrt(s, MapMarkerKind.mrtNearOrigin)!;
       final d = mrt(s, MapMarkerKind.mrtNearDestination)!;
       expect(o.position, nearO.nearestExit.position);
       expect(o.label, 'Nearest MRT: BISHAN MRT STATION');
       expect(d.position, nearD.nearestExit.position);
-      expect(d.label, 'Near your destination: HARBOURFRONT MRT STATION');
+      expect(d.label, 'Near your destination: FAKE BAY MRT STATION');
       // The same words as the journey card, from the one shared place.
       expect(o.label, MrtWording.named(MrtWording.nearOrigin, nearO.station));
       expect(
@@ -545,7 +556,7 @@ void main() {
         MrtStation(name: 'TWO EXIT MRT STATION', exits: [far, near]),
       ], bishan)!;
       final s = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         mrt: (nearOrigin: twoExits, nearDestination: null),
       );
       expect(mrt(s, MapMarkerKind.mrtNearOrigin)!.position, near.position);
@@ -553,13 +564,13 @@ void main() {
 
     test('a side with no station within the limit has no marker', () {
       final s = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         mrt: (nearOrigin: nearO, nearDestination: null),
       );
       expect(mrt(s, MapMarkerKind.mrtNearOrigin), isNotNull);
       expect(mrt(s, MapMarkerKind.mrtNearDestination), isNull);
       expect(
-        sceneTo(vivoCity.position).markers
+        sceneTo(fakeBayMall.position).markers
             .where((m) => mrtKinds.contains(m.kind)),
         isEmpty,
       );
@@ -567,15 +578,15 @@ void main() {
 
     test('MRT markers come after the journey markers and never change '
         'them', () {
-      final plan = planDirectBus(network, bishan, vivoCity.position);
+      final plan = planDirectBus(network, bishan, fakeBayMall.position);
       final withMrt = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         plan: plan,
         stops: network.stops,
         mrt: both,
       );
       final without = sceneTo(
-        vivoCity.position,
+        fakeBayMall.position,
         plan: plan,
         stops: network.stops,
       );
@@ -590,10 +601,10 @@ void main() {
         const NoDirectBus(radiusMeters: 800),
         const NoNearbyStops(JourneyEnd.destination, radiusMeters: 800),
         WalkOnly(WalkEstimate.between(bishan, bishan)),
-        planDirectBus(network, bishan, vivoCity.position),
+        planDirectBus(network, bishan, fakeBayMall.position),
       ]) {
         final s = sceneTo(
-          vivoCity.position,
+          fakeBayMall.position,
           plan: p,
           stops: network.stops,
           mrt: both,
@@ -608,7 +619,7 @@ void main() {
     });
 
     test('bounds hold the MRT markers', () {
-      final b = sceneTo(vivoCity.position, mrt: both).bounds;
+      final b = sceneTo(fakeBayMall.position, mrt: both).bounds;
       for (final p in [
         nearO.nearestExit.position,
         nearD.nearestExit.position,
@@ -626,18 +637,18 @@ void main() {
 
     test("summary names the marked stations with the card's wording", () {
       expect(
-        sceneTo(vivoCity.position, mrt: both).summary,
+        sceneTo(fakeBayMall.position, mrt: both).summary,
         'Map of the suggested journey: from Current location, to Destination. '
         'Nearest MRT: BISHAN MRT STATION. '
-        'Near your destination: HARBOURFRONT MRT STATION. '
+        'Near your destination: FAKE BAY MRT STATION. '
         'The journey details are listed above.',
       );
     });
 
     test('scenes that differ only in MRT are not equal', () {
       expect(
-        sceneTo(vivoCity.position, mrt: both),
-        isNot(sceneTo(vivoCity.position)),
+        sceneTo(fakeBayMall.position, mrt: both),
+        isNot(sceneTo(fakeBayMall.position)),
       );
     });
   });

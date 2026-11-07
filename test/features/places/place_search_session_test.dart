@@ -14,9 +14,9 @@ void main() {
   setUp(() {
     repo = FakePlaceSearchRepository(
       results: {
-        'viv': [vivoCity, ionOrchard],
-        'vivocity': [vivoCity],
-        'bishan mrt': [bishanMrtCc, bishanMrtNs],
+        'viv': [fakeBayMall, fakeCityTower],
+        'bay mall': [fakeBayMall],
+        'north mrt': [fakeNorthMrtA, fakeNorthMrtB],
       },
       failures: {'offline': const NetworkUnavailable()},
     );
@@ -36,7 +36,10 @@ void main() {
       async.elapse(const Duration(milliseconds: 1));
       async.flushMicrotasks();
       expect(repo.queries, ['viv']);
-      expect((state() as PlaceSearchResults).places, [vivoCity, ionOrchard]);
+      expect((state() as PlaceSearchResults).places, [
+        fakeBayMall,
+        fakeCityTower,
+      ]);
     });
   });
 
@@ -53,9 +56,9 @@ void main() {
 
   test('submit searches immediately, without the debounce', () {
     fakeAsync((async) {
-      session.submit('VivoCity');
+      session.submit('Bay Mall');
       async.flushMicrotasks();
-      expect(repo.queries, ['vivocity']);
+      expect(repo.queries, ['bay mall']);
       expect(state(), isA<PlaceSearchResults>());
     });
   });
@@ -65,42 +68,42 @@ void main() {
       repo.hold('viv');
       session.onChanged('viv');
       async.elapse(debounce); // "viv" is now in flight, held
-      session.onChanged('vivocity');
+      session.onChanged('bay mall');
       async.elapse(debounce);
       async.flushMicrotasks();
-      expect((state() as PlaceSearchResults).query, 'vivocity');
-      expect((state() as PlaceSearchResults).places, [vivoCity]);
+      expect((state() as PlaceSearchResults).query, 'bay mall');
+      expect((state() as PlaceSearchResults).places, [fakeBayMall]);
 
       repo.release('viv'); // the stale answer arrives last
       async.flushMicrotasks();
-      expect((state() as PlaceSearchResults).query, 'vivocity');
-      expect((state() as PlaceSearchResults).places, [vivoCity]);
-      expect(repo.queries, ['viv', 'vivocity']);
+      expect((state() as PlaceSearchResults).query, 'bay mall');
+      expect((state() as PlaceSearchResults).places, [fakeBayMall]);
+      expect(repo.queries, ['viv', 'bay mall']);
     });
   });
 
   test('race: a stale response does not replace "loading" for a newer one', () {
     fakeAsync((async) {
       repo.hold('viv');
-      repo.hold('vivocity');
+      repo.hold('bay mall');
       session.submit('viv');
-      session.submit('vivocity');
+      session.submit('bay mall');
       repo.release('viv');
       async.flushMicrotasks();
       expect(state(), isA<PlaceSearchLoading>());
-      expect((state() as PlaceSearchLoading).query, 'vivocity');
-      repo.release('vivocity');
+      expect((state() as PlaceSearchLoading).query, 'bay mall');
+      repo.release('bay mall');
       async.flushMicrotasks();
-      expect((state() as PlaceSearchResults).places, [vivoCity]);
+      expect((state() as PlaceSearchResults).places, [fakeBayMall]);
     });
   });
 
   test('clear() drops an in-flight response', () {
     fakeAsync((async) {
-      repo.hold('vivocity');
-      session.submit('vivocity');
+      repo.hold('bay mall');
+      session.submit('bay mall');
       session.clear();
-      repo.release('vivocity');
+      repo.release('bay mall');
       async.flushMicrotasks();
       expect(state(), isA<PlaceSearchIdle>());
     });
@@ -108,7 +111,7 @@ void main() {
 
   test('several results are listed, never auto-selected', () {
     fakeAsync((async) {
-      session.submit('Bishan MRT');
+      session.submit('North MRT');
       async.flushMicrotasks();
       final results = state() as PlaceSearchResults;
       expect(results.places, hasLength(2));
@@ -130,10 +133,10 @@ void main() {
       async.flushMicrotasks();
       expect((state() as PlaceSearchFailed).failure, isA<NetworkUnavailable>());
       repo.failures.remove('offline');
-      repo.results['offline'] = [vivoCity];
+      repo.results['offline'] = [fakeBayMall];
       session.retry();
       async.flushMicrotasks();
-      expect((state() as PlaceSearchResults).places, [vivoCity]);
+      expect((state() as PlaceSearchResults).places, [fakeBayMall]);
       expect(repo.queries, ['offline', 'offline']);
     });
   });

@@ -122,7 +122,7 @@ Future<void> pumpTall(WidgetTester tester, Widget app) async {
   await tester.pump();
 }
 
-/// Bishan by GPS → VivoCity: two or more bus options, the map closed. The
+/// Bishan by GPS → Bay Mall: two or more bus options, the map closed. The
 /// result is picked with [kind] (a mouse leaves the highlight mode as is).
 Future<void> journey(
   WidgetTester tester, {
@@ -145,13 +145,13 @@ Future<void> journey(
       paletteStore: FakePaletteStore(),
     ),
   );
-  await tester.enterText(key('destination-field'), 'VivoCity');
+  await tester.enterText(key('destination-field'), 'Bay Mall');
   await tester.pump(pastSearchDebounce);
   await tester.pump();
   if (pick != null) {
-    await pick(find.text('VIVOCITY'));
+    await pick(find.text('BAY MALL (fake)'));
   } else {
-    await tester.tap(find.text('VIVOCITY'), kind: kind);
+    await tester.tap(find.text('BAY MALL (fake)'), kind: kind);
   }
   await tester.pump();
   await tester.pump();
@@ -315,7 +315,7 @@ void main() {
       await journey(tester);
       await tabTo(tester, key('change-destination'));
       await press(tester, LogicalKeyboardKey.enter);
-      await tester.enterText(key('destination-field'), 'VivoCity');
+      await tester.enterText(key('destination-field'), 'Bay Mall');
       await tester.pump(pastSearchDebounce);
       await tester.pump();
       final clear = find.descendant(
@@ -325,7 +325,7 @@ void main() {
       await tabTo(tester, clear);
       expect(paintedSide(tester, clear), ringAt(tester, clear));
       final result = find.ancestor(
-        of: find.text('VIVOCITY'),
+        of: find.text('BAY MALL (fake)'),
         matching: find.byType(ListTile),
       );
       await tabTo(tester, result);
@@ -360,10 +360,10 @@ void main() {
         ),
       );
       await tester.pump(const Duration(seconds: 10));
-      await tester.enterText(key('manual-origin-field'), 'Tampines Hub');
+      await tester.enterText(key('manual-origin-field'), 'East Hub');
       await tester.pump(pastSearchDebounce);
       await tester.pump();
-      await tester.tap(find.text('OUR TAMPINES HUB'));
+      await tester.tap(find.text('EAST HUB (fake)'));
       await tester.pump();
       location.fix(bishan); // late: only offered
       await tester.pump();
@@ -400,10 +400,10 @@ void main() {
         ),
       );
       await tester.pump(const Duration(seconds: 10));
-      await tester.enterText(key('manual-origin-field'), 'Tampines Hub');
+      await tester.enterText(key('manual-origin-field'), 'East Hub');
       await tester.pump(pastSearchDebounce);
       await tester.pump();
-      await tester.tap(find.text('OUR TAMPINES HUB'));
+      await tester.tap(find.text('EAST HUB (fake)'));
       await tester.pump();
       location.fix(bishan); // late: only offered
       await tester.pump();

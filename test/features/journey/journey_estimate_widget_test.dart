@@ -100,16 +100,21 @@ void main() {
     await tester.pump();
   }
 
-  Future<void> toVivoCity(WidgetTester tester, [Widget? widget]) async {
+  Future<void> toBayMall(WidgetTester tester, [Widget? widget]) async {
     await pumpApp(tester, widget ?? app());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     await tester.pump();
   }
 
   testWidgets('every direct-bus option shows its trip line, collapsed '
       'alternatives too', (tester) async {
-    await toVivoCity(tester);
+    await toBayMall(tester);
     for (final (option, board, service) in [
       ('journey-suggested', 'BSH2', 'F20'),
       ('journey-alternative-1', 'BSH1', 'F10'),
@@ -129,7 +134,7 @@ void main() {
   testWidgets('the bus step adds the estimated ride; the alternatives differ', (
     tester,
   ) async {
-    await toVivoCity(tester);
+    await toBayMall(tester);
     Finder ride(String board, String service, String text) =>
         inKey(rideKey(board, service), find.text(text));
     // The stop count stays its own text, exactly as before E2.
@@ -149,23 +154,23 @@ void main() {
   testWidgets('options with different estimates show different totals', (
     tester,
   ) async {
-    // G1: BSH2 → VIV1, 1 stop (2 + 29 + 1 → 35). G2: BSH1 → TPH1 → VIV1,
-    // 2 stops via Tampines (1 + 77 + 1 → 80). G1 is still Suggested (4.5 vs 5).
+    // G1: BSH2 → BAY1, 1 stop (2 + 29 + 1 → 35). G2: BSH1 → EST1 → BAY1,
+    // 2 stops via East Hub (1 + 77 + 1 → 80). G1 is still Suggested (4.5 vs 5).
     final spread = FakeBusNetworkRepository(
       network: networkWith([
         svc('G1', [
-          ['BSH2', 'VIV1'],
+          ['BSH2', 'BAY1'],
         ]),
         svc('G2', [
-          ['BSH1', 'TPH1', 'VIV1'],
+          ['BSH1', 'EST1', 'BAY1'],
         ]),
       ]),
     );
-    await toVivoCity(tester, app(network: spread));
+    await toBayMall(tester, app(network: spread));
     expect(
       inKey(
         const Key('journey-suggested'),
-        find.text('Take Bus G1 toward VivoCity (fake)'),
+        find.text('Take Bus G1 toward Bay Mall (fake)'),
       ),
       findsOneWidget,
     );
@@ -186,11 +191,11 @@ void main() {
 
   group('below the live arrivals, whatever their state', () {
     testWidgets('title, then arrivals, then the trip line', (tester) async {
-      await toVivoCity(tester);
+      await toBayMall(tester);
       double top(Finder f) => tester.getTopLeft(f).dy;
       final title = inKey(
         const Key('journey-suggested'),
-        find.text('Take Bus F20 toward VivoCity (fake)'),
+        find.text('Take Bus F20 toward Bay Mall (fake)'),
       );
       final live = find.byKey(const Key('arrivals-BSH2-F20'));
       final trip = find.byKey(tripKey('BSH2', 'F20'));
@@ -201,7 +206,7 @@ void main() {
 
     testWidgets('while arrivals are still loading', (tester) async {
       arrivals.hold('BSH2');
-      await toVivoCity(tester);
+      await toBayMall(tester);
       expect(find.byKey(tripKey('BSH2', 'F20')), findsOneWidget);
       arrivals.release('BSH2');
       await tester.pump();
@@ -211,7 +216,7 @@ void main() {
 
     testWidgets('when arrivals fail (Retry shown)', (tester) async {
       arrivals.failure = const NetworkUnavailable();
-      await toVivoCity(tester);
+      await toBayMall(tester);
       expect(
         inKey(const Key('journey-suggested'), find.text('Retry')),
         findsOneWidget,
@@ -230,7 +235,7 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    await toVivoCity(tester);
+    await toBayMall(tester);
     expect(
       tester.getSemantics(find.byKey(tripKey('BSH2', 'F20'))),
       isSemantics(
@@ -286,7 +291,7 @@ void main() {
     testWidgets('with a direct bus: the walking note, then the E2 note', (
       tester,
     ) async {
-      await toVivoCity(tester);
+      await toBayMall(tester);
       expect(JourneyCard.tripEstimateNote, note);
       expect(find.text(note), findsOneWidget);
       expect(find.text(JourneyCard.estimateNote), findsOneWidget);
@@ -299,15 +304,15 @@ void main() {
     testWidgets('walk-only: no trip line, no E2 note, no bus data', (
       tester,
     ) async {
-      places.results['bishan park'] = [
-        fakePlace('BISHAN PARK EDGE', lat: 1.3520, lng: 103.8500),
+      places.results['park edge'] = [
+        fakePlace('PARK EDGE (fake)', lat: 1.3520, lng: 103.8500),
       ];
       await pumpApp(tester, app());
       await searchAndPick(
         tester,
         destinationField,
-        'Bishan Park',
-        'BISHAN PARK EDGE',
+        'Park Edge',
+        'PARK EDGE (fake)',
       );
       expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
       expect(find.textContaining('excl. waiting'), findsNothing);
@@ -318,24 +323,24 @@ void main() {
 
     testWidgets('no direct bus: no trip line, no E2 note', (tester) async {
       await pumpApp(tester, app(access: LocationAccess.denied));
+      await searchAndPick(tester, originField, 'East Hub', 'EAST HUB (fake)');
       await searchAndPick(
         tester,
-        originField,
-        'Tampines Hub',
-        'OUR TAMPINES HUB',
+        destinationField,
+        '990802',
+        'CITY TOWER (fake)',
       );
-      await searchAndPick(tester, destinationField, '238801', 'ION ORCHARD');
       expect(find.byKey(const Key('journey-no-direct')), findsOneWidget);
       expect(find.textContaining('excl. waiting'), findsNothing);
       expect(find.text(note), findsNothing);
     });
 
     testWidgets('no stop nearby: no trip line, no E2 note', (tester) async {
-      places.results['pulau ubin'] = [
+      places.results['island jetty'] = [
         fakePlace(
-          'PULAU UBIN JETTY',
-          lat: 1.4040,
-          lng: 103.9600,
+          'ISLAND JETTY (fake)',
+          lat: 1.4000,
+          lng: 103.9700,
           type: PlaceType.poi,
         ),
       ];
@@ -343,8 +348,8 @@ void main() {
       await searchAndPick(
         tester,
         destinationField,
-        'Pulau Ubin',
-        'PULAU UBIN JETTY',
+        'Island Jetty',
+        'ISLAND JETTY (fake)',
       );
       expect(find.byKey(const Key('journey-no-stops')), findsOneWidget);
       expect(find.textContaining('excl. waiting'), findsNothing);
@@ -359,15 +364,15 @@ void main() {
       network: networkWith([
         ...fakeBusNetwork().services.values.where((s) => s.number != 'F30'),
         svc('F30', [
-          ['BSH1', 'GHOST', 'ION1', 'MID2', 'VIV1'],
+          ['BSH1', 'GHOST', 'CTY1', 'MID2', 'BAY1'],
         ]),
       ]),
     );
-    await toVivoCity(tester, app(network: ghost));
+    await toBayMall(tester, app(network: ghost));
     expect(
       inKey(
         const Key('journey-suggested'),
-        find.text('Take Bus F20 toward VivoCity (fake)'),
+        find.text('Take Bus F20 toward Bay Mall (fake)'),
       ),
       findsOneWidget,
     );
@@ -400,7 +405,12 @@ void main() {
         addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
         await tester.pumpWidget(app());
         await tester.pump();
-        await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+        await searchAndPick(
+          tester,
+          destinationField,
+          'Bay Mall',
+          'BAY MALL (fake)',
+        );
         await tester.pump();
         await showSteps(tester, 'journey-alternative-1');
         expect(tester.takeException(), isNull);
@@ -428,7 +438,7 @@ void main() {
       ) async {
         tester.platformDispatcher.platformBrightnessTestValue = brightness;
         addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-        await toVivoCity(tester, app(palette: palette));
+        await toBayMall(tester, app(palette: palette));
         final text = inKey(tripKey('BSH2', 'F20'), find.byType(Text));
         final scheme = Theme.of(tester.element(text)).colorScheme;
         expect(scheme.brightness, brightness);

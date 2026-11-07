@@ -62,17 +62,17 @@ void main() {
     motionDuration: motion,
   );
 
-  /// Types VivoCity and picks it. The route card resizes when the results
+  /// Types Bay Mall and picks it. The route card resizes when the results
   /// appear, so [settle] lets that finish before the tap.
-  Future<void> pickVivoCity(
+  Future<void> pickBayMall(
     WidgetTester tester, {
     Duration settle = Duration.zero,
   }) async {
-    await tester.enterText(find.byKey(destinationField), 'VivoCity');
+    await tester.enterText(find.byKey(destinationField), 'Bay Mall');
     await tester.pump(pastSearchDebounce);
     await tester.pump();
     await tester.pump(settle);
-    await tester.tap(find.text('VIVOCITY'));
+    await tester.tap(find.text('BAY MALL (fake)'));
     await tester.pump();
   }
 
@@ -124,7 +124,7 @@ void main() {
         'usable', (tester) async {
       holdJourneyData();
       await pumpTall(tester, app(motion: AppMotion.resize));
-      await pickVivoCity(tester, settle: AppMotion.resize);
+      await pickBayMall(tester, settle: AppMotion.resize);
 
       await tester.pump(AppMotion.resize ~/ 2);
       expect(shown(tester), greaterThan(0));
@@ -160,7 +160,7 @@ void main() {
       );
       holdJourneyData();
       await pumpTall(tester, app(motion: AppMotion.resize));
-      await pickVivoCity(tester);
+      await pickBayMall(tester);
 
       expect(shown(tester), greaterThan(0));
       expect(shown(tester), full(tester));
@@ -173,7 +173,7 @@ void main() {
     testWidgets('"Hide steps" right after "Show steps" reverses from the '
         'current height, with no jump', (tester) async {
       await pumpTall(tester, app(motion: AppMotion.resize));
-      await pickVivoCity(tester, settle: AppMotion.resize);
+      await pickBayMall(tester, settle: AppMotion.resize);
       // Let the data land and the card settle: one pump is one frame, and a
       // change on the frame after another one jumps instead of animating.
       for (var i = 0; i < 4; i++) {
@@ -211,7 +211,7 @@ void main() {
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         await tester.pumpWidget(app());
         await tester.pump();
-        await pickVivoCity(tester);
+        await pickBayMall(tester);
         await tester.pump();
 
         Future<void> tapVisible(Finder finder) async {

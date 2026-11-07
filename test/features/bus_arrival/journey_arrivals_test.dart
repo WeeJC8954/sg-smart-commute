@@ -20,18 +20,18 @@ import '../../../integration_test/fakes/fake_place_search_repository.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 
-/// Bishan → VivoCity: F20 @ BSH2, F10 @ BSH1, F30 @ BSH1.
-final toVivo = planDirectBus(
+/// Bishan → Bay Mall: F20 @ BSH2, F10 @ BSH1, F30 @ BSH1.
+final toBayMall = planDirectBus(
   fakeBusNetwork(),
   bishan,
-  vivoCity.position,
+  fakeBayMall.position,
 ) as DirectBusOptions;
 
-/// Bishan → ION Orchard: F30 @ BSH1 only.
+/// Bishan → City Tower: F30 @ BSH1 only.
 final toIon = planDirectBus(
   fakeBusNetwork(),
   bishan,
-  ionOrchard.position,
+  fakeCityTower.position,
 ) as DirectBusOptions;
 
 class _PlanHolder extends Notifier<JourneyPlan?> {
@@ -88,9 +88,9 @@ void main() {
   test(
     'one request per distinct boarding stop: F10 and F30 share BSH1',
     () async {
-      c.read(_planHolder.notifier).set(toVivo);
+      c.read(_planHolder.notifier).set(toBayMall);
       final result = (await settle())!;
-      expect(identical(result.plan, toVivo), isTrue);
+      expect(identical(result.plan, toBayMall), isTrue);
       expect(arrivals.calls, {'BSH2': 1, 'BSH1': 1});
       final bsh1 = result.byStop['BSH1']! as StopArrivalsLoaded;
       expect(nextArrivals(bsh1.arrivals, 'F10', now: now), hasLength(2));
@@ -101,7 +101,7 @@ void main() {
 
   test("journey A's late answer cannot populate journey B", () async {
     arrivals.hold('BSH2');
-    c.read(_planHolder.notifier).set(toVivo); // A: BSH2 + BSH1
+    c.read(_planHolder.notifier).set(toBayMall); // A: BSH2 + BSH1
     await settle();
     expect(c.read(journeyArrivalsProvider).value, isNull); // A still pending
 
@@ -117,12 +117,12 @@ void main() {
 
   test('changing the journey replaces the arrivals: the previous plan\'s '
       'are never reported for the new one', () async {
-    c.read(_planHolder.notifier).set(toVivo);
+    c.read(_planHolder.notifier).set(toBayMall);
     final a = (await settle())!;
     c.read(_planHolder.notifier).set(toIon);
     // While B loads, any value still visible belongs to A, and says so.
     final during = c.read(journeyArrivalsProvider).value;
-    expect(during == null || identical(during.plan, toVivo), isTrue);
+    expect(during == null || identical(during.plan, toBayMall), isTrue);
     final b = (await settle())!;
     expect(identical(b.plan, toIon), isTrue);
     expect(identical(a.plan, b.plan), isFalse);
@@ -132,7 +132,7 @@ void main() {
     'a failed stop is kept per stop and leaves the static plan intact',
     () async {
       arrivals.failures['BSH2'] = const NetworkUnavailable();
-      c.read(_planHolder.notifier).set(toVivo);
+      c.read(_planHolder.notifier).set(toBayMall);
       final result = (await settle())!;
       expect(result.byStop['BSH2'], isA<StopArrivalsFailed>());
       expect(
@@ -140,14 +140,14 @@ void main() {
         isA<NetworkUnavailable>(),
       );
       expect(result.byStop['BSH1'], isA<StopArrivalsLoaded>());
-      expect(c.read(journeyPlanProvider).value, same(toVivo));
+      expect(c.read(journeyPlanProvider).value, same(toBayMall));
     },
   );
 
   test('Retry recovers after a failure, without re-requesting a stop still '
       'inside its cache TTL or recomputing the plan', () async {
     arrivals.failures['BSH2'] = const BusArrivalUnavailable();
-    c.read(_planHolder.notifier).set(toVivo);
+    c.read(_planHolder.notifier).set(toBayMall);
     await settle();
     final builds = planBuilds;
 
@@ -161,7 +161,7 @@ void main() {
 
   test('refresh within the TTL makes no request but re-counts ETAs from the '
       'new check time; after the TTL it fetches again', () async {
-    c.read(_planHolder.notifier).set(toVivo);
+    c.read(_planHolder.notifier).set(toBayMall);
     final first = (await settle())!;
     final builds = planBuilds;
 
@@ -182,7 +182,7 @@ void main() {
   test('concurrent refreshes share in-flight requests', () async {
     arrivals.hold('BSH2');
     arrivals.hold('BSH1');
-    c.read(_planHolder.notifier).set(toVivo);
+    c.read(_planHolder.notifier).set(toBayMall);
     await settle();
     c.invalidate(journeyArrivalsProvider);
     await settle();
@@ -192,24 +192,24 @@ void main() {
       ..release('BSH2')
       ..release('BSH1');
     final result = (await settle())!;
-    expect(identical(result.plan, toVivo), isTrue);
+    expect(identical(result.plan, toBayMall), isTrue);
     expect(arrivals.calls, {'BSH2': 1, 'BSH1': 1});
   });
 
   test('arrivalsFor: only the arrivals fetched for that exact plan', () async {
-    c.read(_planHolder.notifier).set(toVivo);
+    c.read(_planHolder.notifier).set(toBayMall);
     await settle();
     final async = c.read(journeyArrivalsProvider);
-    expect(identical(async.arrivalsFor(toVivo)?.plan, toVivo), isTrue);
+    expect(identical(async.arrivalsFor(toBayMall)?.plan, toBayMall), isTrue);
     expect(async.arrivalsFor(toIon), isNull);
     expect(
-      const AsyncValue<JourneyArrivals?>.loading().arrivalsFor(toVivo),
+      const AsyncValue<JourneyArrivals?>.loading().arrivalsFor(toBayMall),
       isNull,
     );
   });
 
   test('boardsAtLoopTerminal: only a loop boarded at its first stop', () {
-    final f20 = toVivo.options.first;
+    final f20 = toBayMall.options.first;
     expect(f20.isLoop, isFalse);
     expect(boardsAtLoopTerminal(f20), isFalse);
   });

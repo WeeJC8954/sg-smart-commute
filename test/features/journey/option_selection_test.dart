@@ -12,25 +12,26 @@ import '../../../integration_test/fakes/fake_place_search_repository.dart';
 
 const bishan = LatLng(1.3508, 103.8485);
 
-/// Bishan → VivoCity on the fake network: F20 (suggested), F10, F30.
-DirectBusOptions vivoPlan() =>
-    planDirectBus(fakeBusNetwork(), bishan, vivoCity.position)
+/// Bishan → Bay Mall on the fake network: F20 (suggested), F10, F30.
+DirectBusOptions bayMallPlan() =>
+    planDirectBus(fakeBusNetwork(), bishan, fakeBayMall.position)
         as DirectBusOptions;
 
 void main() {
   test("no selection → the planner's first option", () {
-    expect(selectedOptionIndex(null, vivoPlan()), 0);
+    expect(selectedOptionIndex(null, bayMallPlan()), 0);
   });
 
   test('a selection applies only to the exact plan object it was made for', () {
-    final a = vivoPlan(), b = vivoPlan(); // equal content, different objects
+    final a = bayMallPlan(),
+        b = bayMallPlan(); // equal content, different objects
     final selection = OptionSelection(a, 2);
     expect(selectedOptionIndex(selection, a), 2);
     expect(selectedOptionIndex(selection, b), 0);
   });
 
   test('an out-of-range index → 0', () {
-    final a = vivoPlan();
+    final a = bayMallPlan();
     expect(selectedOptionIndex(OptionSelection(a, 3), a), 0);
     expect(selectedOptionIndex(OptionSelection(a, -1), a), 0);
   });
@@ -38,7 +39,7 @@ void main() {
   test('select() stores the choice; an out-of-range select is ignored', () {
     final c = ProviderContainer();
     addTearDown(c.dispose);
-    final a = vivoPlan();
+    final a = bayMallPlan();
     c.read(optionSelectionProvider.notifier).select(a, 1);
     expect(selectedOptionIndex(c.read(optionSelectionProvider), a), 1);
     c.read(optionSelectionProvider.notifier).select(a, 5);
@@ -48,7 +49,7 @@ void main() {
   test('selecting never creates or reads the plan provider', () {
     final c = ProviderContainer();
     addTearDown(c.dispose);
-    c.read(optionSelectionProvider.notifier).select(vivoPlan(), 1);
+    c.read(optionSelectionProvider.notifier).select(bayMallPlan(), 1);
     expect(c.exists(journeyPlanProvider), isFalse);
   });
 }

@@ -79,59 +79,59 @@ void main() {
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
     expect(find.text(PlaceSearchField.hint), findsOneWidget);
 
-    await type(tester, originField, '098585');
+    await type(tester, originField, '009902');
     expect(find.text('1 match. Tap it to confirm.'), findsOneWidget);
     expect(
-      find.text('1 HARBOURFRONT WALK VIVOCITY SINGAPORE 098585'),
+      find.text('1 FAKE WALK BAY MALL (fake) SINGAPORE 009902'),
       findsOneWidget,
     );
     expect(find.text(oneMapAttribution), findsOneWidget);
     // A single exact match is still not selected until tapped.
     expect(originOf(tester).origin, isNull);
 
-    await pick(tester, 'VIVOCITY');
-    expect(find.text('From: VIVOCITY'), findsOneWidget);
+    await pick(tester, 'BAY MALL (fake)');
+    expect(find.text('From: BAY MALL (fake)'), findsOneWidget);
     final origin = originOf(tester).origin!;
     expect(origin.provenance, OriginProvenance.manual);
-    expect(origin.position, vivoCity.position);
-    expect(origin.detail, vivoCity.address);
+    expect(origin.position, fakeBayMall.position);
+    expect(origin.detail, fakeBayMall.address);
   });
 
   testWidgets('ambiguous results are all listed and never auto-selected', (
     tester,
   ) async {
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'Bishan MRT');
+    await type(tester, originField, 'North MRT');
     expect(find.text('2 matches. Choose the right one.'), findsOneWidget);
-    expect(find.text('BISHAN MRT STATION (CC15)'), findsOneWidget);
-    expect(find.text('BISHAN MRT STATION (NS17)'), findsOneWidget);
+    expect(find.text('NORTH MRT STATION (FN1) (fake)'), findsOneWidget);
+    expect(find.text('NORTH MRT STATION (FN2) (fake)'), findsOneWidget);
     // Address + postcode tell them apart.
-    expect(find.textContaining('579842'), findsOneWidget);
-    expect(find.textContaining('579827'), findsOneWidget);
+    expect(find.textContaining('990811'), findsOneWidget);
+    expect(find.textContaining('990812'), findsOneWidget);
     expect(originOf(tester).origin, isNull);
 
-    await pick(tester, 'BISHAN MRT STATION (NS17)');
-    expect(originOf(tester).origin!.position, bishanMrtNs.position);
+    await pick(tester, 'NORTH MRT STATION (FN2) (fake)');
+    expect(originOf(tester).origin!.position, fakeNorthMrtB.position);
   });
 
   testWidgets('an address identical to the name is not repeated', (
     tester,
   ) async {
-    const hdb = '123 ANG MO KIO AVENUE 6 SINGAPORE 560123';
-    places.results['123 ang mo kio ave 6'] = [
+    const hdb = '904 FAKE ROAD 4 SINGAPORE 990904 (fake)';
+    places.results['904 fake road 4'] = [
       fakePlace(
         hdb,
-        lat: 1.3705,
-        lng: 103.8443,
+        lat: 1.3700,
+        lng: 103.8400,
         address: hdb,
-        postal: '560123',
+        postal: '990904',
         type: PlaceType.address,
       ),
     ];
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'Blk 123 Ang Mo Kio Ave 6');
+    await type(tester, originField, 'Blk 904 Fake Road 4');
     expect(find.text(hdb), findsOneWidget); // title only
-    expect(find.text('560123'), findsOneWidget); // subtitle: the postcode
+    expect(find.text('990904'), findsOneWidget); // subtitle: the postcode
 
     // Neither card repeats it under the name either.
     await pick(tester, hdb);
@@ -139,7 +139,7 @@ void main() {
     expect(find.text(hdb), findsNothing);
     expect(originOf(tester).origin!.detail, isNull);
 
-    await type(tester, destinationField, 'Blk 123 Ang Mo Kio Ave 6');
+    await type(tester, destinationField, 'Blk 904 Fake Road 4');
     await pick(tester, hdb);
     expect(find.text('To: $hdb'), findsOneWidget);
     expect(find.text(hdb), findsNothing);
@@ -149,12 +149,12 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'VivoCity');
-    await pick(tester, 'VIVOCITY');
-    await type(tester, destinationField, 'ION Orchard');
-    await pick(tester, 'ION ORCHARD');
-    expect(find.text(vivoCity.address!), findsOneWidget);
-    expect(find.text(ionOrchard.address!), findsOneWidget);
+    await type(tester, originField, 'Bay Mall');
+    await pick(tester, 'BAY MALL (fake)');
+    await type(tester, destinationField, 'City Tower');
+    await pick(tester, 'CITY TOWER (fake)');
+    expect(find.text(fakeBayMall.address!), findsOneWidget);
+    expect(find.text(fakeCityTower.address!), findsOneWidget);
   });
 
   testWidgets('origin and destination share one route card', (tester) async {
@@ -206,9 +206,9 @@ void main() {
 
   testWidgets('OneMap token enforcement (401/403) shows a clear state, '
       'never a workaround', (tester) async {
-    places.failures['vivocity'] = const ApiUnauthorized();
+    places.failures['bay mall'] = const ApiUnauthorized();
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'VivoCity');
+    await type(tester, originField, 'Bay Mall');
     expect(
       find.text(placeSearchFailureMessage(const ApiUnauthorized())),
       findsOneWidget,
@@ -217,12 +217,12 @@ void main() {
   });
 
   testWidgets('network failure → Retry recovers', (tester) async {
-    places.failures['vivocity'] = const NetworkUnavailable();
+    places.failures['bay mall'] = const NetworkUnavailable();
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'VivoCity');
+    await type(tester, originField, 'Bay Mall');
     expect(find.text(const NetworkUnavailable().message), findsOneWidget);
 
-    places.failures.remove('vivocity');
+    places.failures.remove('bay mall');
     await tester.tap(
       find.descendant(
         of: find.byType(PlaceSearchField),
@@ -230,8 +230,8 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('VIVOCITY'), findsOneWidget);
-    expect(places.queries, ['vivocity', 'vivocity']);
+    expect(find.text('BAY MALL (fake)'), findsOneWidget);
+    expect(places.queries, ['bay mall', 'bay mall']);
   });
 
   testWidgets('destination prompt appears once an origin exists', (
@@ -240,8 +240,8 @@ void main() {
     await pumpApp(tester, deniedApp());
     expect(find.text(DestinationCard.prompt), findsNothing);
 
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
     expect(find.text(DestinationCard.prompt), findsOneWidget);
   });
 
@@ -253,11 +253,11 @@ void main() {
       expect(find.text(DestinationCard.prompt), findsOneWidget);
       final before = originOf(tester).origin!;
 
-      await type(tester, destinationField, 'ION Orchard');
-      await pick(tester, 'ION ORCHARD');
+      await type(tester, destinationField, 'City Tower');
+      await pick(tester, 'CITY TOWER (fake)');
 
-      expect(find.text('To: ION ORCHARD'), findsOneWidget);
-      expect(destinationOf(tester).place!.position, ionOrchard.position);
+      expect(find.text('To: CITY TOWER (fake)'), findsOneWidget);
+      expect(destinationOf(tester).place!.position, fakeCityTower.position);
       final after = originOf(tester).origin!;
       expect(after.provenance, OriginProvenance.gps);
       expect(after.position, before.position);
@@ -270,28 +270,28 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
-    await type(tester, destinationField, 'VivoCity');
-    await pick(tester, 'VIVOCITY');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
+    await type(tester, destinationField, 'Bay Mall');
+    await pick(tester, 'BAY MALL (fake)');
 
     await tester.tap(find.byKey(const Key('change-origin')));
     await tester.pump();
     // The current origin stays in effect while choosing a new one.
-    expect(originOf(tester).origin!.label, 'OUR TAMPINES HUB');
-    await type(tester, originField, 'ION Orchard');
-    await pick(tester, 'ION ORCHARD');
+    expect(originOf(tester).origin!.label, 'EAST HUB (fake)');
+    await type(tester, originField, 'City Tower');
+    await pick(tester, 'CITY TOWER (fake)');
 
-    expect(find.text('From: ION ORCHARD'), findsOneWidget);
-    expect(originOf(tester).origin!.position, ionOrchard.position);
-    expect(find.text('To: VIVOCITY'), findsOneWidget);
-    expect(destinationOf(tester).place, vivoCity);
+    expect(find.text('From: CITY TOWER (fake)'), findsOneWidget);
+    expect(originOf(tester).origin!.position, fakeCityTower.position);
+    expect(find.text('To: BAY MALL (fake)'), findsOneWidget);
+    expect(destinationOf(tester).place, fakeBayMall);
   });
 
   testWidgets('"Keep this origin" cancels a change', (tester) async {
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
     final origin = originOf(tester).origin!;
 
     await tester.tap(find.byKey(const Key('change-origin')));
@@ -301,7 +301,7 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(originField), findsNothing);
-    expect(find.text('From: OUR TAMPINES HUB'), findsOneWidget);
+    expect(find.text('From: EAST HUB (fake)'), findsOneWidget);
     expect(originOf(tester).origin, same(origin));
     expect(originOf(tester).phase, OriginPhase.ready);
   });
@@ -317,8 +317,8 @@ void main() {
         places: places,
       ),
     );
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
 
     // Location stays denied: the failure is reported, the origin kept.
     location.reset();
@@ -334,7 +334,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(originOf(tester).origin!.label, 'OUR TAMPINES HUB');
+    expect(originOf(tester).origin!.label, 'EAST HUB (fake)');
 
     // Re-enabled: the fix is offered, and only the chip applies it.
     location.reset();
@@ -345,7 +345,7 @@ void main() {
       ..fix(bishan);
     await tester.pump();
     expect(find.byKey(const Key('background-location-failure')), findsNothing);
-    expect(originOf(tester).origin!.label, 'OUR TAMPINES HUB');
+    expect(originOf(tester).origin!.label, 'EAST HUB (fake)');
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
     expect(find.text('From: Current location'), findsOneWidget);
@@ -369,8 +369,8 @@ void main() {
       find.text(const LocationPermissionUnanswered().message),
       findsOneWidget,
     );
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
     expect(find.text(DestinationCard.prompt), findsOneWidget);
   });
 
@@ -378,19 +378,22 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, 'Tampines Hub');
-    await pick(tester, 'OUR TAMPINES HUB');
+    await type(tester, originField, 'East Hub');
+    await pick(tester, 'EAST HUB (fake)');
     final origin = originOf(tester).origin!;
 
-    await type(tester, destinationField, 'VivoCity');
-    await pick(tester, 'VIVOCITY');
+    await type(tester, destinationField, 'Bay Mall');
+    await pick(tester, 'BAY MALL (fake)');
     await tester.tap(find.byKey(const Key('change-destination')));
     await tester.pump();
-    expect(find.text('To: VIVOCITY'), findsOneWidget); // kept while editing
-    await type(tester, destinationField, 'ION Orchard');
-    await pick(tester, 'ION ORCHARD');
+    expect(
+      find.text('To: BAY MALL (fake)'),
+      findsOneWidget,
+    ); // kept while editing
+    await type(tester, destinationField, 'City Tower');
+    await pick(tester, 'CITY TOWER (fake)');
 
-    expect(find.text('To: ION ORCHARD'), findsOneWidget);
+    expect(find.text('To: CITY TOWER (fake)'), findsOneWidget);
     expect(originOf(tester).origin, same(origin));
   });
 
@@ -408,38 +411,38 @@ void main() {
     await tester.pump(const Duration(seconds: 10)); // timeout → manual
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
 
-    await type(tester, originField, 'Tampines Hub');
+    await type(tester, originField, 'East Hub');
     location.fix(bishan); // late, while typing: offered, not applied
     await tester.pump();
     expect(originOf(tester).origin, isNull);
     expect(find.byKey(const Key('use-current-location')), findsOneWidget);
 
-    await pick(tester, 'OUR TAMPINES HUB');
-    await type(tester, destinationField, 'VivoCity');
-    await pick(tester, 'VIVOCITY');
+    await pick(tester, 'EAST HUB (fake)');
+    await type(tester, destinationField, 'Bay Mall');
+    await pick(tester, 'BAY MALL (fake)');
     await tester.pump(const Duration(seconds: 30));
-    expect(find.text('From: OUR TAMPINES HUB'), findsOneWidget);
+    expect(find.text('From: EAST HUB (fake)'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
     expect(find.text('From: Current location'), findsOneWidget);
-    expect(destinationOf(tester).place, vivoCity);
+    expect(destinationOf(tester).place, fakeBayMall);
   });
 
   testWidgets('search race in the UI: a slow older answer is not shown', (
     tester,
   ) async {
-    places.results['viv'] = [ionOrchard];
+    places.results['viv'] = [fakeCityTower];
     places.hold('viv');
     await pumpApp(tester, deniedApp());
     await type(tester, originField, 'viv'); // in flight, held
-    await type(tester, originField, 'VivoCity');
-    expect(find.text('VIVOCITY'), findsOneWidget);
+    await type(tester, originField, 'Bay Mall');
+    expect(find.text('BAY MALL (fake)'), findsOneWidget);
 
     places.release('viv');
     await tester.pump();
-    expect(find.text('VIVOCITY'), findsOneWidget);
-    expect(find.text('ION ORCHARD'), findsNothing);
+    expect(find.text('BAY MALL (fake)'), findsOneWidget);
+    expect(find.text('CITY TOWER (fake)'), findsNothing);
   });
   testWidgets('the clear button empties the field and its results and '
       'selects nothing', (tester) async {
@@ -450,7 +453,7 @@ void main() {
     );
     expect(clear, findsNothing); // empty field: no button
 
-    await type(tester, originField, '098585');
+    await type(tester, originField, '009902');
     expect(find.text('1 match. Tap it to confirm.'), findsOneWidget);
     expect(clear, findsOneWidget);
 
@@ -477,10 +480,10 @@ void main() {
     );
 
     await pumpApp(tester, deniedApp());
-    await type(tester, originField, '098585');
+    await type(tester, originField, '009902');
     expect(haptics, isEmpty);
 
-    await pick(tester, 'VIVOCITY');
+    await pick(tester, 'BAY MALL (fake)');
     expect(haptics, ['HapticFeedbackType.selectionClick']);
   });
 
@@ -518,32 +521,32 @@ void main() {
     testWidgets('Web: searches at once and once, and keeps focus in the '
         'field', (tester) async {
       await pumpApp(tester, app(keepsFocus: true));
-      await submit(tester, 'VivoCity');
-      expect(find.text('VIVOCITY'), findsOneWidget);
-      expect(places.queries, ['vivocity']);
+      await submit(tester, 'Bay Mall');
+      expect(find.text('BAY MALL (fake)'), findsOneWidget);
+      expect(places.queries, ['bay mall']);
       expect(fieldFocused(tester), isTrue);
 
       // The pending type-ahead search was replaced, not sent as well.
       await tester.pump(pastSearchDebounce);
-      expect(places.queries, ['vivocity']);
+      expect(places.queries, ['bay mall']);
       // A result is still chosen with a tap.
-      await pick(tester, 'VIVOCITY');
-      expect(find.text('From: VIVOCITY'), findsOneWidget);
+      await pick(tester, 'BAY MALL (fake)');
+      expect(find.text('From: BAY MALL (fake)'), findsOneWidget);
     });
 
     testWidgets('Android: searches at once and once, and drops focus, so the '
         'keyboard closes', (tester) async {
       await pumpApp(tester, app(keepsFocus: false));
-      await submit(tester, 'VivoCity');
-      expect(find.text('VIVOCITY'), findsOneWidget);
-      expect(places.queries, ['vivocity']);
+      await submit(tester, 'Bay Mall');
+      expect(find.text('BAY MALL (fake)'), findsOneWidget);
+      expect(places.queries, ['bay mall']);
       expect(fieldFocused(tester), isFalse);
       expect(tester.testTextInput.isVisible, isFalse);
 
       await tester.pump(pastSearchDebounce);
-      expect(places.queries, ['vivocity']);
-      await pick(tester, 'VIVOCITY');
-      expect(find.text('From: VIVOCITY'), findsOneWidget);
+      expect(places.queries, ['bay mall']);
+      await pick(tester, 'BAY MALL (fake)');
+      expect(find.text('From: BAY MALL (fake)'), findsOneWidget);
     });
   });
 }

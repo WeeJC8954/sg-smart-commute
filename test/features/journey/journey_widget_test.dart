@@ -120,7 +120,12 @@ void main() {
 
   testWidgets('the journey card unfolds inside one MotionSize', (tester) async {
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     expect(
       find.ancestor(
@@ -136,7 +141,12 @@ void main() {
   ) async {
     bus.hold();
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     expect(inCard('Finding a direct bus…'), findsOneWidget);
     expect(bus.loads, 1);
 
@@ -155,13 +165,13 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(inKey(s, 'Take Bus F20 toward VivoCity (fake)'), findsOneWidget);
+    expect(inKey(s, 'Take Bus F20 toward Bay Mall (fake)'), findsOneWidget);
     expect(inKey(s, '2 stops'), findsOneWidget);
-    expect(inKey(s, 'Alight at VIV1 — VivoCity (fake)'), findsOneWidget);
+    expect(inKey(s, 'Alight at BAY1 — Bay Mall (fake)'), findsOneWidget);
     expect(
       inKey(
         s,
-        '${walk(stops['VIV1']!.position, vivoCity.position)} to destination',
+        '${walk(stops['BAY1']!.position, fakeBayMall.position)} to destination',
       ),
       findsOneWidget,
     );
@@ -172,14 +182,14 @@ void main() {
         'journey-alternative-1',
         'Take Bus F10 toward Opp Bishan Stn (fake)',
       ),
-      findsNothing, // direction 0 of F10 ends at VIV1
+      findsNothing, // direction 0 of F10 ends at BAY1
     );
     expect(
-      inKey('journey-alternative-1', 'Take Bus F10 toward VivoCity (fake)'),
+      inKey('journey-alternative-1', 'Take Bus F10 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(
-      inKey('journey-alternative-2', 'Take Bus F30 toward VivoCity (fake)'),
+      inKey('journey-alternative-2', 'Take Bus F30 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(find.byKey(const Key('journey-alternative-3')), findsNothing);
@@ -195,20 +205,25 @@ void main() {
     'MRT alternative: nearest station at each end, by name and walk',
     (tester) async {
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       expect(
         inKey(
           'journey-mrt',
           'Nearest MRT: BISHAN MRT STATION — '
-              '${walk(bishan, const LatLng(1.3510, 103.8483))}',
+              '${walk(bishan, const LatLng(1.3512, 103.8481))}',
         ),
         findsOneWidget,
       );
       expect(
         inKey(
           'journey-mrt',
-          'Near your destination: HARBOURFRONT MRT STATION — '
-              '${walk(vivoCity.position, const LatLng(1.2653, 103.8220))}',
+          'Near your destination: FAKE BAY MRT STATION — '
+              '${walk(fakeBayMall.position, const LatLng(1.3010, 103.7747))}',
         ),
         findsOneWidget,
       );
@@ -219,22 +234,32 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     expect(
-      inKey('journey-suggested', 'Take Bus F20 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F20 toward Bay Mall (fake)'),
       findsOneWidget,
     );
 
     await tester.tap(find.byKey(const Key('change-destination')));
     await tester.pump();
-    await searchAndPick(tester, destinationField, 'ION Orchard', 'ION ORCHARD');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'City Tower',
+      'CITY TOWER (fake)',
+    );
     expect(
-      inKey('journey-suggested', 'Take Bus F30 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F30 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(inKey('journey-suggested', '1 stop'), findsOneWidget);
     expect(
-      inKey('journey-suggested', 'Alight at ION1 — Orchard Stn (fake)'),
+      inKey('journey-suggested', 'Alight at CTY1 — City Tower Stn (fake)'),
       findsOneWidget,
     );
     expect(bus.loads, 1, reason: 'static data stays cached for the session');
@@ -244,20 +269,20 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'ION Orchard', 'ION ORCHARD');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'City Tower',
+      'CITY TOWER (fake)',
+    );
     expect(
-      inKey('journey-suggested', 'Take Bus F30 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F30 toward Bay Mall (fake)'),
       findsOneWidget,
     );
 
     await tester.tap(find.byKey(const Key('change-origin')));
     await tester.pump();
-    await searchAndPick(
-      tester,
-      originField,
-      'Tampines Hub',
-      'OUR TAMPINES HUB',
-    );
+    await searchAndPick(tester, originField, 'East Hub', 'EAST HUB (fake)');
     expect(find.byKey(const Key('journey-no-direct')), findsOneWidget);
     expect(inCard('No direct bus found'), findsOneWidget);
     expect(find.byKey(const Key('journey-suggested')), findsNothing);
@@ -267,13 +292,13 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, deniedApp());
+    await searchAndPick(tester, originField, 'East Hub', 'EAST HUB (fake)');
     await searchAndPick(
       tester,
-      originField,
-      'Tampines Hub',
-      'OUR TAMPINES HUB',
+      destinationField,
+      '990802',
+      'CITY TOWER (fake)',
     );
-    await searchAndPick(tester, destinationField, '238801', 'ION ORCHARD');
     expect(inCard('No direct bus found'), findsOneWidget);
     // No displayed bus option → no arrivals requested or shown.
     expect(find.byKey(const Key('arrivals-footer')), findsNothing);
@@ -281,14 +306,14 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('journey-mrt')),
-        matching: find.textContaining('TAMPINES MRT STATION'),
+        matching: find.textContaining('FAKE EAST MRT STATION'),
       ),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: find.byKey(const Key('journey-mrt')),
-        matching: find.textContaining('ORCHARD MRT STATION'),
+        matching: find.textContaining('FAKE CITY MRT STATION'),
       ),
       findsOneWidget,
     );
@@ -298,7 +323,12 @@ void main() {
       'nothing fabricated', (tester) async {
     bus.failure = const StaticDataUnavailable(StaticDataset.busRoutes);
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     expect(inCard('Bus data is unavailable right now.'), findsOneWidget);
     expect(find.byKey(const Key('journey-suggested')), findsNothing);
     expect(find.textContaining('Take Bus'), findsNothing);
@@ -320,7 +350,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(
-      inKey('journey-suggested', 'Take Bus F20 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F20 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(bus.loads, 2);
@@ -330,7 +360,12 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, gpsApp(mrtFails: true));
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     expect(
       inKey('journey-mrt', 'MRT station data is unavailable.'),
       findsOneWidget,
@@ -341,15 +376,15 @@ void main() {
   testWidgets(
     'walk-only: a destination within 300 m, without loading bus data',
     (tester) async {
-      places.results['bishan park'] = [
-        fakePlace('BISHAN PARK EDGE', lat: 1.3520, lng: 103.8500),
+      places.results['park edge'] = [
+        fakePlace('PARK EDGE (fake)', lat: 1.3520, lng: 103.8500),
       ];
       await pumpApp(tester, gpsApp());
       await searchAndPick(
         tester,
         destinationField,
-        'Bishan Park',
-        'BISHAN PARK EDGE',
+        'Park Edge',
+        'PARK EDGE (fake)',
       );
       expect(find.byKey(const Key('journey-walk-only')), findsOneWidget);
       expect(
@@ -364,11 +399,11 @@ void main() {
   );
 
   testWidgets('no bus stop nearby → says so for the right end', (tester) async {
-    places.results['pulau ubin'] = [
+    places.results['island jetty'] = [
       fakePlace(
-        'PULAU UBIN JETTY',
-        lat: 1.4040,
-        lng: 103.9600,
+        'ISLAND JETTY (fake)',
+        lat: 1.4000,
+        lng: 103.9700,
         type: PlaceType.poi,
       ),
     ];
@@ -376,8 +411,8 @@ void main() {
     await searchAndPick(
       tester,
       destinationField,
-      'Pulau Ubin',
-      'PULAU UBIN JETTY',
+      'Island Jetty',
+      'ISLAND JETTY (fake)',
     );
     expect(
       inCard('No bus stop within 800 m of your destination.'),
@@ -386,16 +421,16 @@ void main() {
   });
 
   group('MRT "none within …" text follows the configured maximum', () {
-    void addUbin() => places.results['pulau ubin'] = [
+    void addIsland() => places.results['island jetty'] = [
       fakePlace(
-        'PULAU UBIN JETTY',
-        lat: 1.4040,
-        lng: 103.9600,
+        'ISLAND JETTY (fake)',
+        lat: 1.4000,
+        lng: 103.9700,
         type: PlaceType.poi,
       ),
     ];
 
-    // Pulau Ubin Jetty is ~5.8 km from the nearest fake exit (Tampines).
+    // Island Jetty is ~5.9 km from the nearest fake exit (Fake East).
     for (final (meters, shown) in [
       (null, '1.5 km'), // the default, JourneyConfig.mrtMaxDistanceMeters
       (2500.0, '2.5 km'),
@@ -403,13 +438,13 @@ void main() {
     ]) {
       testWidgets('maximum ${meters ?? 'default'} → "$shown"', (tester) async {
         expect(JourneyConfig.mrtMaxDistanceMeters, 1500);
-        addUbin();
+        addIsland();
         await pumpApp(tester, gpsApp(mrtMaxDistanceMeters: meters));
         await searchAndPick(
           tester,
           destinationField,
-          'Pulau Ubin',
-          'PULAU UBIN JETTY',
+          'Island Jetty',
+          'ISLAND JETTY (fake)',
         );
         expect(
           textOf(tester, 'journey-mrt-destination'),
@@ -425,7 +460,12 @@ void main() {
       // The GPS origin is ~31 m from the fake Bishan exit, so a 20 m maximum
       // must hide it as well as change the text.
       await pumpApp(tester, gpsApp(mrtMaxDistanceMeters: 20));
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       expect(
         textOf(tester, 'journey-mrt-origin'),
         'Nearest MRT: none within about 20 m',
@@ -438,14 +478,24 @@ void main() {
       'not reload it; only Retry does', (tester) async {
     bus.failure = const StaticDataUnavailable(StaticDataset.busRoutes);
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     expect(inCard('Bus data is unavailable right now.'), findsOneWidget);
     expect(bus.loads, 1);
 
     bus.failure = null;
     await tester.tap(find.byKey(const Key('change-destination')));
     await tester.pump();
-    await searchAndPick(tester, destinationField, 'ION Orchard', 'ION ORCHARD');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'City Tower',
+      'CITY TOWER (fake)',
+    );
     expect(inCard('Bus data is unavailable right now.'), findsOneWidget);
     expect(bus.loads, 1);
 
@@ -459,7 +509,7 @@ void main() {
     await tester.pump();
     expect(inCard('Bus data is unavailable right now.'), findsNothing);
     expect(
-      inKey('journey-suggested', 'Take Bus F30 toward VivoCity (fake)'),
+      inKey('journey-suggested', 'Take Bus F30 toward Bay Mall (fake)'),
       findsOneWidget,
     );
     expect(bus.loads, 2);
@@ -467,14 +517,19 @@ void main() {
   testWidgets('alternatives show their bus and live times; steps open on '
       'demand', (tester) async {
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     await tester.pump();
 
     const alt = 'journey-alternative-1';
     Finder inAlt(Finder f) =>
         find.descendant(of: find.byKey(const Key(alt)), matching: f);
-    expect(inKey(alt, 'Take Bus F10 toward VivoCity (fake)'), findsOneWidget);
+    expect(inKey(alt, 'Take Bus F10 toward Bay Mall (fake)'), findsOneWidget);
     // Live times stay in the collapsed summary (whatever their load state),
     // with the stop they belong to: an alternative may board elsewhere.
     expect(inAlt(find.byKey(const Key('arrivals-BSH1-F10'))), findsOneWidget);
@@ -486,7 +541,7 @@ void main() {
     await tester.pump();
     expect(inAlt(find.textContaining('to Bus Stop BSH1')), findsOneWidget);
     expect(
-      inAlt(find.text('Alight at VIV1 — VivoCity (fake)')),
+      inAlt(find.text('Alight at BAY1 — Bay Mall (fake)')),
       findsOneWidget,
     );
     expect(inKey(alt, 'Hide steps'), findsOneWidget);
@@ -506,7 +561,12 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     await tester.pump();
 
@@ -520,7 +580,12 @@ void main() {
   testWidgets('journey section titles are headings', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     for (final title in [
       'Suggested journey',
@@ -539,7 +604,12 @@ void main() {
   testWidgets('the MRT Retry says what it retries', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, gpsApp(mrtFails: true));
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     expect(
       find.bySemanticsLabel('Retry finding the nearest MRT'),
       findsOneWidget,
@@ -549,7 +619,12 @@ void main() {
 
   testWidgets('each option leads with a service badge', (tester) async {
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     await tester.pump();
     // The badge is the service number on its own.
@@ -560,7 +635,12 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, gpsApp());
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     await tester.pump();
     double top(Finder f) => tester.getTopLeft(f).dy;
@@ -596,7 +676,12 @@ void main() {
 
     await tester.pumpWidget(gpsApp());
     await tester.pump();
-    await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+    await searchAndPick(
+      tester,
+      destinationField,
+      'Bay Mall',
+      'BAY MALL (fake)',
+    );
     await tester.pump();
     await tester.pump();
     final show = inKey('journey-alternative-1', 'Show steps');
@@ -620,7 +705,12 @@ void main() {
     testWidgets('the suggestion is selected first; one control per other '
         'option', (tester) async {
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       expect(find.byKey(const Key('selected-option-F20')), findsOneWidget);
       expect(find.byKey(const Key('select-option-F10')), findsOneWidget);
       expect(find.byKey(const Key('select-option-F30')), findsOneWidget);
@@ -630,21 +720,26 @@ void main() {
     testWidgets('select F10, then back to F20; "Suggested" and the order '
         'never change', (tester) async {
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await select(tester, 'F10');
       expect(find.byKey(const Key('selected-option-F10')), findsOneWidget);
       expect(find.byKey(const Key('selected-option-F20')), findsNothing);
       expect(find.byKey(const Key('select-option-F20')), findsOneWidget);
       expect(
-        inKey('journey-suggested', 'Take Bus F20 toward VivoCity (fake)'),
+        inKey('journey-suggested', 'Take Bus F20 toward Bay Mall (fake)'),
         findsOneWidget,
       );
       expect(
-        inKey('journey-alternative-1', 'Take Bus F10 toward VivoCity (fake)'),
+        inKey('journey-alternative-1', 'Take Bus F10 toward Bay Mall (fake)'),
         findsOneWidget,
       );
       expect(
-        inKey('journey-alternative-2', 'Take Bus F30 toward VivoCity (fake)'),
+        inKey('journey-alternative-2', 'Take Bus F30 toward Bay Mall (fake)'),
         findsOneWidget,
       );
       await select(tester, 'F20');
@@ -655,7 +750,12 @@ void main() {
     testWidgets('selecting never re-plans, reloads buses or touches '
         'arrivals', (tester) async {
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await tester.pump();
       final c = ProviderScope.containerOf(
         tester.element(find.byKey(const Key('journey-card'))),
@@ -679,7 +779,12 @@ void main() {
       tester,
     ) async {
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await select(tester, 'F10');
       await tester.tap(find.byKey(const Key('change-destination')));
       await tester.pump();
@@ -687,22 +792,32 @@ void main() {
       await searchAndPick(
         tester,
         destinationField,
-        'ION Orchard',
-        'ION ORCHARD',
+        'City Tower',
+        'CITY TOWER (fake)',
       );
       expect(find.byKey(const Key('select-option-F30')), findsNothing);
       expect(find.byKey(const Key('selected-option-F30')), findsNothing);
       await tester.tap(find.byKey(const Key('change-destination')));
       await tester.pump();
       // A new plan object for the same trip: back at its suggestion.
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       expect(find.byKey(const Key('selected-option-F20')), findsOneWidget);
       expect(find.byKey(const Key('selected-option-F10')), findsNothing);
     });
 
     testWidgets('"Refresh arrivals" keeps the selection', (tester) async {
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await select(tester, 'F10');
       await tester.tap(find.byKey(const Key('arrivals-refresh')));
       await tester.pump();
@@ -715,7 +830,12 @@ void main() {
     ) async {
       final handle = tester.ensureSemantics();
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       expect(find.bySemanticsLabel('Select Bus F10'), findsOneWidget);
       expect(find.bySemanticsLabel('Select Bus F30'), findsOneWidget);
       // The default selection is not something the user did: it is not
@@ -745,7 +865,12 @@ void main() {
         'the previous plan is not carried over (#67)', (tester) async {
       final handle = tester.ensureSemantics();
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await select(tester, 'F10');
       await select(tester, 'F20');
       expect(
@@ -772,8 +897,8 @@ void main() {
         await tester.pump();
       }
 
-      await replanTo('ION Orchard', 'ION ORCHARD');
-      await replanTo('VivoCity', 'VIVOCITY');
+      await replanTo('City Tower', 'CITY TOWER (fake)');
+      await replanTo('Bay Mall', 'BAY MALL (fake)');
 
       expect(
         tester.state(find.byKey(const Key('journey-suggested'))),
@@ -803,7 +928,12 @@ void main() {
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await tester.pumpWidget(gpsApp());
       await tester.pump();
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       expect(find.byKey(const Key('select-option-F10')), findsOneWidget);
       expect(tester.takeException(), isNull);
       // The widest row: an alternative selected, with its steps expanded.
@@ -843,7 +973,12 @@ void main() {
       final semantics = tester.ensureSemantics();
       bus.failure = const StaticDataUnavailable(StaticDataset.busRoutes);
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       bus.failure = null;
       await tester.tap(
         find.descendant(
@@ -866,7 +1001,12 @@ void main() {
       tester,
     ) async {
       await pumpApp(tester, gpsApp(mrtFails: true));
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await tester.tap(
         find.descendant(
           of: find.byKey(const Key('journey-mrt')),
@@ -882,7 +1022,12 @@ void main() {
     ) async {
       arrivals.failure = const NetworkUnavailable();
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await tester.pump();
       arrivals.failure = null;
       final retry = find.descendant(
@@ -896,7 +1041,7 @@ void main() {
       expect(
         focusedAt(
           tester,
-          inKey('journey-alternative-1', 'Take Bus F10 toward VivoCity (fake)'),
+          inKey('journey-alternative-1', 'Take Bus F10 toward Bay Mall (fake)'),
         ),
         isTrue,
       );
@@ -904,7 +1049,12 @@ void main() {
 
     testWidgets('Select → the new "Selected" mark', (tester) async {
       await pumpApp(tester, gpsApp());
-      await searchAndPick(tester, destinationField, 'VivoCity', 'VIVOCITY');
+      await searchAndPick(
+        tester,
+        destinationField,
+        'Bay Mall',
+        'BAY MALL (fake)',
+      );
       await select(tester, 'F10');
       expect(
         focusedAt(tester, inKey('journey-alternative-1', 'Selected')),

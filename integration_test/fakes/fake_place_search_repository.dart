@@ -22,41 +22,56 @@ Place fakePlace(
   source: PlaceSource.oneMap,
 );
 
-final vivoCity = fakePlace(
-  'VIVOCITY',
-  lat: 1.2643,
-  lng: 103.8223,
-  address: '1 HARBOURFRONT WALK VIVOCITY SINGAPORE 098585',
-  postal: '098585',
+// Synthetic places (owner decision of 2026-11-07, integration_test/fakes/
+// README_places.md). Nothing is copied from OneMap or any other source:
+// names end in "(fake)", roads are FAKE ..., postcodes are in the unused
+// sectors 00 and 99, and positions are round numbers chosen so that the fake
+// bus network (fake_bus_network.dart) gives the journeys the tests expect.
+
+/// A mall south-west of the fake GPS fix; Bishan → here is the main fake
+/// journey (three direct buses). Its postcode starts with 0.
+final fakeBayMall = fakePlace(
+  'BAY MALL (fake)',
+  lat: 1.3000,
+  lng: 103.7750,
+  address: '1 FAKE WALK BAY MALL (fake) SINGAPORE 009902',
+  postal: '009902',
 );
-final ionOrchard = fakePlace(
-  'ION ORCHARD',
-  lat: 1.3040,
-  lng: 103.8320,
-  address: '2 ORCHARD TURN ION ORCHARD SINGAPORE 238801',
-  postal: '238801',
+
+/// One stop by bus (F30) from the fix.
+final fakeCityTower = fakePlace(
+  'CITY TOWER (fake)',
+  lat: 1.3200,
+  lng: 103.8100,
+  address: '2 FAKE TURN CITY TOWER (fake) SINGAPORE 990802',
+  postal: '990802',
 );
-final tampinesHub = fakePlace(
-  'OUR TAMPINES HUB',
-  lat: 1.3530,
-  lng: 103.9405,
-  address: '1 TAMPINES WALK OUR TAMPINES HUB SINGAPORE 528523',
-  postal: '528523',
+
+/// In the east: nearest the fake "Tampines" forecast area and the east
+/// region; no direct bus to [fakeCityTower].
+final fakeEastHub = fakePlace(
+  'EAST HUB (fake)',
+  lat: 1.3650,
+  lng: 103.9250,
+  address: '1 FAKE LANE EAST HUB (fake) SINGAPORE 990803',
+  postal: '990803',
 );
-final bishanMrtCc = fakePlace(
-  'BISHAN MRT STATION (CC15)',
-  lat: 1.3513,
-  lng: 103.8491,
-  address: '17 BISHAN PLACE BISHAN MRT STATION (CC15) SINGAPORE 579842',
-  postal: '579842',
+
+/// Two coded platforms of one station, both within 300 m of the fix.
+final fakeNorthMrtA = fakePlace(
+  'NORTH MRT STATION (FN1) (fake)',
+  lat: 1.3515,
+  lng: 103.8480,
+  address: '17 FAKE ROAD NORTH MRT STATION (FN1) (fake) SINGAPORE 990811',
+  postal: '990811',
   type: PlaceType.mrtStation,
 );
-final bishanMrtNs = fakePlace(
-  'BISHAN MRT STATION (NS17)',
-  lat: 1.3510,
-  lng: 103.8483,
-  address: '200 BISHAN ROAD BISHAN MRT STATION (NS17) SINGAPORE 579827',
-  postal: '579827',
+final fakeNorthMrtB = fakePlace(
+  'NORTH MRT STATION (FN2) (fake)',
+  lat: 1.3505,
+  lng: 103.8490,
+  address: '200 FAKE ROAD NORTH MRT STATION (FN2) (fake) SINGAPORE 990812',
+  postal: '990812',
   type: PlaceType.mrtStation,
 );
 
@@ -73,12 +88,12 @@ class FakePlaceSearchRepository implements PlaceSearchRepository {
        failures = failures ?? {};
 
   static final Map<String, List<Place>> defaultResults = {
-    'vivocity': [vivoCity],
-    '098585': [vivoCity],
-    'ion orchard': [ionOrchard],
-    '238801': [ionOrchard],
-    'tampines hub': [tampinesHub],
-    'bishan mrt': [bishanMrtCc, bishanMrtNs],
+    'bay mall': [fakeBayMall],
+    '009902': [fakeBayMall],
+    'city tower': [fakeCityTower],
+    '990802': [fakeCityTower],
+    'east hub': [fakeEastHub],
+    'north mrt': [fakeNorthMrtA, fakeNorthMrtB],
   };
 
   final Map<String, List<Place>> results;

@@ -29,7 +29,7 @@ BusArrival fakeArrival(
   source: 'ArriveLah (fake)',
 );
 
-/// Default fake arrivals for the fake network's Bishan → VivoCity options
+/// Default fake arrivals for the fake network's Bishan → Bay Mall options
 /// (integration_test/fakes/fake_bus_network.dart), counted from [from] (default
 /// [fakeNow]):
 ///

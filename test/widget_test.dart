@@ -54,7 +54,7 @@ Future<void> pumpApp(WidgetTester tester, Widget app) async {
   await tester.pumpWidget(app);
 }
 
-const tampinesHubLine = 'From: OUR TAMPINES HUB';
+const fakeEastHubLine = 'From: EAST HUB (fake)';
 
 void main() {
   late FakeLocationService location;
@@ -188,9 +188,9 @@ void main() {
     await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
 
-    await searchAndPick(tester, 'Tampines Hub', 'OUR TAMPINES HUB');
+    await searchAndPick(tester, 'East Hub', 'EAST HUB (fake)');
 
-    expect(find.text(tampinesHubLine), findsOneWidget);
+    expect(find.text(fakeEastHubLine), findsOneWidget);
     expect(inTile('tile-forecast', 'Thundery Showers'), findsOneWidget);
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     expect(inTile('tile-psi', '61'), findsOneWidget);
@@ -209,11 +209,11 @@ void main() {
     await tester.pump(const Duration(seconds: 10));
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
 
-    await searchAndPick(tester, 'Tampines Hub', 'OUR TAMPINES HUB');
+    await searchAndPick(tester, 'East Hub', 'EAST HUB (fake)');
     location.fix(bishan); // arrives late
     await tester.pump();
 
-    expect(find.text(tampinesHubLine), findsOneWidget);
+    expect(find.text(fakeEastHubLine), findsOneWidget);
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     expect(find.byKey(const Key('use-current-location')), findsOneWidget);
 
@@ -231,7 +231,7 @@ void main() {
     await pumpApp(tester, buildTestApp(location: location, environment: env));
     await tester.pump();
     await tester.pump(const Duration(seconds: 10));
-    await searchAndPick(tester, 'Tampines Hub', 'OUR TAMPINES HUB');
+    await searchAndPick(tester, 'East Hub', 'EAST HUB (fake)');
 
     // Attempt B runs while the manual origin is set; A answers late too.
     location.reset();
@@ -245,7 +245,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 10));
 
-    expect(find.text(tampinesHubLine), findsOneWidget);
+    expect(find.text(fakeEastHubLine), findsOneWidget);
     expect(inTile('tile-forecast', 'Tampines area'), findsOneWidget);
     await tester.tap(find.byKey(const Key('use-current-location')));
     await tester.pump();
@@ -263,14 +263,14 @@ void main() {
 
     await tester.enterText(
       find.byKey(const Key('manual-origin-field')),
-      'Tampines Hub',
+      'East Hub',
     );
     await tester.pump(pastSearchDebounce);
     location.fix(bishan);
     await tester.pump();
 
     expect(find.text(OriginCard.fallbackPrompt), findsOneWidget);
-    expect(find.text('OUR TAMPINES HUB'), findsOneWidget); // still choosable
+    expect(find.text('EAST HUB (fake)'), findsOneWidget); // still choosable
     expect(find.byKey(const Key('use-current-location')), findsOneWidget);
   });
 

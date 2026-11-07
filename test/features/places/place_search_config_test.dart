@@ -80,11 +80,11 @@ void main() {
           repo,
           debounce: const Duration(seconds: 1),
         );
-        session.onChanged('VivoCity');
+        session.onChanged('Bay Mall');
         async.elapse(const Duration(milliseconds: 999));
         expect(repo.queries, isEmpty);
         async.elapse(const Duration(milliseconds: 1));
-        expect(repo.queries, ['vivocity']);
+        expect(repo.queries, ['bay mall']);
         session.dispose();
       });
     });
@@ -176,14 +176,14 @@ void main() {
       await tester.pump();
       const field = Key('manual-origin-field');
 
-      await tester.enterText(find.byKey(field), 'vivo');
+      await tester.enterText(find.byKey(field), 'fake');
       await tester.pump();
       expect(
         find.text('Type at least 5 characters, or a 6-digit postal code.'),
         findsOneWidget,
       );
 
-      await tester.enterText(find.byKey(field), 'VivoCity');
+      await tester.enterText(find.byKey(field), 'Bay Mall');
       await tester.pump(pastSearchDebounce);
       expect(
         places.queries,
@@ -192,8 +192,8 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump();
-      expect(places.queries, ['vivocity']);
-      expect(find.text('VIVOCITY'), findsOneWidget);
+      expect(places.queries, ['bay mall']);
+      expect(find.text('BAY MALL (fake)'), findsOneWidget);
     });
   });
 }

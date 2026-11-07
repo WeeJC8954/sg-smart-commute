@@ -59,23 +59,23 @@ void main() {
     await searchAndPick(
       tester,
       field: const Key('manual-origin-field'),
-      query: 'Tampines Hub',
-      result: 'OUR TAMPINES HUB',
+      query: 'East Hub',
+      result: 'EAST HUB (fake)',
     );
-    await pumpUntilFound(tester, find.text('From: OUR TAMPINES HUB'));
+    await pumpUntilFound(tester, find.text('From: EAST HUB (fake)'));
 
     // M2: destination search after the manual origin.
     await pumpUntilFound(tester, find.text(DestinationCard.prompt));
     await searchAndPick(
       tester,
       field: const Key('destination-field'),
-      query: '238801',
-      result: 'ION ORCHARD',
+      query: '990802',
+      result: 'CITY TOWER (fake)',
     );
-    await pumpUntilFound(tester, find.text('To: ION ORCHARD'));
-    expect(find.text('From: OUR TAMPINES HUB'), findsOneWidget);
+    await pumpUntilFound(tester, find.text('To: CITY TOWER (fake)'));
+    expect(find.text('From: EAST HUB (fake)'), findsOneWidget);
 
-    // M3: no single fake service connects Tampines Hub and ION Orchard.
+    // M3: no single fake service connects East Hub and City Tower.
     await pumpUntilFound(tester, find.byKey(const Key('journey-no-direct')));
     expect(find.text('No direct bus found'), findsOneWidget);
     expect(find.textContaining('Take Bus'), findsNothing);
@@ -85,7 +85,7 @@ void main() {
     expect(
       find.descendant(
         of: mrt,
-        matching: find.textContaining('Nearest MRT: TAMPINES MRT STATION'),
+        matching: find.textContaining('Nearest MRT: FAKE EAST MRT STATION'),
       ),
       findsOneWidget,
     );
@@ -93,7 +93,7 @@ void main() {
       find.descendant(
         of: mrt,
         matching: find.textContaining(
-          'Near your destination: ORCHARD MRT STATION',
+          'Near your destination: FAKE CITY MRT STATION',
         ),
       ),
       findsOneWidget,
@@ -155,14 +155,14 @@ void main() {
     // M4: no bus option was shown yet, so no arrivals were requested.
     expect(arrivals.totalCalls, 0);
 
-    // A new origin with a direct bus: Bishan → ION Orchard, F30 from BSH1.
+    // A new origin with a direct bus: Bishan → City Tower, F30 from BSH1.
     await scrollToTop(tester);
     await scrollToAndTap(tester, find.byKey(const Key('change-origin')));
     await searchAndPick(
       tester,
       field: const Key('manual-origin-field'),
-      query: 'Bishan MRT',
-      result: 'BISHAN MRT STATION (NS17)',
+      query: 'North MRT',
+      result: 'NORTH MRT STATION (FN2) (fake)',
     );
     final suggested = find.byKey(const Key('journey-suggested'));
     await pumpUntilFound(tester, suggested);
@@ -181,14 +181,14 @@ void main() {
     expect(
       find.descendant(
         of: suggested,
-        matching: find.text('Take Bus F30 toward VivoCity (fake)'),
+        matching: find.text('Take Bus F30 toward Bay Mall (fake)'),
       ),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: suggested,
-        matching: find.text('Alight at ION1 — Orchard Stn (fake)'),
+        matching: find.text('Alight at CTY1 — City Tower Stn (fake)'),
       ),
       findsOneWidget,
     );
@@ -240,12 +240,12 @@ void main() {
     await searchAndPick(
       tester,
       field: const Key('manual-origin-field'),
-      query: 'ION Orchard',
-      result: 'ION ORCHARD',
+      query: 'City Tower',
+      result: 'CITY TOWER (fake)',
     );
     location.fix(const LatLng(1.3508, 103.8485)); // late, valid
     await pumpUntilFound(tester, find.byKey(const Key('use-current-location')));
-    expect(find.text('From: ION ORCHARD'), findsOneWidget);
+    expect(find.text('From: CITY TOWER (fake)'), findsOneWidget);
   });
 
   // E8: controls that remove or disable themselves hand keyboard focus on.
@@ -304,8 +304,8 @@ void main() {
       await searchAndPick(
         tester,
         field: const Key('manual-origin-field'),
-        query: 'Tampines Hub',
-        result: 'OUR TAMPINES HUB',
+        query: 'East Hub',
+        result: 'EAST HUB (fake)',
       );
       location.reset();
       await tabTo(tester, 'retry-location');
@@ -344,8 +344,8 @@ void main() {
       await searchAndPick(
         tester,
         field: const Key('manual-origin-field'),
-        query: 'Tampines Hub',
-        result: 'OUR TAMPINES HUB',
+        query: 'East Hub',
+        result: 'EAST HUB (fake)',
       );
       location.fix(const LatLng(1.3508, 103.8485)); // late: only offered
       await pumpUntilFound(
