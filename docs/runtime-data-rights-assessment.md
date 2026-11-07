@@ -106,6 +106,8 @@ read 2026-11-06.
 - **[A]** The same "use" question as §5.1 applies.
 - **[P]** Treat all of them like the benchmark download: optional, never CI, and run only if the owner accepts the
   position. Today only the benchmark's README says so.
+- **Update 2026-11-07 (A-5c):** done. Each tool's header and `docs/testing.md` now say so; none is run by CI or the
+  tests, and nothing downloads automatically.
 
 ### 5.4 LTA website content against DataMall and other sources
 
