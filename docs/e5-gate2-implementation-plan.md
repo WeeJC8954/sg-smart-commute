@@ -257,8 +257,8 @@ read 2026-11-06:
     exists, the old branch.
   - Only GitHub Support can purge PR references and cached views. Their guide makes that conditional on rewriting
     history first. Exposure and options: `docs/busrouter-fixture-licensing-audit.md` §7.
-- **The existing fixtures [C, G2-11].** `test/fixtures/busrouter/` holds subsets committed since M3 and P2-M2 with the
-  same unresolved rights. They are audited separately in `docs/busrouter-fixture-licensing-audit.md`. The app's
+- **The existing fixtures [C, G2-11].** `test/fixtures/busrouter/` held subsets committed since M3 and P2-M2 with the
+  same unresolved rights; the owner approved replacing them with synthetic data (A-1, its own PR). They are audited separately in `docs/busrouter-fixture-licensing-audit.md`. The app's
   runtime fetch from `data.busrouter.sg` is not redistribution by this project; whether that use needs LTA's
   permission is the audit's decision A-5.
 
