@@ -107,7 +107,9 @@ the debug key with a warning, for local smoke tests only.
 
 NEA / data.gov.sg (Singapore Open Data Licence) · busrouter.sg (community project; bus data © LTA) ·
 MRT station exits: LTA via data.gov.sg (Singapore Open Data Licence), bundled as `assets/mrt_stations.json`
-(regenerate with `dart run tool/build_mrt_asset.dart`) · OneMap © SLA · live arrivals: ArriveLah (LTA DataMall).
+(regenerate with `dart run tool/build_mrt_asset.dart`) · OneMap © SLA · live arrivals: LTA DataMall data relayed by ArriveLah; the app shows the
+[Singapore Open Data Licence version 1.0](https://data.gov.sg/open-data-licence) notice and link. Whether that licence
+covers relayed data is still open (`docs/runtime-data-rights-assessment.md`).
 
 ArriveLah is a third-party community service that proxies LTA DataMall bus-arrival data. It is not an official
 LTA API. Its repository currently has no explicit licence file, and this project does not assume one; its

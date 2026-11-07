@@ -412,6 +412,18 @@ abstract final class BusArrivalConfig {
 const String mrtStationsAsset = 'assets/mrt_stations.json';
 
 const String busrouterAttribution = 'Bus data: busrouter.sg (data © LTA)';
-const String arriveLahAttribution = 'Arrivals: ArriveLah (LTA DataMall)';
+const String arriveLahAttribution =
+    'Arrivals: LTA DataMall via ArriveLah (Singapore Open Data Licence)';
 const String mrtAttribution =
     'MRT exits: LTA via data.gov.sg (Singapore Open Data Licence)';
+
+/// The Singapore Open Data Licence's notice for the arrival times (owner
+/// decision A-5b, docs/runtime-data-rights-assessment.md §5.1): the source,
+/// then a link to the licence. It does not settle whether data relayed by
+/// ArriveLah is covered, nor ArriveLah's own terms.
+const String arrivalsLicenceNotice =
+    'Arrival times contain information from LTA DataMall (Bus Arrival), '
+    'accessed through ArriveLah when shown, made available under the terms '
+    'of the ';
+const String openDataLicenceLabel = 'Singapore Open Data Licence version 1.0';
+final Uri openDataLicenceUri = Uri.https('data.gov.sg', '/open-data-licence');

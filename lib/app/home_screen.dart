@@ -8,6 +8,7 @@ import '../features/appearance/presentation/palette_menu_button.dart';
 import '../features/environment/environment_providers.dart';
 import '../features/environment/presentation/environment_dashboard.dart';
 import '../features/journey/presentation/journey_card.dart';
+import '../features/map/presentation/basemap.dart';
 import '../features/map/presentation/journey_map_card.dart';
 import 'about_dialog.dart';
 import 'app_logo.dart';
@@ -66,6 +67,21 @@ class HomeScreen extends StatelessWidget {
                     '$oneMapAttribution · $busrouterAttribution · '
                     '$arriveLahAttribution · $mrtAttribution',
                     style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Wrap(
+                    key: const Key('arrivals-licence-notice'),
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        arrivalsLicenceNotice,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      AttributionLink(
+                        openDataLicenceLabel,
+                        openDataLicenceUri,
+                        key: const Key('open-data-licence-link'),
+                      ),
+                    ],
                   ),
                 ],
               ),
