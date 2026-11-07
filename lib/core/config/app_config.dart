@@ -414,8 +414,19 @@ const String mrtStationsAsset = 'assets/mrt_stations.json';
 const String busrouterAttribution = 'Bus data: busrouter.sg (data © LTA)';
 const String arriveLahAttribution =
     'Arrivals: LTA DataMall via ArriveLah (Singapore Open Data Licence)';
-const String mrtAttribution =
-    'MRT exits: LTA via data.gov.sg (Singapore Open Data Licence)';
+
+/// The Singapore Open Data Licence's notices for the two other data.gov.sg
+/// sources (owner decision C-6, docs/captured-data-inventory.md): each source
+/// gets its own notice and link in the A-5b form, so no notice reads as
+/// covering OneMap, busrouter or ArriveLah.
+const String neaLicenceNotice =
+    'Weather, UV and air-quality readings contain information from the '
+    'National Environment Agency (NEA), accessed from data.gov.sg, made '
+    'available under the terms of the ';
+const String mrtLicenceNotice =
+    'MRT station exits contain information from the LTA MRT Station Exit '
+    'dataset, accessed on 1 October 2026 from data.gov.sg, made available '
+    'under the terms of the ';
 
 /// The Singapore Open Data Licence's notice for the arrival times (owner
 /// decision A-5b, docs/runtime-data-rights-assessment.md §5.1): the source,
