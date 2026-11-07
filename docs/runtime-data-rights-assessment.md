@@ -40,7 +40,7 @@ permission.
 | `https://data.busrouter.sg/v1/stops.min.json` | First bus journey of a session | Stop names, codes and positions (card steps, map markers) | "Bus data: busrouter.sg (data © LTA)" (app footer) |
 | `https://data.busrouter.sg/v1/services.min.json` | Same | Services and their stop order (the planner; "toward" names) | Same |
 | `https://data.busrouter.sg/v1/routes.min.json` | Open map with a bus ride | The ride's line, drawn on the map | Same |
-| `https://arrivelah2.busrouter.sg/?id=<stop>` | Per displayed boarding stop | Next arrival times | "Arrivals: ArriveLah (LTA DataMall)" (footer, and under the arrivals) |
+| `https://arrivelah2.busrouter.sg/?id=<stop>` | Per displayed boarding stop | Next arrival times | "Arrivals: ArriveLah (LTA DataMall)" (footer, and under the arrivals); since 2026-11-07 (A-5b) "Arrivals: LTA DataMall via ArriveLah (Singapore Open Data Licence)", plus the licence notice and link in the footer |
 
 Bundled assets: `assets/mrt_stations.json` (data.gov.sg, SODL, credited in-app) and the app icon. No busrouter data
 is bundled [C].
@@ -84,6 +84,8 @@ read 2026-11-06.
   - CORS `*`, no key and a public URL do not change this.
 - **DataMall content (road names, arrivals).** Under the SODL, use is permitted with the notice and link [C].
   - **Gap 1 [C]:** the app's credits name LTA DataMall but give no SODL notice or link.
+    **Update 2026-11-07 (A-5b):** the footer now shows the notice and the link, and the arrivals credit names the
+    licence. This closes Gap 1 only; Gap 2 and ArriveLah's own terms are unchanged.
   - **Gap 2 [A]:** whether a copy relayed by a proxy (ArriveLah) or re-hosted (sgbusdata) is a dataset "offered for use
     under the terms of this Licence" is not established. The licence attaches to the data, which suggests yes, but
     that is unconfirmed.
@@ -148,3 +150,7 @@ change in `app_config.dart` and the footer, and needs approval as a UI change.
 | A-5b | Add the SODL notice and licence link to the arrivals credit (Gap 1) | Approve, as a small separate change |
 | A-5c | Make every live-busrouter dev tool optional and documented as such (§5.3) | Approve; documentation only |
 | A-5d | Whether to assess OneMap's runtime use (tokenless search without the registration its terms require for web applications; tiles accepted in P2-M0) the same way | Approve, as a separate assessment: it is outside A-5's busrouter scope but has the same shape |
+
+**Update 2026-11-07 (A-5a):** the owner approved drafting O1. The draft is `docs/lta-clarification-request-draft.md`,
+**not sent** (it needs the owner's explicit approval). Until LTA answers, the runtime use stays not shown to be
+permitted.
