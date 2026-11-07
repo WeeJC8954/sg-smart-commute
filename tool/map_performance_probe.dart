@@ -6,6 +6,11 @@
 //     --driver=test_driver/integration_test.dart \
 //     --target=tool/map_performance_probe.dart
 //
+// OPTIONAL, development only (owner decision A-5d-6): it loads live OneMap
+// (SLA) tiles, whose runtime use is not shown to be permitted
+// (docs/onemap-runtime-assessment.md). CI, the tests and normal development
+// never need it; run it by hand only with the owner's approval.
+//
 // Without --keep-app-running, flutter drive uninstalls the app at the end,
 // and the tile cache goes with it, so a second run would start cold.
 //

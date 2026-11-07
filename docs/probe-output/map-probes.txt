@@ -102,7 +102,7 @@ Content-Type: application/json
 HTTP/1.1 200 OK
 access-control-allow-origin: *
 bytes: 43079
-body: {"version":8,"sources":{"ne2_shaded":{"maxzoom":6,"tileSize":256,"tiles":["https://tiles.openfreemap.org/natural_earth/ne2sr/{z}/{x}/{y}.png"],"type":"raster"},"openmaptiles":{"type":"vector","url":"h
+body: [redacted 2026-11-07: captured OpenFreeMap (OSM) data, see docs/captured-data-inventory.md]
 
 === OpenFreeMap TileJSON
 GET https://tiles.openfreemap.org/planet
@@ -111,7 +111,7 @@ Content-Type: application/json
 HTTP/1.1 200 OK
 access-control-allow-origin: *
 bytes: 19254
-body: {"tilejson":"3.0.0","tiles":["https://tiles.openfreemap.org/planet/20260927_080001_pt/{z}/{x}/{y}.pbf"],"vector_layers":[{"id":"aerodrome_label","fields":{"class":"String","ele":"Number","ele_ft":"Num
+body: [redacted 2026-11-07: captured OpenFreeMap (OSM) data, see docs/captured-data-inventory.md]
 
 ## Bus route geometry
 === busrouter routes.min.json
@@ -121,7 +121,7 @@ Cache-Control: public,max-age=86400
 Content-Type: application/json
 HTTP/1.1 200 OK
 bytes: 289256
-body: {"2":["olnG{`uyRX|AvDw@~EIyAt[NzBjCzKhB`DzCbCjCx@`CTnb@y@bE^jDfBnJtJ`DlC`BR`@I|AyBxCcSl@uAvAgA|A_@dAE`BVv@`@tG~GxI~LjA`AbPxDzBv@nA|@tAxBlClJxHfH~B~@`]`G`Bj@v@r@v@~A`EtS~M|@rbAhSrGjChLtHwFtFd\\raApC{A`
+body: [redacted 2026-11-07: captured busrouter (LTA-derived) data, see docs/captured-data-inventory.md]
 
 ## Walking routes, Raffles Place MRT -> Fullerton Hotel (~600 m)
 === OSRM demo (foot)
@@ -130,7 +130,7 @@ Access-Control-Allow-Origin: *
 Content-Type: application/json; charset=UTF-8
 HTTP/1.1 200 OK
 bytes: 782
-body: {"code":"Ok","routes":[{"legs":[{"steps":[],"weight":124,"summary":"","duration":124,"distance":1206.8}],"weight_name":"routability","geometry":"cvyFmmzxRCDCv@El@?NAHCf@CDEBSAcACKAQ?WAe@AIAk@AIAGh@AHK
+body: [redacted 2026-11-07: captured OSRM demo (OSM) data, see docs/captured-data-inventory.md]
 
 === FOSSGIS OSRM routed-foot
 GET https://routing.openstreetmap.de/routed-foot/route/v1/driving/103.8515,1.2840;103.8531,1.2862?overview=full&geometries=polyline
@@ -138,7 +138,7 @@ Access-Control-Allow-Origin: *
 Content-Type: application/json; charset=UTF-8
 HTTP/1.1 200 OK
 bytes: 709
-body: {"code":"Ok","routes":[{"legs":[{"steps":[],"weight":75.95,"summary":"","duration":685.9,"distance":852.5}],"weight_name":"routability","geometry":"_xyFynzxRB?`@@vDLV@X@^ZGV?DAV?D?FG?G?ANEFAGCO@}@K??}
+body: [redacted 2026-11-07: captured FOSSGIS OSRM (OSM) data, see docs/captured-data-inventory.md]
 
 === FOSSGIS Valhalla pedestrian
 GET https://valhalla1.openstreetmap.de/route?json=%7B%22locations%22%3A%5B%7B%22lon%22%3A103.8515%2C%22lat%22%3A1.2840%7D%2C%7B%22lon%22%3A103.8531%2C%22lat%22%3A1.2862%7D%5D%2C%22costing%22%3A%22pedestrian%22%7D
@@ -146,7 +146,7 @@ Access-Control-Allow-Origin: *
 Content-Type: application/json;charset=utf-8
 HTTP/1.1 200 OK
 bytes: 7954
-body: {"trip":{"locations":[{"type":"break","lat":1.284,"lon":103.8515,"original_index":0},{"type":"break","lat":1.2862,"lon":103.8531,"side_of_street":"left","original_index":1}],"legs":[{"maneuvers":[{"ty
+body: [redacted 2026-11-07: captured FOSSGIS Valhalla (OSM) data, see docs/captured-data-inventory.md]
 
 === BRouter (hiking-mountain)
 GET https://brouter.de/brouter?lonlats=103.8515,1.2840%7C103.8531,1.2862&profile=hiking-mountain&alternativeidx=0&format=geojson
@@ -154,7 +154,7 @@ Access-Control-Allow-Origin: *
 Content-Type: application/vnd.geo+json; charset=utf-8
 HTTP/1.1 200 OK
 bytes: 7672
-body: {   "type": "FeatureCollection",   "features": [     {       "type": "Feature",       "properties": {         "creator": "BRouter-1.7.10",         "name": "brouter_hiking-mountain_0",         "track-l
+body: [redacted 2026-11-07: captured BRouter (OSM) data, see docs/captured-data-inventory.md]
 
 === OneMap routing, no token
 GET https://www.onemap.gov.sg/api/public/routingsvc/route?start=1.2840,103.8515&end=1.2862,103.8531&routeType=walk
@@ -162,7 +162,7 @@ Access-Control-Allow-Origin: *
 Content-Type: application/json
 HTTP/1.1 401 Unauthorized
 bytes: 26
-body: {"message":"Unauthorized"}
+body: [redacted 2026-11-07: captured OneMap (SLA) data, see docs/captured-data-inventory.md]
 
 ## OneMap: one map view of tiles in parallel (8 x 5 at z16), then one search
 Does tile traffic trip the per-host limit that 429s search after 2-3 calls in ~1.5 s?
@@ -173,5 +173,5 @@ Access-Control-Allow-Origin: *
 Content-Type: application/json
 HTTP/1.1 200 OK
 bytes: 565
-body: {   "error": "Authentication token missing. Please create an account and generate or renew your API Token.",   "found": 2,   "totalNumPages": 1,   "pageNum": 1,   "results": [     {       "SEARCHVAL":
+body: [redacted 2026-11-07: captured OneMap (SLA) data, see docs/captured-data-inventory.md]
 

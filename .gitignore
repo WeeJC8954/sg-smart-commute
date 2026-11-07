@@ -67,3 +67,6 @@ test/fixtures/busrouter/**/*.json
 test/fixtures/onemap/**/*.json
 # The ArriveLah test data is synthetic Dart too (test/fixtures/arrivelah/README.md); no captured JSON.
 test/fixtures/arrivelah/**/*.json
+# Probe and evaluation output holds captured provider responses: it goes to build/, never to docs/
+# (docs/captured-data-inventory.md).
+docs/probe-output/*.json

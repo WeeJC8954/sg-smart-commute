@@ -1,9 +1,17 @@
 // Milestone 0 place-search feasibility evaluation (Dart VM, not shipped).
 //
 // Runs a representative Singapore query set against OneMap (tokenless),
-// Photon and Nominatim, and writes raw results plus a summary.
+// Photon and Nominatim, prints a summary, and writes the raw results to
+// build/probe-output/place-search-eval.json (git-ignored). The raw results are
+// captured provider records: never commit them (docs/captured-data-inventory.md).
 //
 //   dart run tool/place_search_eval.dart
+//
+// OPTIONAL, development only (owner decision A-5d-6): it calls OneMap (SLA)
+// live, whose runtime use is not shown to be permitted
+// (docs/onemap-runtime-assessment.md), and Photon and Nominatim. CI, the tests
+// and normal development never need it; run it by hand only with the owner's
+// approval, and never commit its raw results.
 //
 // Respects public usage policies: Nominatim is called at most once per
 // second, never for type-ahead prefixes, and identifies the app.
@@ -385,7 +393,8 @@ Future<void> main() async {
     );
   }
 
-  final out = File('docs/probe-output/place-search-eval.json');
+  final out = File('build/probe-output/place-search-eval.json');
+  await out.parent.create(recursive: true);
   await out.writeAsString(
     const JsonEncoder.withIndent('  ').convert({
       'runAtUtc': DateTime.now().toUtc().toIso8601String(),
