@@ -4,7 +4,8 @@ Research and design only. P2-M0 adds **no app dependency and changes no app beha
 `pubspec.yaml`, `lib/` and `web/index.html` are unchanged. Evidence comes from three sources:
 - an isolated, removable spike app (`tool/map_spike/`, removed in P2-M1; source in git history at
   `f5934d1`);
-- two dev-only probes (`tool/probe_map.sh` → `docs/probe-output/map-probes.txt`, and
+- two dev-only probes (`tool/probe_map.sh` → `docs/probe-output/map-probes.txt`, response bodies redacted on
+  2026-11-07 as captured provider data (`docs/captured-data-inventory.md`), and
   `tool/route_geometry_probe.dart` → `docs/probe-output/route-geometry.txt`);
 - screenshots in `docs/probe-output/map-spike/`.
 

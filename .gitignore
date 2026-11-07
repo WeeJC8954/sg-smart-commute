@@ -63,3 +63,6 @@ tool/e5_transfer_bench/**/*.min.json
 test/fixtures/busrouter/snapshot-*/
 # The busrouter test data is synthetic Dart (test/fixtures/busrouter/README.md); no captured JSON.
 test/fixtures/busrouter/**/*.json
+# Probe and evaluation output holds captured provider responses: it goes to build/, never to docs/
+# (docs/captured-data-inventory.md).
+docs/probe-output/*.json
