@@ -2,6 +2,13 @@
 // (data.gov.sg, Singapore Open Data Licence). Dart VM, not shipped. The app
 // only reads the generated asset; it never calls this dataset at runtime.
 //
+// Licence notice for the generated asset (C-2; docs/data-sources.md): contains
+// information from the LTA MRT Station Exit (GEOJSON) dataset of the Land
+// Transport Authority, accessed on 1 October 2026 from data.gov.sg, which is
+// made available under the terms of the Singapore Open Data Licence version
+// 1.0, https://data.gov.sg/open-data-licence. The link is kept here and in
+// docs/data-sources.md, not in the asset, so the asset's schema is unchanged.
+//
 //   dart run tool/build_mrt_asset.dart                 # download, then build
 //   dart run tool/build_mrt_asset.dart --input exits.geojson --retrieved 2026-10-02
 //
