@@ -6,6 +6,11 @@
 //   flutter run -d <android-device> -t tool/api_probe_app.dart
 //
 // Each result is printed as a `PROBE` line and shown on screen.
+// OPTIONAL, development only (owner decision A-5c): it fetches live busrouter
+// data, mostly LTA website content whose use is not shown to be permitted
+// (docs/runtime-data-rights-assessment.md §5.3). CI, the tests and normal
+// development never need it; run it by hand only with the owner's approval.
+// Never commit what it downloads.
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
