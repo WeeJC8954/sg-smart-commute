@@ -20,8 +20,9 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
   busrouter code, 2 October 2026). Please check the "users" sentence: the repository does not record how many people
   use the app.
 - **Before sending, check the repository sentence in §3.** `docs/probe-output/curl-probes.txt` and `map-probes.txt`
-  still hold the first 220 bytes of each busrouter file (October 2026 probes). If they stay, add "and some
-  development logs hold the first few lines" to that sentence.
+  held the first 220 bytes of each busrouter file (October 2026 probes) until those bodies were redacted on 2026-11-07
+  (`docs/captured-data-inventory.md`). Once that redaction is merged, the sentence's "remain in the repository's
+  history" covers them too; until then, add "and some development logs hold the first few lines".
 - **Sources other than LTA (§1).** The source table comes from `docs/runtime-data-rights-assessment.md` §3 (sgbusdata's
   scripts, read 2026-11-06). LTA can only answer for its own content: the SimplyGo name corrections and the OneMap and
   Citymapper route patches stay open whatever LTA says, and the OneMap part belongs with the SLA letter. The app's
