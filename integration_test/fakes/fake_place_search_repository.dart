@@ -80,10 +80,16 @@ final fakeNorthMrtB = fakePlace(
 /// Answers by normalised query from [results] (missing → no results), or
 /// throws the failure in [failures]. A query listed in [held] waits until the
 /// test calls [release], so the test decides the order responses arrive in.
+///
+/// With [prefixMatch] (off by default; on only in the synthetic demo app), a
+/// query with no exact key answers with the places of every key that starts
+/// with it, in key order, each place once: "bay" finds BAY MALL as OneMap's
+/// type-ahead would. Failures and held queries stay exact.
 class FakePlaceSearchRepository implements PlaceSearchRepository {
   FakePlaceSearchRepository({
     Map<String, List<Place>>? results,
     Map<String, AppFailure>? failures,
+    this.prefixMatch = false,
   }) : results = results ?? defaultResults,
        failures = failures ?? {};
 
@@ -98,6 +104,7 @@ class FakePlaceSearchRepository implements PlaceSearchRepository {
 
   final Map<String, List<Place>> results;
   final Map<String, AppFailure> failures;
+  final bool prefixMatch;
   final List<String> queries = [];
   final Map<String, Completer<void>> _held = {};
 
@@ -112,7 +119,17 @@ class FakePlaceSearchRepository implements PlaceSearchRepository {
     if (gate != null) await gate.future;
     final failure = failures[key];
     if (failure != null) throw failure;
-    return results[key] ?? const [];
+    final exact = results[key];
+    if (exact != null || !prefixMatch || key.isEmpty) return exact ?? const [];
+    // shortcut: prefix of the whole key only; OneMap's word-level matching
+    // ("mall" → BAY MALL) was never probed, so it is not imitated.
+    final seen = <String>{};
+    return [
+      for (final entry in results.entries)
+        if (entry.key.startsWith(key))
+          for (final place in entry.value)
+            if (seen.add(place.id)) place,
+    ];
   }
 
   @override
