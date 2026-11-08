@@ -148,6 +148,50 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('a screen reader reads the OneMap and busrouter credits where '
+      'they are shown: last, each on its own (D2)', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pumpTall(tester, FakeLinkOpener());
+    const oneMap = 'Place search: OneMap © Singapore Land Authority';
+    const busrouter = 'Bus data: busrouter.sg (data © LTA)';
+
+    // Each credit is a node labelled with that credit only.
+    for (final credit in [oneMap, busrouter]) {
+      expect(tester.getSemantics(find.text(credit)).label, credit);
+    }
+
+    // Labelled nodes in the order a screen reader moves through them.
+    final order = <String>[];
+    void walk(SemanticsNode node) {
+      if (node.label.isNotEmpty) order.add(node.label);
+      for (final child in node.debugListChildrenInOrder(
+        DebugSemanticsDumpOrder.traversalOrder,
+      )) {
+        walk(child);
+      }
+    }
+
+    var root = tester.getSemantics(find.text(oneMap));
+    while (root.parent != null) {
+      root = root.parent!;
+    }
+    walk(root);
+    int at(bool Function(String) test) => order.indexWhere(test);
+    final conditions = at((l) => l == 'Conditions');
+    final arrivalsNotice = at((l) => l.startsWith('Arrival times contain'));
+    expect(conditions, isNonNegative, reason: '$order');
+    // No node before the footer carries the credits (they were merged into
+    // the Conditions section's node and read before its heading).
+    expect(
+      order.take(arrivalsNotice).where((l) => l.contains('OneMap ©')),
+      isEmpty,
+      reason: '$order',
+    );
+    expect(at((l) => l == oneMap), greaterThan(arrivalsNotice));
+    expect(at((l) => l == busrouter), at((l) => l == oneMap) + 1);
+    handle.dispose();
+  });
+
   testWidgets('a licence link that cannot be opened only shows a note', (
     tester,
   ) async {
