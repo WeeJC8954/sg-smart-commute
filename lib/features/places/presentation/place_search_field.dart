@@ -203,7 +203,12 @@ class _SearchBody extends StatelessWidget {
                 onTap: () => onSelected(place),
               ),
             ),
-          Text(oneMapAttribution, style: small),
+          // Its own node, so a screen reader reads it here, after the
+          // results, not merged into the route card's node before them.
+          Semantics(
+            container: true,
+            child: Text(oneMapAttribution, style: small),
+          ),
         ],
       ),
       PlaceSearchFailed(:final failure) => Padding(
