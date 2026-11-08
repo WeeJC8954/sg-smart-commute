@@ -20,21 +20,28 @@
 // activated. Location: GPS granted, fixed at the fakes' Bishan position. The
 // clock is the fakes' fixed time, and the About dialog shows the fake version
 // 9.8.7 (42), which identifies this build. Motion uses the app's real duration,
-// so the system's reduce-motion setting can be checked.
+// so the system's reduce-motion setting can be checked. The colour palette is
+// the one thing kept on the device (#125): the real shared_preferences store,
+// read before the first frame as main() does, in this app id's own storage.
 import 'package:flutter/widgets.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
 import 'package:sg_smart_commute/core/config/app_config.dart';
+import 'package:sg_smart_commute/features/appearance/appearance_providers.dart';
+import 'package:sg_smart_commute/features/appearance/data/shared_preferences_palette_store.dart';
 
 import '../fakes/fake_environment_repository.dart';
 import '../fakes/fake_location_service.dart';
 import '../fakes/synthetic_tiles.dart';
 import '../fakes/test_app.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final store = SharedPreferencesPaletteStore();
   runApp(
     buildTestApp(
+      paletteStore: store,
+      palette: await loadInitialPalette(store),
       location: FakeLocationService(
         access: LocationAccess.granted,
         position: const LatLng(1.3508, 103.8485),
