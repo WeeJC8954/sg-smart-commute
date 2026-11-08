@@ -20,8 +20,12 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
     permission to use **sla.gov.sg** content, not OneMap. It is a fallback only.
   - All read raw on 2026-11-07 (`docs/onemap-runtime-assessment.md` §9) and not re-read since. Open the OneMap
     "Contact Us" page again just before sending and check that the address is still there.
-- **Placeholders** are in square brackets: your name, contact address, repository and app links, and traffic figures.
-  Decide whether to give the public app's URL.
+- **Placeholders** are in square brackets: your name and email address only.
+- **Repository and deployment status** (checked 2026-11-08):
+  - the repository is https://github.com/WeeJC8954/sg-smart-commute, public and not archived on GitHub;
+  - no public deployment of the app was found: no GitHub Pages site, homepage URL, deployment or release, and no
+    hosting address in the repository's docs. So the letter calls the app "under development and intended for
+    public release" and gives no app link. If the app is deployed before you send, revise §1, §3, §5 and §6.
 - **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
   - the endpoints, pacing and cache values (`lib/core/config/app_config.dart`: `OneMapEndpoints`, `PlaceSearchConfig`,
     `OneMapRateLimit`, `BasemapEndpoints`, `MapConfig`);
@@ -45,8 +49,7 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
   - all of the above remain in Git history (C-7: no history rewrite).
 - **Expected traffic is not known.** The repository does not record how many people use the app. Each running copy
   sends at most one search request a second, and fewer in practice (it waits for a pause in typing and caches
-  results). Fill in "[Number of users…]" in §3, or keep its
-  "unknown, and expected to be small".
+  results). §3 uses the owner's sentence (2026-11-08) and gives no number.
 - **Disclosure.** The letter says plainly that the app calls search without a token although the docs require one.
   That is the point of asking. Do not send it if you are not willing to accept "no" and switch search off or replace
   it (`docs/onemap-runtime-assessment.md` §6, S4).
@@ -66,7 +69,8 @@ endpoints used and the expected traffic. Then come the manner of use, the durati
 
 **1. Name of application**
 
-"Singapore Smart Commute": a personal, non-commercial hobby project. It has no advertising, no fees and no sign-in,
+"Singapore Smart Commute": a personal, non-commercial hobby project, under development and intended for public
+release. It has no advertising, no fees and no sign-in,
 and it has no server, so it collects no user data. It shows current weather and air quality, lets a user search for
 a place, and suggests direct bus journeys with live arrival times, the nearest MRT station and an optional map.
 
@@ -83,7 +87,7 @@ The app does not call reverse geocoding, routing or any other OneMap service.
 
 **3. Expected traffic**
 
-[Number of users, or: "unknown, and expected to be small"]. Each running copy of the app:
+The current number of users is unknown; expected usage is small. Each running copy of the app:
 
 - searches only after the user types at least 3 characters (or a 6-digit postal code), waits 350 ms after the last
   keystroke, reads page 1 only, and sends **at most one search request per second**;
@@ -94,7 +98,7 @@ The app does not call reverse geocoding, routing or any other OneMap service.
 **4. Manner of use**
 
 - The app is a Flutter application for the Web and for Android. It has **no server of its own**: each user's browser
-  or phone calls OneMap directly. Its source code is public at [repository link].
+  or phone calls OneMap directly. Its source code is public at https://github.com/WeeJC8954/sg-smart-commute.
 - **Why no token.** I understand the search documentation says the Search API "now requires token-based
   authentication". A token comes from an account's email and password, and your API Terms of Service ask that
   credentials be kept "secure and confidential". An app with no server can only hold a token by putting it, or the
@@ -120,13 +124,12 @@ The app does not call reverse geocoding, routing or any other OneMap service.
 
 **5. Duration**
 
-Search from October 2026, map tiles from October 2026. Ongoing, with no fixed end date. I will stop or change the use
-if SLA asks.
+In development and testing: search since October 2026, map tiles since October 2026. Use by the public would begin
+when the app is released, with no fixed end date. I will stop or change the use if SLA asks.
 
 **6. Identity**
 
-[Full name], an individual developer in Singapore, acting in a personal capacity. Contact: [email address]. App:
-[public app link, if you choose to give it].
+[Full name], an individual developer in Singapore, acting in a personal capacity. Contact: [email address].
 
 **Questions**
 
