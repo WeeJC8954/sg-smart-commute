@@ -1,6 +1,7 @@
 # Manual accessibility and physical-device checklist
 
-**Status:** prepared 2026-11-08 (owner approval), nothing run yet. Baseline: `main` at `901007f` (D1 and D2 merged).
+**Status:** prepared 2026-11-08 (owner approval), nothing run yet. Baseline: `main` at `901007f` (D1 and D2 merged);
+row C2 needs a build from `1ff243e` or later (PR #121).
 Every row starts as **Not run**. Record each as **Pass**, **Fail**, **Blocked** or **Not run**, with a note. A result
 counts only when a person did the check on the device; never copy a result from the automated tests (the widget and
 integration tests, or a `uiautomator` tree), which cannot hear what TalkBack says.
@@ -45,7 +46,7 @@ Swipe right through the home screen from the top with TalkBack on.
 | ID | Check | Expected | Result | Notes |
 |---|---|---|---|---|
 | C1 | Footer credits | Each read on its own, last on the page (A2) | Not run | |
-| C2 | Search-results credit | With results shown, record where "Place search: OneMap © Singapore Land Authority" is heard. Known from the tree (2026-11-08): it is part of the route card's item with "From: …", so it may be heard **before** the results. Record what you hear; no change has been made | Not run | |
+| C2 | Search-results credit (build from `1ff243e` or later, PR #121) | With results shown, "Place search: OneMap © Singapore Land Authority" is its own item, heard right **after** the last result, not merged into the route card's item with "From: …". On a build from before `1ff243e` it may be heard before the results: record which build you used | Not run | |
 | C3 | Map credit | With the map open: "OneMap" and "Singapore Land Authority" are read as links, with the text between them | Not run | |
 
 ## D. Licence notices and links
