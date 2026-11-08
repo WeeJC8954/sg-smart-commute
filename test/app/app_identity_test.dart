@@ -48,9 +48,51 @@ void main() {
   test('Android: the launcher uses the app icon and the human name', () {
     final manifest = File('android/app/src/main/AndroidManifest.xml')
         .readAsStringSync();
-    expect(manifest, contains('android:label="${SmartCommuteApp.title}"'));
+    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+    // The name comes from the build: the app's title in normal builds, a test
+    // name only in the opt-in synthetic build (below).
+    expect(manifest, contains(r'android:label="${appLabel}"'));
+    expect(gradle, contains('else "${SmartCommuteApp.title}"'));
     expect(manifest, contains('android:icon="@mipmap/ic_launcher"'));
     expect(manifest, isNot(contains('sg_smart_commute"')));
+  });
+
+  test('Android: only the opt-in synthetic test build gets its own id and '
+      'name', () {
+    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+    const realId = 'sg.smartcommute.sg_smart_commute';
+    expect(
+      gradle,
+      contains(
+        'val syntheticTestBuild = findProperty("syntheticTestBuild") == "true"',
+      ),
+    );
+    expect(
+      gradle,
+      contains('if (syntheticTestBuild) "$realId.synthetic" else "$realId"'),
+    );
+    expect(
+      gradle,
+      contains(
+        'if (syntheticTestBuild) "SSC Synthetic Test" '
+        'else "${SmartCommuteApp.title}"',
+      ),
+    );
+    // One place sets the id; the namespace (Kotlin package) stays the real one.
+    expect(RegExp(r'applicationId\s*=').allMatches(gradle), hasLength(1));
+    expect(gradle, isNot(contains('applicationIdSuffix')));
+    expect(gradle, contains('namespace = "$realId"'));
+    // The flag and the fake-data entry point go together (Gradle refuses
+    // either without the other).
+    expect(
+      gradle,
+      contains('endsWith("integration_test/demo/synthetic_demo_app.dart")'),
+    );
+    expect(gradle, contains('if (syntheticTestBuild != syntheticEntryPoint)'));
+    expect(
+      File('integration_test/demo/synthetic_demo_app.dart').existsSync(),
+      isTrue,
+    );
   });
 
   test('Android: legacy icons at every density, none the template', () {

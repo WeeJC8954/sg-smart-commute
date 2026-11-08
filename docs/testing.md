@@ -308,11 +308,15 @@ decoding OneMap's tiles, as the October 2026 runs did. It is not a gate, and `fl
 Synthetic demo build (manual TalkBack, keyboard and physical-device checks; owner approval 2026-11-08): the real app
 over the shared fakes, with synthetic tiles, as an installable debug APK. No network request: every repository, the
 tile factory and the OneMap logo are the fakes', and links answer "could not open" (the app then shows "Couldn't open
-<host>.", so a tester can see a link was activated). It has the real app's package id, so it replaces the real app on
-a device; the About dialog's fake version 9.8.7 (42) identifies it.
+<host>.", so a tester can see a link was activated). Since 2026-11-08 the opt-in Gradle property `syntheticTestBuild`
+(passed by Flutter's `-P`, `--android-project-arg`) gives it its own app id,
+`sg.smartcommute.sg_smart_commute.synthetic`, and the name "SSC Synthetic Test", so it installs beside the real app
+with its own data; normal builds keep `sg.smartcommute.sg_smart_commute` and "Singapore Smart Commute". Gradle refuses
+the flag without this entry point and this entry point without the flag. The About dialog's fake version 9.8.7 (42)
+and the DEBUG ribbon identify it.
 
 ```bash
-flutter build apk --debug -t integration_test/demo/synthetic_demo_app.dart
+flutter build apk --debug -t integration_test/demo/synthetic_demo_app.dart -P syntheticTestBuild=true
 # copy build/app/outputs/flutter-apk/app-debug.apk away, then rebuild the real app: flutter build apk --debug
 ```
 
