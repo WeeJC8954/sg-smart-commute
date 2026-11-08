@@ -89,7 +89,8 @@ Other facts from the code [C]:
 - **Failure handling:** HTTP 401/403, or an `error` with no `results` list, → `ApiUnauthorized` ("OneMap now requires
   sign-in"), with no credential, proxy or workaround (`docs/assumptions.md`, "OneMap 'error' field").
 - **Dev tools** that call OneMap live when run by hand: `tool/probe_apis.sh`, `tool/probe_map.sh`,
-  `tool/api_probe_app.dart`, `tool/place_search_eval.dart`, `tool/journey_smoke.dart`, `tool/map_performance_probe.dart`.
+  `tool/api_probe_app.dart`, `tool/place_search_eval.dart`, `tool/journey_smoke.dart`, and until 2026-11-08
+  `tool/map_performance_probe.dart` (since then it draws synthetic tiles and makes no request).
 
 ## 3. Sources read [C]
 

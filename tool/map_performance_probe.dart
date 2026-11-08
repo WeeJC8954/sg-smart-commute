@@ -2,27 +2,24 @@
 // map on an Android device or emulator, in profile mode. Not part of the app
 // and not a test gate; `flutter test` never runs it:
 //
-//   flutter drive --profile --keep-app-running -d <android-device> \
-//     --driver=test_driver/integration_test.dart \
-//     --target=tool/map_performance_probe.dart
+//   flutter drive --profile --keep-app-running -d <android-device> //     --driver=test_driver/integration_test.dart //     --target=tool/map_performance_probe.dart
 //
-// OPTIONAL, development only (owner decision A-5d-6): it loads live OneMap
-// (SLA) tiles, whose runtime use is not shown to be permitted
-// (docs/onemap-runtime-assessment.md). CI, the tests and normal development
-// never need it; run it by hand only with the owner's approval.
+// Synthetic tiles only (owner decision 2026-11-08): the map draws the invented
+// street grid of integration_test/fakes/synthetic_tiles.dart, so the probe
+// makes no network request (no OneMap tile, no logo, no provider data). It
+// measures building, panning and drawing the map with its ride line, markers
+// and tiles drawn on the device; it does not measure downloading or decoding
+// OneMap's PNG tiles, which the October 2026 runs (docs/testing.md) did.
 //
-// Without --keep-app-running, flutter drive uninstalls the app at the end,
-// and the tile cache goes with it, so a second run would start cold.
+// Without --keep-app-running, flutter drive uninstalls the app at the end.
 //
 // The journey is the integration tests' fake one (GPS at Bishan, a direct bus
 // to the synthetic Bay Mall with its ride line, both walking connectors and
-// both MRT pins), but the tiles are live OneMap tiles through the app's
-// OneMapTileProvider, so tile decoding and drawing are measured too. Only the tiles of the map on
-// screen are requested: the fitted view and what the scripted pans reveal, in
-// light and then dark mode (docs/map-feasibility.md §4.2). Android only: it
-// imports the shared fakes from integration_test/, which a Web build cannot.
-// The results (FrameTimingSummarizer's summary per mode, plus p95, which it
-// does not compute) land in build/integration_response_data.json.
+// both MRT pins). Only the tiles of the map on screen are drawn: the fitted
+// view and what the scripted pans reveal, in light and then dark mode. Android
+// only: it imports the shared fakes from integration_test/, which a Web build
+// cannot. The results (FrameTimingSummarizer's summary per mode, plus p95,
+// which it does not compute) land in build/integration_response_data.json.
 import 'dart:ui' show FrameTiming;
 
 import 'package:flutter/material.dart';
@@ -31,10 +28,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
-import 'package:sg_smart_commute/features/map/presentation/basemap.dart';
 
 import '../integration_test/fakes/fake_environment_repository.dart';
 import '../integration_test/fakes/fake_location_service.dart';
+import '../integration_test/fakes/synthetic_tiles.dart';
 import '../integration_test/fakes/test_app.dart';
 import '../integration_test/support.dart';
 
@@ -52,7 +49,7 @@ void main() {
           position: const LatLng(1.3508, 103.8485), // Bishan
         ),
         environment: FakeEnvironmentRepository(),
-        mapTiles: OneMapTileProvider.new,
+        mapTiles: SyntheticTileProvider.new,
       ),
     );
     await pumpUntilFound(tester, find.text('From: Current location'));

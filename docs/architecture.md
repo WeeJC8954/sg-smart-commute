@@ -337,7 +337,8 @@ Hardening checks from `docs/map-feasibility.md` §10 item 4, with decisions D1�
 - **No walking router:** `docs/map-feasibility.md` §6.1, so no new host, client, header or CSP change; the map stays
   a consumer of the plan, and the straight dashed connectors are final.
 - **Verified, unchanged:** the Android tile cache follows `max-age`; no HD tiles; OneMap's terms re-checked.
-- **Dev tool:** `tool/map_performance_probe.dart` (profile, Android only, live OneMap tiles, not a gate).
+- **Dev tool:** `tool/map_performance_probe.dart` (profile, Android only, not a gate; live OneMap tiles until
+  2026-11-08, synthetic tiles drawn on the device since).
 - Not in P2-M4: any new map feature, routing, keyboard-animation changes, the simplification refactor, UI polish.
 
 ## UI polish follow-ups (after Phase 2)
