@@ -19,6 +19,12 @@ OneMap or any other source:
 | `East Hub` → `EAST HUB (fake)`, `990803` | Our Tampines Hub | 1.3650, 103.9250 | Manual origin: nearest fake forecast area "Tampines" (3.0 km) and the east region, so "Tampines area"; only EST1 within 800 m (F40 to MID1), so no bus to City Tower; nearest MRT `FAKE EAST MRT STATION` 512 m |
 | `North MRT` → `NORTH MRT STATION (FN1) (fake)` and `(FN2) (fake)`, `990811` / `990812` | Bishan MRT CC15 / NS17 | 1.3515, 103.8480 / 1.3505, 103.8490 | Two results for one query (the second picked), typed as stations; within 300 m of the fix (96 m and 65 m), so walk-only as a destination; from FN2, F30 at BSH1 to City Tower |
 
+Queries match exactly in every test. Only the synthetic demo app (`integration_test/demo/synthetic_demo_app.dart`)
+turns on `prefixMatch` (2026-11-08, owner approval): a query with no exact key then finds the places of every key that
+starts with it (`bay` → `BAY MALL (fake)`), as OneMap's type-ahead found `vivoc` → VivoCity in the M0 probe
+(`docs/api-feasibility.md` §4.2). Whole-key prefix only, no word or substring match; failures and held queries stay
+exact (`test/features/places/fake_place_search_repository_test.dart`).
+
 Kept as they were, with the reason:
 - the fake GPS fix (1.3508, 103.8485, `bishan` in the tests), stops BSH1 / BSH2 and the fake `BISHAN MRT STATION`:
   hand-picked test values, not OneMap records. The station's exit was the NS17 record's exact position; it moved to
