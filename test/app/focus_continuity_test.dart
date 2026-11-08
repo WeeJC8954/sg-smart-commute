@@ -236,6 +236,57 @@ void main() {
         semantics.dispose();
       }
     });
+
+    testWidgets('T80-7 phone size, the list scrolled so "Change" sits beside '
+        'the app-bar actions: Tab still goes on to the destination field', (
+      tester,
+    ) async {
+      // A 411 × 914 dp phone (the Android emulator's), where the 2026-11-08
+      // run found Tab going "Change" → About → palette (docs/testing.md).
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.625;
+      addTearDown(tester.view.reset);
+      final location = FakeLocationService(access: LocationAccess.granted);
+      await tester.pumpWidget(
+        buildTestApp(
+          location: location,
+          environment: FakeEnvironmentRepository(),
+          places: FakePlaceSearchRepository(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 10));
+      await typeOrigin(tester);
+      await tester.tap(find.text('EAST HUB (fake)'));
+      await settle(tester);
+      location.fix(bishan); // late: only offered
+      await settle(tester);
+      await tabTo(tester, chip);
+      await press(tester, LogicalKeyboardKey.enter);
+      expect(focusIn(change), isTrue, reason: 'focus on ${focusName()}');
+
+      // Scroll the list until "Change" overlaps the app bar's row of actions.
+      final list = tester.state<ScrollableState>(
+        find.ancestor(of: change, matching: find.byType(Scrollable)).first,
+      );
+      final about = tester.getRect(key('about-button'));
+      list.position.jumpTo(
+        list.position.pixels + tester.getRect(change).top - about.center.dy,
+      );
+      await tester.pump();
+      final changeRect = tester.getRect(change);
+      expect(
+        changeRect.top < about.bottom && changeRect.bottom > about.top,
+        isTrue,
+        reason: '"Change" $changeRect should share a row with About $about',
+      );
+      expect(focusIn(change), isTrue, reason: 'focus on ${focusName()}');
+
+      await press(tester, LogicalKeyboardKey.tab);
+      expect(focusIn(destinationField), isTrue, reason: 'Tab: ${focusName()}');
+      await press(tester, LogicalKeyboardKey.tab, shift: true);
+      expect(focusIn(change), isTrue, reason: 'Shift+Tab: ${focusName()}');
+    });
   });
 
   group('#81: the manual-origin "Try location again" hands focus to the '
