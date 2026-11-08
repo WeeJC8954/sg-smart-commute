@@ -34,11 +34,15 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
     repository, because they will carry your details.
 - **Placeholders** are in square brackets: your name and email address only. The form also asks for a contact
   number if you want a reply; it is not in the letter.
-- **Repository and deployment status** (checked 2026-11-08):
+- **Repository and use** (checked 2026-11-08; framing decided by the owner on 2026-11-08):
   - the repository is https://github.com/WeeJC8954/sg-smart-commute, public and not archived on GitHub;
   - no public deployment of the app was found: no GitHub Pages site, homepage URL, deployment or release, and no
-    hosting address in the repository's docs. So the letter calls the app "under development and intended for
-    public release" and gives no app link. If the app is deployed before you send, revise §2, §4, §5 and question 1.
+    hosting address in the repository's docs;
+  - so the letter describes current personal, non-commercial use, possible limited sharing with family and friends,
+    no immediate plans for a public release, and a possible later public release with no committed date, and gives
+    no app link. If any of this changes before you send, revise §2, §4 and question 1, and the cover note.
+  - The approved cover note says "under development and intended for public release"; it needs the same change
+    and your approval again before sending.
 - **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
   - the three endpoints and the credit (`lib/core/config/app_config.dart`, `lib/app/home_screen.dart`);
   - the loading and retry rules (`busNetworkProvider`, `routeGeometryProvider` and `MapExpanded.show`);
@@ -114,10 +118,11 @@ I do not know whether those projects hold LTA's permission, and I do not rely on
 
 **2. Intent of use**
 
-"Singapore Smart Commute" is a personal, non-commercial hobby project: an application under development and intended
-for public release. It has no advertising, no fees and no sign-in, and it has no server, so it collects no user data.
-It shows current weather and air quality, lets a user search for a place, and suggests direct bus journeys with live
-arrival times and the nearest MRT station.
+"Singapore Smart Commute" is a personal, non-commercial hobby project, for my own use, which I may also share with a
+few family members and friends. I have no immediate plans to release it to the public; I may do so in future, but
+there is no committed date. Its source code is public. It has no advertising, no fees and no sign-in, and it has no
+server, so it collects no user data. It shows current weather and air quality, lets a user search for a place, and
+suggests direct bus journeys with live arrival times and the nearest MRT station.
 
 **3. Manner of use**
 
@@ -144,8 +149,8 @@ arrival times and the nearest MRT station.
 
 **4. Time frame of use**
 
-In development and testing since October 2026. Use by the public would begin when the app is released, with no fixed
-end date. I will stop or change the use if LTA asks.
+In personal use and development since October 2026, ongoing, with no fixed end date. There is no committed date for
+any public release. I will stop or change the use if LTA asks.
 
 **5. Identity of the user**
 
@@ -153,8 +158,9 @@ end date. I will stop or change the use if LTA asks.
 
 **Questions**
 
-1. Once released to the public, may a Flutter Web and Android app, as described above, use the LTA parts of this data
-   at runtime? If so, on what terms?
+1. May a Flutter Web and Android app, as described above, use the LTA parts of this data at runtime, for my own use
+   and limited sharing with family and friends? Would the answer differ if I later released it to the public? If so,
+   on what terms?
 2. Is it acceptable that the app obtains the data through busrouter.sg (that is, from `sgbusdata`) rather than from
    lta.gov.sg?
 3. Is attribution required? If so, what wording and placement do you require?
