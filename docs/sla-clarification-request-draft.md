@@ -25,9 +25,11 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
   - the repository is https://github.com/WeeJC8954/sg-smart-commute, public and not archived on GitHub;
   - no public deployment of the app was found: no GitHub Pages site, homepage URL, deployment or release, and no
     hosting address in the repository's docs;
-  - so the letter describes current personal, non-commercial use, possible limited sharing with family and friends,
-    no immediate plans for a public release, and a possible later public release with no committed date, and gives
-    no app link. If any of this changes before you send, revise §1, §3, §5 and question 1.
+  - so the letter says, with one meaning throughout (owner, 2026-11-08): the application is currently intended for
+    personal use; future sharing with a small number of family members or friends may be considered; no sharing or
+    public release is currently scheduled; there is no committed public-release date. Questions about sharing or a
+    public release are put as hypothetical. It gives no app link. If any of this changes before you send, revise
+    §1, §3, §5 and question 1.
   - §3's user sentences are the owner's wording of 2026-11-08, for this proposed revision only. They do not replace the
     email already sent to SLA, which keeps its own wording (the sent text is to be archived when the owner provides it).
 - **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
@@ -73,11 +75,12 @@ endpoints used and the expected traffic. Then come the manner of use, the durati
 
 **1. Name of application**
 
-"Singapore Smart Commute": a personal, non-commercial hobby project, for my own use, which I may also share with a few
-family members and friends. I have no immediate plans to release it to the public; I may do so in future, but there is
-no committed date. Its source code is public. It has no advertising, no fees and no sign-in, and it has no server, so
-it collects no user data. It shows current weather and air quality, lets a user search for a place, and suggests
-direct bus journeys with live arrival times, the nearest MRT station and an optional map.
+"Singapore Smart Commute": a personal, non-commercial hobby project. The application is currently intended for my
+personal use. I may consider sharing it with a small number of family members or friends in the future, but no such
+sharing or public release is currently scheduled, and there is no committed public-release date. Its source code is
+public. It has no advertising, no fees and no sign-in, and it has no server, so it collects no user data. It shows
+current weather and air quality, lets a user search for a place, and suggests direct bus journeys with live arrival
+times, the nearest MRT station and an optional map.
 
 **2. Endpoints used**
 
@@ -132,7 +135,8 @@ the app:
 **5. Duration**
 
 In personal use and development: search since October 2026, map tiles since October 2026, ongoing, with no fixed end
-date. There is no committed date for any public release. I will stop or change the use if SLA asks.
+date. No sharing or public release is currently scheduled, and there is no committed public-release date. I will stop
+or change the use if SLA asks.
 
 **6. Identity**
 
@@ -140,10 +144,10 @@ date. There is no committed date for any public release. I will stop or change t
 
 **Questions**
 
-1. **Search without a token.** May an app like this, with no server, keep calling the Search API without a token, for
-   my own use and limited sharing with family and friends? Would the answer differ if I later released it to the
-   public? If not, is there an approach SLA accepts for an app that cannot keep a credential confidential? Or is
-   OneMap search not available to such apps?
+1. **Search without a token.** May an app like this, with no server, keep calling the Search API without a token for
+   my personal use? If not, is there an approach SLA accepts for an app that cannot keep a credential confidential?
+   Or is OneMap search not available to such apps? Hypothetically, if I were later to share the app with a small
+   number of family members or friends, or to release it to the public, would the answer differ?
 2. **Registration.**
    - Your Terms of Use say that anyone who wishes to build web applications "using the API and the Data" must
      complete the online registration and accept the "Developer Agreement". Does this apply to an app that uses only

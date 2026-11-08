@@ -38,9 +38,11 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
   - the repository is https://github.com/WeeJC8954/sg-smart-commute, public and not archived on GitHub;
   - no public deployment of the app was found: no GitHub Pages site, homepage URL, deployment or release, and no
     hosting address in the repository's docs;
-  - so the letter describes current personal, non-commercial use, possible limited sharing with family and friends,
-    no immediate plans for a public release, and a possible later public release with no committed date, and gives
-    no app link. If any of this changes before you send, revise §2, §4 and question 1, and the cover note.
+  - so the letter says, with one meaning throughout (owner, 2026-11-08): the application is currently intended for
+    personal use; future sharing with a small number of family members or friends may be considered; no sharing or
+    public release is currently scheduled; there is no committed public-release date. Questions about sharing or a
+    public release are put as hypothetical. It gives no app link. If any of this changes before you send, revise
+    §2, §4 and question 1, and the cover note.
   - The approved cover note says "under development and intended for public release"; it needs the same change
     and your approval again before sending.
 - **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
@@ -118,11 +120,12 @@ I do not know whether those projects hold LTA's permission, and I do not rely on
 
 **2. Intent of use**
 
-"Singapore Smart Commute" is a personal, non-commercial hobby project, for my own use, which I may also share with a
-few family members and friends. I have no immediate plans to release it to the public; I may do so in future, but
-there is no committed date. Its source code is public. It has no advertising, no fees and no sign-in, and it has no
-server, so it collects no user data. It shows current weather and air quality, lets a user search for a place, and
-suggests direct bus journeys with live arrival times and the nearest MRT station.
+"Singapore Smart Commute" is a personal, non-commercial hobby project. The application is currently intended for my
+personal use. I may consider sharing it with a small number of family members or friends in the future, but no such
+sharing or public release is currently scheduled, and there is no committed public-release date. Its source code is
+public. It has no advertising, no fees and no sign-in, and it has no server, so it collects no user data. It shows
+current weather and air quality, lets a user search for a place, and suggests direct bus journeys with live arrival
+times and the nearest MRT station.
 
 **3. Manner of use**
 
@@ -149,8 +152,8 @@ suggests direct bus journeys with live arrival times and the nearest MRT station
 
 **4. Time frame of use**
 
-In personal use and development since October 2026, ongoing, with no fixed end date. There is no committed date for
-any public release. I will stop or change the use if LTA asks.
+In personal use and development since October 2026, ongoing, with no fixed end date. No sharing or public release is
+currently scheduled, and there is no committed public-release date. I will stop or change the use if LTA asks.
 
 **5. Identity of the user**
 
@@ -158,9 +161,9 @@ any public release. I will stop or change the use if LTA asks.
 
 **Questions**
 
-1. May a Flutter Web and Android app, as described above, use the LTA parts of this data at runtime, for my own use
-   and limited sharing with family and friends? Would the answer differ if I later released it to the public? If so,
-   on what terms?
+1. May a Flutter Web and Android app, as described above, use the LTA parts of this data at runtime for my personal
+   use? If so, on what terms? Hypothetically, if I were later to share it with a small number of family members or
+   friends, or to release it to the public, would the answer or the terms differ?
 2. Is it acceptable that the app obtains the data through busrouter.sg (that is, from `sgbusdata`) rather than from
    lta.gov.sg?
 3. Is attribution required? If so, what wording and placement do you require?
