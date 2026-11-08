@@ -23,6 +23,8 @@
 // so the system's reduce-motion setting can be checked. The colour palette is
 // the one thing kept on the device (#125): the real shared_preferences store,
 // read before the first frame as main() does, in this app id's own storage.
+// Place search matches the start of a fake query ("bay" finds BAY MALL), as
+// OneMap's type-ahead does; the tests keep exact matching.
 import 'package:flutter/widgets.dart';
 import 'package:sg_smart_commute/core/geo/geo.dart';
 import 'package:sg_smart_commute/core/location/location_service.dart';
@@ -32,6 +34,7 @@ import 'package:sg_smart_commute/features/appearance/data/shared_preferences_pal
 
 import '../fakes/fake_environment_repository.dart';
 import '../fakes/fake_location_service.dart';
+import '../fakes/fake_place_search_repository.dart';
 import '../fakes/synthetic_tiles.dart';
 import '../fakes/test_app.dart';
 
@@ -47,6 +50,7 @@ Future<void> main() async {
         position: const LatLng(1.3508, 103.8485),
       ),
       environment: FakeEnvironmentRepository(),
+      places: FakePlaceSearchRepository(prefixMatch: true),
       mapTiles: SyntheticTileProvider.new,
       openLink: (_) async => false,
       motionDuration: AppMotion.resize,
