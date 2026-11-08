@@ -104,7 +104,7 @@ PRs #95 (A-5c) and #94 (A-5b):
 | `route_geometry_probe.dart`, `api_probe_app.dart`, `journey_smoke.dart` | stdout only; one ride; status lines; 12 place pairs as OneMap query, name and postcode (public names) | Project, Derived | **Keep** |
 | `map_performance_probe.dart` | One position (Bishan); writes `build/` | Project | **Keep** |
 | `build_mrt_asset.dart` | Downloads the SODL dataset and writes the asset (§3.3) | SODL | **Keep**; C-2 would add the link here |
-| `e5_transfer_bench/expected_results.txt` (22,693 B, `9141fde`, 2026-11-06) | The benchmark's deterministic output: counts, percentages, 5-digit stop codes, service numbers, stop counts, road names (DataMall, SODL), the named pairs' labels | Derived; stop codes and service numbers come from lta.gov.sg via busrouter (LTA-web) as identifiers, not records [A] | **Owner decision C-5** |
+| `e5_transfer_bench/expected_results.txt` (22,693 B, `9141fde`, 2026-11-06) | The benchmark's deterministic output: counts, percentages, 5-digit stop codes, service numbers, stop counts, road names (DataMall, SODL), the named pairs' labels | Derived; stop codes and service numbers come from lta.gov.sg via busrouter (LTA-web) as identifiers, not records [A] | **Kept provisionally** (C-5, §10) |
 | `e5_transfer_bench/bench.dart` | `namedFixtures`: 12 labelled pairs of interchange stop codes | Project labels; LTA-web identifiers [A] | **Keep** (with C-5) |
 | `e5_transfer_bench/*.min.json` | Never committed; `.gitignore` refuses them | — | No action |
 | `icon/` | The app art | Project | **Keep** |
@@ -209,3 +209,15 @@ with `flutter drive`, not a test; no `lib/` change):
   are the app's standard credits and describe no real data there.
 
 Same names, sizes 824 × 1830 as before. The old images remain in Git history (`34a1309`; C-7, no rewrite).
+
+## 10. C-5: kept provisionally (owner decision 2026-11-08)
+
+`tool/e5_transfer_bench/expected_results.txt` stays in the tree for now, as the benchmark's check.
+- It is derived benchmark output: counts, percentages, stop codes, service numbers, stop counts, road names (DataMall,
+  SODL) and the project's own labels for the named pairs. No stop names from lta.gov.sg.
+- The stop codes and service numbers are factual identifiers whose source (lta.gov.sg via busrouter) has
+  **unresolved** redistribution rights (`docs/busrouter-fixture-licensing-audit.md`). The file's legal status is
+  therefore **not established**; keeping it is a provisional decision, not a finding that it may be redistributed.
+- If later evidence (for example LTA's answer to `docs/lta-clarification-request-draft.md`, if it is sent) shows a
+  material restriction, revisit the alternative: replace the file with a digest of the benchmark output, so the check
+  stays without the identifiers in the tree. The file would then remain in Git history (C-7, no rewrite).

@@ -80,4 +80,8 @@ dart run tool/e5_transfer_bench/vm_main.dart | sed 's/^.*E5 one-transfer/E5 one-
 - **`expected_results.txt` holds only derived facts:** counts, stop codes, service numbers, road names (from LTA
   DataMall, Singapore Open Data Licence) and the named pairs' labels written here. It holds no stop names from
   lta.gov.sg.
+- **Kept provisionally (owner decision C-5, 2026-11-08).** The file is derived benchmark output with factual
+  identifiers (stop codes, service numbers). The redistribution rights for the source data it is derived from are
+  **unresolved**, so its own legal status is **not established**. If later evidence shows a material restriction,
+  revisit the alternative: replace the file with a digest of the output (`docs/captured-data-inventory.md` §10).
 - **Timings vary between runs.** Report at least three runs per platform, with the device and browser version.
