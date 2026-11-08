@@ -40,8 +40,9 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
   - still in the tree, kept provisionally (C-5): the E5 benchmark's expected output
     (`tool/e5_transfer_bench/expected_results.txt`) and its named pairs (`bench.dart`), with stop codes, service
     numbers, road names and counts derived from the data. §3 says so; LTA's answer may reopen C-5.
-  - Question 7 (owner, 2026-11-08) asks whether the benchmark output and pairs may remain, including in Git history.
-    The earlier extracts and screenshots that §3 discloses are not asked about.
+  - Question 7 (owner, 2026-11-08) asks whether everything §3 discloses may remain in the repository, including in
+    Git history: the benchmark output and pairs, the earlier test extracts, the development-log lines and the
+    screenshots.
 - **Sources other than LTA (§1).** The source list comes from `docs/runtime-data-rights-assessment.md` §3 (sgbusdata's
   scripts, read 2026-11-06). LTA can only answer for its own content: the SimplyGo name corrections and the OneMap and
   Citymapper route patches stay open whatever LTA says, and the OneMap part belongs with the SLA letter. The app's
@@ -147,8 +148,12 @@ From October 2026, ongoing, with no fixed end date. I will stop or change the us
 6. Is there an officially licensed source for this data? My understanding is that LTA DataMall's `BusStops` and
    `BusRoutes` datasets are available under the Singapore Open Data Licence. Is that correct, and is there also an
    official source for bus route lines?
-7. May the benchmark output and the pairs of stop codes described in §3 remain in the public repository, including
-   in its history? If not, should they be removed?
+7. §3 describes material derived from the data in the public repository:
+   - in its current files: the benchmark output and the 12 pairs of stop codes;
+   - in its history only: the earlier extracts in tests, the first few lines of each file in development logs, and the
+     screenshots showing stop names, a route line and live arrival times.
+
+   May each of these remain in the repository, including in its history? If not, which should be removed?
 8. A question about a different source: the app also shows live bus arrival times from LTA DataMall's Bus Arrival
    API, obtained through ArriveLah (arrivelah2.busrouter.sg), a community service that relays it. The app does not
    call DataMall directly. It shows a notice naming LTA DataMall and ArriveLah, with a link to the Singapore Open Data
