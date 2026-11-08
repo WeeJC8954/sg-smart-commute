@@ -80,6 +80,7 @@ Swipe right through the home screen from the top with TalkBack on.
 | F2 | Pick Rose | The app recolours; the menu closes; focus returns to the palette button | Not run | |
 | F3 | About | A dialog with the app name and version 9.8.7 (42); closing it returns focus to the About button | Not run | |
 | F4 | Back button / Escape | Closes the menu or dialog; focus restored as in F2 and F3 | Not run | |
+| F5 | Palette kept after a restart (supplementary: the owner's physical-device Test 8, #125; needs a synthetic build from `0044d0b` or later) | Pick a palette other than Teal; open Recents and swipe the app away; open it again: the same palette is still active (the synthetic build keeps it in its own storage, apart from the real app). On the `240bebd` build this **failed** (realme 7 Pro, 2026-11-08): that build kept the choice in memory only and restarted in Teal | Not run | |
 
 ## G. Large text, dark mode, reduced motion
 
