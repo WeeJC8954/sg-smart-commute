@@ -1,6 +1,7 @@
 // Milestone 2 widget tests: origin and destination place search (guide v2.1
 // §5.3–§5.5, §8.3, §18). Location, environment and place search are fakes.
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,6 +120,51 @@ void main() {
 
     await pick(tester, 'NORTH MRT STATION (FN2) (fake)');
     expect(originOf(tester).origin!.position, fakeNorthMrtB.position);
+  });
+
+  testWidgets('a screen reader reads the OneMap credit under the results, '
+      'after them, on its own', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pumpApp(tester, gpsApp());
+    await type(tester, destinationField, 'North MRT');
+    final credit = find.descendant(
+      of: find.byType(PlaceSearchField),
+      matching: find.text(oneMapAttribution),
+    );
+    expect(credit, findsOneWidget);
+
+    // Its own node, labelled with the credit only (it was merged into the
+    // route card's node, next to "From: Current location").
+    final node = tester.getSemantics(credit);
+    expect(node.label, oneMapAttribution);
+
+    // Labelled nodes in the order a screen reader moves through them.
+    var root = node;
+    while (root.parent != null) {
+      root = root.parent!;
+    }
+    final order = <String>[];
+    void walk(SemanticsNode n) {
+      if (n.label.isNotEmpty) order.add(n.label);
+      for (final child in n.debugListChildrenInOrder(
+        DebugSemanticsDumpOrder.traversalOrder,
+      )) {
+        walk(child);
+      }
+    }
+
+    walk(root);
+    final lastResult = order.lastIndexWhere(
+      (l) => l.contains('NORTH MRT STATION (FN2) (fake)'),
+    );
+    expect(lastResult, isNonNegative, reason: '$order');
+    expect(
+      order.take(lastResult).where((l) => l.contains(oneMapAttribution)),
+      isEmpty,
+      reason: 'credit read before the results: $order',
+    );
+    expect(order.indexOf(oneMapAttribution), lastResult + 1, reason: '$order');
+    handle.dispose();
   });
 
   testWidgets('an address identical to the name is not repeated', (
