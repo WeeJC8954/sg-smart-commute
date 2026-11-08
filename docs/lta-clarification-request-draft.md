@@ -21,14 +21,17 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
   - The form itself was not opened: its categories, field length and whether it takes attachments are not known.
     The letter has no table, so it can be pasted as plain text. If the form is too short, send a short summary and
     attach the letter, or ask the hotline for an address.
-- **Placeholders** are in square brackets: your name, contact address, repository and app links. Decide whether to
-  give the public app's URL.
+- **Placeholders** are in square brackets: your name and email address only.
+- **Repository and deployment status** (checked 2026-11-08):
+  - the repository is https://github.com/WeeJC8954/sg-smart-commute, public and not archived on GitHub;
+  - no public deployment of the app was found: no GitHub Pages site, homepage URL, deployment or release, and no
+    hosting address in the repository's docs. So the letter calls the app "under development and intended for
+    public release" and gives no app link. If the app is deployed before you send, revise §2, §4, §5 and question 1.
 - **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
   - the three endpoints and the credit (`lib/core/config/app_config.dart`, `lib/app/home_screen.dart`);
   - the loading and retry rules (`busNetworkProvider`, `routeGeometryProvider` and `MapExpanded.show`);
   - what is shown (`docs/runtime-data-rights-assessment.md` §2) and the provenance chain (§3);
   - the start date (the first busrouter code, `50de76a`, 2 October 2026).
-  - Please check the "users" sentence: the repository does not record how many people use the app.
 - **What is in the repository (§3).** Checked at `725dc79`:
   - the busrouter test files were replaced by made-up data on 2026-11-06 (`test/fixtures/busrouter/`);
   - the first 220 bytes of each busrouter file in `docs/probe-output/curl-probes.txt` and `map-probes.txt` were
@@ -99,9 +102,10 @@ I do not know whether those projects hold LTA's permission, and I do not rely on
 
 **2. Intent of use**
 
-"Singapore Smart Commute" is a personal, non-commercial hobby project. It has no advertising, no fees and no sign-in,
-and it has no server, so it collects no user data. It shows current weather and air quality, lets a user search for a
-place, and suggests direct bus journeys with live arrival times and the nearest MRT station.
+"Singapore Smart Commute" is a personal, non-commercial hobby project: an application under development and intended
+for public release. It has no advertising, no fees and no sign-in, and it has no server, so it collects no user data.
+It shows current weather and air quality, lets a user search for a place, and suggests direct bus journeys with live
+arrival times and the nearest MRT station.
 
 **3. Manner of use**
 
@@ -113,7 +117,8 @@ place, and suggests direct bus journeys with live arrival times and the nearest 
 - From the data, the app shows the suggested boarding and alighting stops (code, name and position), the service
   number and its direction, the number of stops, and, on an optional map, the stops and the bus's route line.
 - The app does not republish the files: it does not host, bundle or offer them for download. Its source code is
-  public at [repository link]. Its tests of this data use made-up data, and its README screenshots show made-up data.
+  public at https://github.com/WeeJC8954/sg-smart-commute. Its tests of this data use made-up data, and its README
+  screenshots show made-up data.
 - Earlier versions of the repository held small extracts of the files (in tests, and the first few lines of each
   file in development logs) and screenshots showing stop names, a route line and live arrival times. These were
   replaced by made-up data or removed in November 2026, but they remain in the repository's history.
@@ -127,17 +132,17 @@ place, and suggests direct bus journeys with live arrival times and the nearest 
 
 **4. Time frame of use**
 
-From October 2026, ongoing, with no fixed end date. I will stop or change the use if LTA asks.
+In development and testing since October 2026. Use by the public would begin when the app is released, with no fixed
+end date. I will stop or change the use if LTA asks.
 
 **5. Identity of the user**
 
-[Full name], an individual developer in Singapore, acting in a personal capacity. Contact: [email address]. App:
-[public app link, if you choose to give it].
+[Full name], an individual developer in Singapore, acting in a personal capacity. Contact: [email address].
 
 **Questions**
 
-1. May a public Flutter Web and Android app, as described above, use the LTA parts of this data at runtime? If so,
-   on what terms?
+1. Once released to the public, may a Flutter Web and Android app, as described above, use the LTA parts of this data
+   at runtime? If so, on what terms?
 2. Is it acceptable that the app obtains the data through busrouter.sg (that is, from `sgbusdata`) rather than from
    lta.gov.sg?
 3. Is attribution required? If so, what wording and placement do you require?
