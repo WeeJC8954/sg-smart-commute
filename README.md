@@ -28,10 +28,11 @@ looks as before.
 ## Screenshots
 
 **Demonstration data.** A profile Web build of the app at phone width (412 px, 2×), run over synthetic data
-(`integration_test/demo/readme_screenshots.dart`): the places, bus stops, services, arrival times and route line are
-the test fakes', and the map tiles are an invented street grid drawn by the generator, not OneMap's. No live data is
-shown. The map's attribution line and the arrivals credit are the app's standard credits; here they describe no
-real data. A strip at the top of each image says so.
+(`integration_test/demo/readme_screenshots.dart`). Everything shown is synthetic: the locations, bus stops, bus
+services, arrival times, routes and map tiles (an invented street grid drawn by the generator, not OneMap's). No live
+or captured provider data is shown. The OneMap attribution on the map and the arrivals credit are kept because they are
+part of the app's real interface; in these images they **do not identify the source of the demonstration data**. A
+"DEMONSTRATION DATA" strip at the top of each image says so.
 
 | Journey with arrivals | Map with the selected bus | Map, dark theme |
 |---|---|---|
