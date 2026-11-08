@@ -27,13 +27,16 @@ looks as before.
 
 ## Screenshots
 
-The release Web build at phone width with live data: a trip from Bishan to HDB Hub, Toa Payoh (2026-10-05,
-06:20–06:24 SGT). The middle map is zoomed in by hand at the destination end, where the walking estimate and the MRT
-marker show.
+**Demonstration data.** A profile Web build of the app at phone width (412 px, 2×), run over synthetic data
+(`integration_test/demo/readme_screenshots.dart`). Everything shown is synthetic: the locations, bus stops, bus
+services, arrival times, routes and map tiles (an invented street grid drawn by the generator, not OneMap's). No live
+or captured provider data is shown. The OneMap attribution on the map and the arrivals credit are kept because they are
+part of the app's real interface; in these images they **do not identify the source of the demonstration data**. A
+"DEMONSTRATION DATA" strip at the top of each image says so.
 
-| Journey with live arrivals | Map at the destination end | Map, dark theme |
+| Journey with arrivals | Map with the selected bus | Map, dark theme |
 |---|---|---|
-| ![The From/To card, then the journey card: the suggested Bus 88 with live arrivals and the Selected mark, alternative 56 with Select and Show steps, and 57 below](docs/images/app-light.png) | ![Map zoomed in at Toa Payoh: the end of the Bus 88 route, the dashed straight-line walk to HDB Hub, the Toa Payoh MRT marker, the legend and the OneMap attribution](docs/images/journey-map-light.png) | ![Dark theme: the map on OneMap Night tiles with the whole Bus 88 route from Bishan to Toa Payoh](docs/images/journey-map-dark.png) |
+| ![Demonstration data: the From/To card to BAY MALL (fake), then the journey card with the suggested Bus F20, its arrivals and the Selected mark, and alternative F10 with Select and Show steps](docs/images/app-light.png) | ![Demonstration data: the journey card's MRT alternative, then the map on synthetic tiles with the Bus F20 ride line, its legend and attribution](docs/images/journey-map-light.png) | ![Demonstration data: the same map in the dark theme on dark synthetic tiles](docs/images/journey-map-dark.png) |
 
 ## No credentials required
 

@@ -118,7 +118,7 @@ PRs #95 (A-5c) and #94 (A-5b):
 | `test/**` outside `test/fixtures/` | Hand-written positions and codes (e.g. `'00123'`, `F` codes, rounded MRT exits in `mrt_test.dart`); Google's documented example polyline in `polyline_codec_test.dart` | Project; identifiers [A] | **Keep** |
 | `docs/data-sources.md`, `docs/testing.md`, `docs/assumptions.md`, `docs/api-feasibility.md`, `docs/architecture.md` | Response schemas (field names), short error messages, aggregate observations (e.g. "141 buses sampled"), a few stop codes and service numbers | Derived; short functional text [A] | **Keep** |
 | `docs/e5-gate2-implementation-plan.md`, `docs/testing.md` E5 rows | A few benchmark journeys (service numbers, stop codes, stop counts) | Derived [A] | **Keep** (with C-5) |
-| `docs/images/*.png` (3 files, 1,148,408 B, `34a1309`, 2026-10-05; README "Screenshots") | App screenshots with live OneMap tiles, busrouter stop names, ArriveLah arrival times and NEA readings | OneMap, LTA-web, ArriveLah, SODL | **Owner decision C-4** |
+| `docs/images/*.png` (3 files, 1,148,408 B, `34a1309`, 2026-10-05; README "Screenshots") | Replaced (C-4, §9): demonstration screenshots over synthetic data and synthetic tiles | Project-made | **Done** (C-4) |
 
 ## 4. Actions in the redaction PR [P]
 
@@ -194,6 +194,21 @@ established and not needed for active tests":
 
 So all eight were removed from the tree. `docs/map-feasibility.md` now describes what each showed, in original text.
 They remain in Git history (`6dc0fd3`; C-7, no rewrite).
+
+## 9. C-4 done (owner approval 2026-11-08)
+
+The three `docs/images/*.png` (live OneMap tiles, busrouter stop names, ArriveLah times, NEA readings) were replaced by
+screenshots of the app over synthetic data, made by `integration_test/demo/readme_screenshots.dart` (a generator run
+with `flutter drive`, not a test; no `lib/` change):
+- places, stops, services, arrival times and the ride line are the integration tests' fakes; the generator renames the
+  origin side's stops and MRT station (the shared fakes still say Bishan) to "North … (fake)";
+- the map tiles are an invented street grid drawn by the generator; no OneMap tile or logo is fetched or shown (the
+  logo is the fakes' transparent image);
+- the Conditions card, whose area names come from NEA data, is kept out of frame;
+- each image has a "DEMONSTRATION DATA" strip, and the README says the map's attribution line and the arrivals credit
+  are the app's standard credits and describe no real data there.
+
+Same names, sizes 824 × 1830 as before. The old images remain in Git history (`34a1309`; C-7, no rewrite).
 
 ## 10. C-5: kept provisionally (owner decision 2026-11-08)
 
