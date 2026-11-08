@@ -12,35 +12,47 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
     and "Expected Traffic". §1–§3 of the letter give those three.
   - §4–§6 add the manner, duration and identity. SLA's own website terms list these for a permission request about
     sla.gov.sg content, and LTA's letter uses them too.
-- **Channel: verified on official pages, but yours to choose.**
-  - `onemap@sla.gov.sg` appears on the OneMap API docs' "Contact Us" page ("If you have any questions, please reach out
+- **Proposed channel: `onemap@sla.gov.sg`, to be verified again before sending.**
+  - `onemap@sla.gov.sg` appeared on the OneMap API docs' "Contact Us" page ("If you have any questions, please reach out
     to us. … Feel free send us feedback at onemap@sla.gov.sg"), on the workshop page and in the basemap docs' footer.
   - SLA's answers on ask.gov.sg also give the hotline 1800 323 9829.
   - SLA's postal address in its website terms (55 Newton Road, #12-01 Revenue House, Singapore 307987) is for
     permission to use **sla.gov.sg** content, not OneMap. It is a fallback only.
-  - All read raw on 2026-11-07 (`docs/onemap-runtime-assessment.md` §9).
+  - All read raw on 2026-11-07 (`docs/onemap-runtime-assessment.md` §9) and not re-read since. Open the OneMap
+    "Contact Us" page again just before sending and check that the address is still there.
 - **Placeholders** are in square brackets: your name, contact address, repository and app links, and traffic figures.
   Decide whether to give the public app's URL.
-- **Facts in the letter** come from the repository at `bbd9329` (2026-11-07):
-  - the endpoints, pacing and cache values (`lib/core/config/app_config.dart`);
-  - the tile provider (`lib/features/map/presentation/basemap.dart`);
+- **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
+  - the endpoints, pacing and cache values (`lib/core/config/app_config.dart`: `OneMapEndpoints`, `PlaceSearchConfig`,
+    `OneMapRateLimit`, `BasemapEndpoints`, `MapConfig`);
+  - the tile provider and the map credit (`lib/features/map/presentation/basemap.dart`; since `bbd9329` only the link
+    widget was renamed for reuse, with no change to the credit);
+  - the search credit under the results (`place_search_field.dart`) and in the footer (`lib/app/home_screen.dart`);
+    the footer's Singapore Open Data Licence notices (C-6) name only the NEA, MRT and arrivals data, not OneMap;
+  - the tile cache's timing (`docs/onemap-runtime-assessment.md` §4.5 and its correction table);
   - the start dates: first OneMap search code 1 October 2026 (`654e1cb`), first map code 3 October 2026 (`a03ff5d`).
+- **What is in the repository (question 9).** Checked at `725dc79`:
+  - the eight test files in `test/fixtures/onemap/` were replaced by made-up data (A-4b, PR #98, merged 2026-11-07,
+    `8829d48`);
+  - the 51-query `docs/probe-output/place-search-eval.json` was removed and the probe outputs' body heads redacted
+    (PR #101, merged 2026-11-07, `98f3652`; `docs/captured-data-inventory.md` §4);
+  - five map-spike screenshots showing OneMap Default and Night tiles (`docs/probe-output/map-spike/`, added in
+    `6dc0fd3`) were removed in PR #106 (C-3, merged 2026-11-08, `f02ac08`);
+  - the three README screenshots, which showed OneMap tiles (`docs/images/`, added in `34a1309`), were replaced by
+    screenshots over made-up data and invented tiles in PR #108 (C-4, merged 2026-11-08, `5a05ca2`). The new ones show
+    the app's standard OneMap credit line but no OneMap tile or logo, and the README says the credits describe no
+    real data there;
+  - all of the above remain in Git history (C-7: no history rewrite).
 - **Expected traffic is not known.** The repository does not record how many people use the app. Each running copy
   sends at most one search request a second, and fewer in practice (it waits for a pause in typing and caches
   results). Fill in "[number]" or say it is unknown and small.
 - **Disclosure.** The letter says plainly that the app calls search without a token although the docs require one.
   That is the point of asking. Do not send it if you are not willing to accept "no" and switch search off or replace
   it (`docs/onemap-runtime-assessment.md` §6, S4).
-- **Left out on purpose:**
-  - bus data and arrivals (LTA's, not SLA's; see `docs/lta-clarification-request-draft.md`);
-  - the OneMap data already in Git history. Add question 9 below if you want SLA's view.
-- **Optional question 9:** "Earlier versions of the repository contained saved OneMap search responses: a few in the
-  tests, and in development logs the results of a 51-query search evaluation and the first characters of a few
-  responses. All were replaced by made-up data or removed in November 2026, but they remain in the repository's
-  history. May they remain there, or should they be removed?" The facts: the eight test files in
-  `test/fixtures/onemap/` were replaced by synthetic data (A-4b, PR #98, merged 2026-11-07); the 51-query
-  `docs/probe-output/place-search-eval.json` was removed and the probe outputs' body heads redacted (PR #101, merged
-  2026-11-07; `docs/captured-data-inventory.md`).
+- **Left out on purpose:** bus data and arrivals (LTA's, not SLA's; see `docs/lta-clarification-request-draft.md`).
+- **Optional question 9 (Git history)** is in the letter, marked optional. Delete it, and the line that announces it,
+  if you do not want SLA's view on the OneMap material in Git history. Its facts are in "What is in the repository"
+  above.
 
 ---
 
@@ -141,6 +153,17 @@ if SLA asks.
 7. **Rate limits.** Is there a request rate or daily volume you would like an app like this to stay under?
 8. **Alternatives.** If this use is not acceptable, does SLA recommend another way for a small app with no server to
    offer place search or map tiles? I will stop using any part you ask me to.
+
+[Optional, delete with this line if not asked:]
+
+9. **Git history.** Earlier versions of the app's public repository contained OneMap material:
+   - saved search responses: a few in the tests, and, in development logs, the results of a 51-query search
+     evaluation and the first characters of a few responses;
+   - screenshots showing OneMap map tiles: five from an early map test, and three in the README.
+
+   All were replaced by made-up data or removed in November 2026; the README's screenshots now use made-up places and
+   invented map tiles. The earlier material remains in the repository's history. May it remain there, or should it be
+   removed?
 
 Thank you for your time. I am happy to give any further details.
 
