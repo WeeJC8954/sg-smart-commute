@@ -10,9 +10,9 @@ integration tests, or a `uiautomator` tree), which cannot hear what TalkBack say
 
 | ID | Step | Result | Notes |
 |---|---|---|---|
-| S1 | Build the synthetic APK from the baseline: `flutter build apk --debug -t integration_test/demo/synthetic_demo_app.dart` (the entry point comes with the synthetic demo APK PR; how-to in `docs/testing.md`). Record the commit and the APK's SHA-256 | Not run | |
+| S1 | Build the synthetic APK from the baseline: `flutter build apk --debug -t integration_test/demo/synthetic_demo_app.dart -P syntheticTestBuild=true` (Gradle refuses the entry point without the flag, and the flag without the entry point; how-to in `docs/testing.md`). Record the commit and the APK's SHA-256 | Not run | |
 | S2 | Record the device: model, Android version, TalkBack version, display size, font size, dark theme on/off, "Remove animations" on/off | Not run | |
-| S3 | Turn on airplane mode (Wi-Fi off too) so no request can leave the device. Install the APK (`adb install -r …`); it replaces the real app (same package id) | Not run | |
+| S3 | Turn on airplane mode (Wi-Fi off too) so no request can leave the device. Install the APK: by hand (USB file transfer, then the phone's file manager) or `adb install -r …` where USB debugging is approved. "SSC Synthetic Test" has its own application ID, `sg.smartcommute.sg_smart_commute.synthetic`, so it installs **beside** the real app (`sg.smartcommute.sg_smart_commute`) and never replaces it or reads its data. A newer synthetic APK signed with the same key updates the installed synthetic app in place | Not run | |
 | S4 | Open the app, then About: the version reads **9.8.7 (42)**, so this is the synthetic build. The origin reads "From: Current location"; the Conditions show "Bishan area" | Not run | |
 
 Synthetic places to search: **Bay Mall** (main journey: Bus F20 suggested, F10 and F30 too), **City Tower**, **East
