@@ -4,11 +4,14 @@
 // _test.dart, so `flutter test integration_test` never runs it. Android only
 // (it imports the shared fakes, which a Web build cannot):
 //
-//   flutter build apk --debug -t integration_test/demo/synthetic_demo_app.dart
+//   flutter build apk --debug -t integration_test/demo/synthetic_demo_app.dart //     -P syntheticTestBuild=true
 //
-// That overwrites build/app/outputs/flutter-apk/app-debug.apk; copy it away,
-// then rebuild the real app with `flutter build apk --debug`. It has the real
-// app's package id, so installing it replaces the real app on a device.
+// The flag (android/app/build.gradle.kts) gives it its own app id,
+// sg.smartcommute.sg_smart_commute.synthetic, and the name "SSC Synthetic
+// Test", so it installs beside the real app and keeps its own data. Gradle
+// refuses this entry point without the flag, and the flag without it. The
+// build overwrites build/app/outputs/flutter-apk/app-debug.apk; copy it away,
+// then rebuild the real app with `flutter build apk --debug`.
 //
 // No network request: places, bus data, arrivals, route line, weather, map
 // tiles (synthetic_tiles.dart) and the OneMap logo all come from the fakes.

@@ -14,7 +14,7 @@
         android:name="android.permission.FOREGROUND_SERVICE_LOCATION"
         tools:node="remove"/>
     <application
-        android:label="Singapore Smart Commute"
+        android:label="${appLabel}"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

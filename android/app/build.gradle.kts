@@ -31,6 +31,26 @@ if (!hasReleaseSigning && releaseSigning.values.any { it != null }) {
     throw GradleException("Release signing is partly configured; missing: $missing")
 }
 
+// Synthetic test build (docs/testing.md), opt-in only:
+//   flutter build apk --debug -t integration_test/demo/synthetic_demo_app.dart -P syntheticTestBuild=true
+// Its own app id and name, so it installs beside the real app and keeps its
+// own data. Flutter passes -P values and the entry point (-Ptarget=...) to
+// Gradle. The flag needs the fake-data entry point, and that entry point is
+// never built under the real app id.
+val syntheticTestBuild = findProperty("syntheticTestBuild") == "true"
+val syntheticEntryPoint = (findProperty("target") as String?)
+    ?.replace('\\', '/')
+    ?.endsWith("integration_test/demo/synthetic_demo_app.dart") == true
+if (syntheticTestBuild != syntheticEntryPoint) {
+    throw GradleException(
+        if (syntheticTestBuild) {
+            "-P syntheticTestBuild=true needs -t integration_test/demo/synthetic_demo_app.dart"
+        } else {
+            "integration_test/demo/synthetic_demo_app.dart needs -P syntheticTestBuild=true"
+        },
+    )
+}
+
 android {
     namespace = "sg.smartcommute.sg_smart_commute"
     compileSdk = flutter.compileSdkVersion
@@ -43,7 +63,10 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "sg.smartcommute.sg_smart_commute"
+        applicationId =
+            if (syntheticTestBuild) "sg.smartcommute.sg_smart_commute.synthetic" else "sg.smartcommute.sg_smart_commute"
+        manifestPlaceholders["appLabel"] =
+            if (syntheticTestBuild) "SSC Synthetic Test" else "Singapore Smart Commute"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
