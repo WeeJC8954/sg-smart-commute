@@ -25,80 +25,86 @@ class HomeScreen extends StatelessWidget {
         title: const AppTitle(),
         actions: const [AboutButton(), PaletteMenuButton()],
       ),
-      body: SafeArea(
-        // The list spans the window (so it scrolls from anywhere); each
-        // section is centred at its own maximum width.
-        child: ListView(
-          padding: const EdgeInsets.all(12),
-          children: [
-            const _Centred(
-              maxWidth: HomeLayout.contentMaxWidth,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  RouteCard(),
-                  MotionSize(child: JourneyCard()),
-                  JourneyMapCard(),
-                ],
+      // Its own traversal group: Tab orders the page apart from the app bar,
+      // so a control scrolled up beside the app-bar actions is not followed by
+      // them (D1, docs/testing.md 2026-11-08).
+      body: FocusTraversalGroup(
+        child: SafeArea(
+          // The list spans the window (so it scrolls from anywhere); each
+          // section is centred at its own maximum width.
+          child: ListView(
+            padding: const EdgeInsets.all(12),
+            children: [
+              const _Centred(
+                maxWidth: HomeLayout.contentMaxWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    RouteCard(),
+                    MotionSize(child: JourneyCard()),
+                    JourneyMapCard(),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            _Centred(
-              maxWidth: HomeLayout.conditionsMaxWidth,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SectionHeading(
-                          'Conditions',
-                          style: Theme.of(context).textTheme.titleLarge,
+              const SizedBox(height: 8),
+              _Centred(
+                maxWidth: HomeLayout.conditionsMaxWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SectionHeading(
+                            'Conditions',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                         ),
+                        const _RefreshConditionsButton(),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const EnvironmentDashboard(),
+                    const SizedBox(height: 12),
+                    // One credit per source (C-6): only the data.gov.sg and
+                    // DataMall sources carry the open-data licence notice.
+                    const _LicenceNotice(
+                      neaLicenceNotice,
+                      key: Key('nea-licence-notice'),
+                      linkKey: Key('nea-licence-link'),
+                    ),
+                    const _LicenceNotice(
+                      mrtLicenceNotice,
+                      key: Key('mrt-licence-notice'),
+                      linkKey: Key('mrt-licence-link'),
+                    ),
+                    const _LicenceNotice(
+                      arrivalsLicenceNotice,
+                      key: Key('arrivals-licence-notice'),
+                      linkKey: Key('open-data-licence-link'),
+                    ),
+                    // Each its own node, so a screen reader reads it here,
+                    // last, not merged into the section's node before
+                    // "Conditions" (D2).
+                    Semantics(
+                      container: true,
+                      child: Text(
+                        oneMapAttribution,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      const _RefreshConditionsButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const EnvironmentDashboard(),
-                  const SizedBox(height: 12),
-                  // One credit per source (C-6): only the data.gov.sg and
-                  // DataMall sources carry the open-data licence notice.
-                  const _LicenceNotice(
-                    neaLicenceNotice,
-                    key: Key('nea-licence-notice'),
-                    linkKey: Key('nea-licence-link'),
-                  ),
-                  const _LicenceNotice(
-                    mrtLicenceNotice,
-                    key: Key('mrt-licence-notice'),
-                    linkKey: Key('mrt-licence-link'),
-                  ),
-                  const _LicenceNotice(
-                    arrivalsLicenceNotice,
-                    key: Key('arrivals-licence-notice'),
-                    linkKey: Key('open-data-licence-link'),
-                  ),
-                  // Each its own node, so a screen reader reads it here, last,
-                  // not merged into the section's node before "Conditions" (D2).
-                  Semantics(
-                    container: true,
-                    child: Text(
-                      oneMapAttribution,
-                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                  ),
-                  Semantics(
-                    container: true,
-                    child: Text(
-                      busrouterAttribution,
-                      style: Theme.of(context).textTheme.bodySmall,
+                    Semantics(
+                      container: true,
+                      child: Text(
+                        busrouterAttribution,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
