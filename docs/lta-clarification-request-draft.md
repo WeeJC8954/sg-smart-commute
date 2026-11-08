@@ -40,17 +40,19 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
   - still in the tree, kept provisionally (C-5): the E5 benchmark's expected output
     (`tool/e5_transfer_bench/expected_results.txt`) and its named pairs (`bench.dart`), with stop codes, service
     numbers, road names and counts derived from the data. §3 says so; LTA's answer may reopen C-5.
-  - §3 discloses the history and the benchmark output but asks nothing about them. Add a question if you want LTA's
-    view (the SLA letter's optional question 9 is the model).
+  - Question 7 (owner, 2026-11-08) asks whether the benchmark output and pairs may remain, including in Git history.
+    The earlier extracts and screenshots that §3 discloses are not asked about.
 - **Sources other than LTA (§1).** The source list comes from `docs/runtime-data-rights-assessment.md` §3 (sgbusdata's
   scripts, read 2026-11-06). LTA can only answer for its own content: the SimplyGo name corrections and the OneMap and
   Citymapper route patches stay open whatever LTA says, and the OneMap part belongs with the SLA letter. The app's
   credit "Bus data: busrouter.sg (data © LTA)" names only LTA, while busrouter's README credits "LTA © OneMap © OSM
   contributors"; that wording is your decision, not part of this letter.
-- **Optional question 8 (ArriveLah).** Live arrival times come from LTA DataMall's Bus Arrival API through ArriveLah.
-  The open point there concerns ArriveLah, not LTA's website terms, so §1–§5 leave it out. Question 8 asks LTA's view;
-  delete it, and the sentence that announces it, if you do not want to ask. The facts in it: `ArriveLahEndpoints` and
-  `arrivalsLicenceNotice` in `app_config.dart`; the footer notice links to https://data.gov.sg/open-data-licence.
+- **Question 8 (ArriveLah), kept by the owner on 2026-11-08.** Live arrival times come from LTA DataMall's Bus Arrival
+  API through ArriveLah. The open point there concerns ArriveLah, not LTA's website terms, so §1–§5 leave it out and
+  question 8 asks LTA's view. The facts in it: `ArriveLahEndpoints` and `arrivalsLicenceNotice` in `app_config.dart`;
+  the footer notice links to https://data.gov.sg/open-data-licence.
+- **Closing sentence.** "If the data may not be used in this way…" was question 7; it asks nothing, so it now follows
+  the questions unnumbered.
 
 ---
 
@@ -115,7 +117,8 @@ place, and suggests direct bus journeys with live arrival times and the nearest 
   file in development logs) and screenshots showing stop names, a route line and live arrival times. These were
   replaced by made-up data or removed in November 2026, but they remain in the repository's history.
 - The repository also holds the expected output of a development benchmark of journey planning. It lists counts and
-  some bus stop codes, service numbers and road names derived from the data.
+  some bus stop codes, service numbers and road names derived from the data. The benchmark's code also lists 12 pairs
+  of bus stop codes that it tests.
 - The app's data credits show "Bus data: busrouter.sg (data © LTA)". I will change this to any wording
   LTA requires.
 - For development only, I have also downloaded the same files to my own computer, to test and to measure the speed of
@@ -144,14 +147,14 @@ From October 2026, ongoing, with no fixed end date. I will stop or change the us
 6. Is there an officially licensed source for this data? My understanding is that LTA DataMall's `BusStops` and
    `BusRoutes` datasets are available under the Singapore Open Data Licence. Is that correct, and is there also an
    official source for bus route lines?
-7. If the data may not be used in this way, please let me know, and I will stop using it.
+7. May the benchmark output and the pairs of stop codes described in §3 remain in the public repository, including
+   in its history? If not, should they be removed?
+8. A question about a different source: the app also shows live bus arrival times from LTA DataMall's Bus Arrival
+   API, obtained through ArriveLah (arrivelah2.busrouter.sg), a community service that relays it. The app does not
+   call DataMall directly. It shows a notice naming LTA DataMall and ArriveLah, with a link to the Singapore Open Data
+   Licence. Does that licence cover arrival data obtained this way? If not, what would LTA require?
 
-[Optional, delete with this line if not asked:] One further question, about a different source:
-
-8. The app also shows live bus arrival times from LTA DataMall's Bus Arrival API, obtained through ArriveLah
-   (arrivelah2.busrouter.sg), a community service that relays it. The app does not call DataMall directly. It shows
-   a notice naming LTA DataMall and ArriveLah, with a link to the Singapore Open Data Licence. Does that licence
-   cover arrival data obtained this way? If not, what would LTA require?
+If the data may not be used in any of these ways, please let me know, and I will stop using it.
 
 Thank you for your time. I am happy to give any further details.
 

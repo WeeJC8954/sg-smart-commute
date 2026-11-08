@@ -45,14 +45,14 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
   - all of the above remain in Git history (C-7: no history rewrite).
 - **Expected traffic is not known.** The repository does not record how many people use the app. Each running copy
   sends at most one search request a second, and fewer in practice (it waits for a pause in typing and caches
-  results). Fill in "[number]" or say it is unknown and small.
+  results). Fill in "[Number of users…]" in §3, or keep its
+  "unknown, and expected to be small".
 - **Disclosure.** The letter says plainly that the app calls search without a token although the docs require one.
   That is the point of asking. Do not send it if you are not willing to accept "no" and switch search off or replace
   it (`docs/onemap-runtime-assessment.md` §6, S4).
 - **Left out on purpose:** bus data and arrivals (LTA's, not SLA's; see `docs/lta-clarification-request-draft.md`).
-- **Optional question 9 (Git history)** is in the letter, marked optional. Delete it, and the line that announces it,
-  if you do not want SLA's view on the OneMap material in Git history. Its facts are in "What is in the repository"
-  above.
+- **Question 9 (Git history), kept by the owner on 2026-11-08,** asks SLA's view on the OneMap material in Git history.
+  Its facts are in "What is in the repository" above.
 
 ---
 
@@ -153,9 +153,6 @@ if SLA asks.
 7. **Rate limits.** Is there a request rate or daily volume you would like an app like this to stay under?
 8. **Alternatives.** If this use is not acceptable, does SLA recommend another way for a small app with no server to
    offer place search or map tiles? I will stop using any part you ask me to.
-
-[Optional, delete with this line if not asked:]
-
 9. **Git history.** Earlier versions of the app's public repository contained OneMap material:
    - saved search responses: a few in the tests, and, in development logs, the results of a 51-query search
      evaluation and the first characters of a few responses;
