@@ -10,30 +10,49 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
   any part thereof, the user must seek permission in writing, stating the Contents for use; intent of use; manner of
   use; time frame of use and identity of the user." The letter states each of the five, in that order (§1–§5), then
   asks the questions.
-- **Channel: not confirmed.** I have not checked which LTA address or form handles permission requests for website
-  content, or whether LTA DataMall has its own contact. Please pick the channel; LTA's "Contact Us" page on
-  lta.gov.sg is the likely start.
+- **Channel: LTA's Contact Us online form, yours to confirm.**
+  - LTA's Contact Us page (https://www.lta.gov.sg/content/ltagov/en/contact_us.html, read 2026-11-08) says: "Send your
+    feedback or submit your enquiries via our online form", linking to
+    https://www.lta.gov.sg/content/ltagov/en/contact_us/contact_form.html. It lists no email address, and the hotline
+    1800 2255 582 (+65 6225 5582 from overseas) for LTA-related matters.
+  - The page does not mention data licensing or permission to use website content, and LTA DataMall's own contact
+    was not checked. So the letter's first paragraph asks for the enquiry to be passed to the team that handles
+    permission for LTA data, such as a licensing or DataMall team.
+  - The form itself was not opened: its categories, field length and whether it takes attachments are not known.
+    The letter has no table, so it can be pasted as plain text. If the form is too short, send a short summary and
+    attach the letter, or ask the hotline for an address.
 - **Placeholders** are in square brackets: your name, contact address, repository and app links. Decide whether to
   give the public app's URL.
-- **Facts in the letter** come from the repository on 2026-11-07: the three endpoints (`app_config.dart`), what is
-  shown (`docs/runtime-data-rights-assessment.md` §2), the provenance chain (§3), and the start date (the first
-  busrouter code, 2 October 2026). Please check the "users" sentence: the repository does not record how many people
-  use the app.
-- **Before sending, check the repository sentence in §3.** `docs/probe-output/curl-probes.txt` and `map-probes.txt`
-  held the first 220 bytes of each busrouter file (October 2026 probes) until those bodies were redacted on 2026-11-07
-  (`docs/captured-data-inventory.md`). Once that redaction is merged, the sentence's "remain in the repository's
-  history" covers them too; until then, add "and some development logs hold the first few lines".
-- **Sources other than LTA (§1).** The source table comes from `docs/runtime-data-rights-assessment.md` §3 (sgbusdata's
+- **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
+  - the three endpoints and the credit (`lib/core/config/app_config.dart`, `lib/app/home_screen.dart`);
+  - the loading and retry rules (`busNetworkProvider`, `routeGeometryProvider` and `MapExpanded.show`);
+  - what is shown (`docs/runtime-data-rights-assessment.md` §2) and the provenance chain (§3);
+  - the start date (the first busrouter code, `50de76a`, 2 October 2026).
+  - Please check the "users" sentence: the repository does not record how many people use the app.
+- **What is in the repository (§3).** Checked at `725dc79`:
+  - the busrouter test files were replaced by made-up data on 2026-11-06 (`test/fixtures/busrouter/`);
+  - the first 220 bytes of each busrouter file in `docs/probe-output/curl-probes.txt` and `map-probes.txt` were
+    redacted in PR #101 (merged 2026-11-07, `98f3652`; `docs/captured-data-inventory.md` §4);
+  - the README screenshots, which showed stop names, a ride line and live arrival times, were replaced by
+    screenshots over made-up data in PR #108 (merged 2026-11-08, `5a05ca2`); the map-spike screenshots, two of which
+    drew a busrouter ride line, were removed in PR #106 (merged 2026-11-08, `f02ac08`);
+  - all of these remain in Git history (C-7: no history rewrite);
+  - still in the tree, kept provisionally (C-5): the E5 benchmark's expected output
+    (`tool/e5_transfer_bench/expected_results.txt`) and its named pairs (`bench.dart`), with stop codes, service
+    numbers, road names and counts derived from the data. §3 says so; LTA's answer may reopen C-5.
+  - Question 7 (owner, 2026-11-08) asks whether the benchmark output and pairs may remain, including in Git history.
+    The earlier extracts and screenshots that §3 discloses are not asked about.
+- **Sources other than LTA (§1).** The source list comes from `docs/runtime-data-rights-assessment.md` §3 (sgbusdata's
   scripts, read 2026-11-06). LTA can only answer for its own content: the SimplyGo name corrections and the OneMap and
   Citymapper route patches stay open whatever LTA says, and the OneMap part belongs with the SLA letter. The app's
   credit "Bus data: busrouter.sg (data © LTA)" names only LTA, while busrouter's README credits "LTA © OneMap © OSM
   contributors"; that wording is your decision, not part of this letter.
-- **Left out on purpose.** Live arrival times (LTA DataMall via ArriveLah) are not asked about: DataMall data is
-  under the Singapore Open Data Licence, and the open point there concerns ArriveLah, not LTA's website terms. Add
-  question 8 below if you want LTA's view on it too.
-- **Optional question 8:** "The app also shows live bus arrival times from LTA DataMall's Bus Arrival API, obtained
-  through ArriveLah, a community service that relays it. The app shows the Singapore Open Data Licence notice and
-  link. Does LTA consider data relayed in this way to be covered by that licence?"
+- **Question 8 (ArriveLah), kept by the owner on 2026-11-08.** Live arrival times come from LTA DataMall's Bus Arrival
+  API through ArriveLah. The open point there concerns ArriveLah, not LTA's website terms, so §1–§5 leave it out and
+  question 8 asks LTA's view. The facts in it: `ArriveLahEndpoints` and `arrivalsLicenceNotice` in `app_config.dart`;
+  the footer notice links to https://data.gov.sg/open-data-licence.
+- **Closing sentence.** "If the data may not be used in this way…" was question 7; it asks nothing, so it now follows
+  the questions unnumbered.
 
 ---
 
@@ -41,6 +60,9 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
 personal, non-commercial app
 
 Dear Sir or Madam,
+
+I would be grateful if this enquiry could be passed to the team that handles permission to use LTA data, such as a
+licensing or DataMall team.
 
 I am writing, as your website's terms of use ask, to seek permission in writing, and some clarification, for the
 use of LTA bus data in a small personal project. The details below follow the order in your terms: the contents,
@@ -61,13 +83,12 @@ The data reaches my app through two community projects that compile and re-host 
 
 From `sgbusdata`'s published scripts, I understand that the data comes from several sources, not only LTA:
 
-| Data | Main source | Other sources mixed in |
-|---|---|---|
-| Stop codes and positions | lta.gov.sg bus stop XML | none found |
-| Stop names | lta.gov.sg bus stop XML | some names corrected from SimplyGo |
-| Stop road names | LTA DataMall `BusStops` | none found |
-| Services and the order of their stops | lta.gov.sg bus service and bus route XML | gaps filled from OneMap (SLA) and Citymapper |
-| Route lines | lta.gov.sg bus route KML | gaps filled from OneMap (SLA) and Citymapper |
+- Stop codes and positions: from the lta.gov.sg bus stop XML; no other source found.
+- Stop names: from the lta.gov.sg bus stop XML; some names corrected from SimplyGo.
+- Stop road names: from LTA DataMall `BusStops`; no other source found.
+- Services and the order of their stops: from the lta.gov.sg bus service and bus route XML; gaps filled from OneMap
+  (SLA) and Citymapper.
+- Route lines: from the lta.gov.sg bus route KML; gaps filled from OneMap (SLA) and Citymapper.
 
 busrouter.sg also credits OpenStreetMap contributors, but I have not found which fields that applies to. I ask
 only about the parts that come from LTA (lta.gov.sg and LTA DataMall). I understand that LTA cannot give permission
@@ -78,8 +99,8 @@ I do not know whether those projects hold LTA's permission, and I do not rely on
 **2. Intent of use**
 
 "Singapore Smart Commute" is a personal, non-commercial hobby project. It has no advertising, no fees and no sign-in,
-and it has no server, so it collects no user data. It shows current weather and air quality, lets a user search for a place, and suggests
-direct bus journeys with live arrival times and the nearest MRT station.
+and it has no server, so it collects no user data. It shows current weather and air quality, lets a user search for a
+place, and suggests direct bus journeys with live arrival times and the nearest MRT station.
 
 **3. Manner of use**
 
@@ -91,8 +112,13 @@ direct bus journeys with live arrival times and the nearest MRT station.
 - From the data, the app shows the suggested boarding and alighting stops (code, name and position), the service
   number and its direction, the number of stops, and, on an optional map, the stops and the bus's route line.
 - The app does not republish the files: it does not host, bundle or offer them for download. Its source code is
-  public at [repository link]. Its tests of this data use made-up data; earlier versions held small extracts of the files, which
-  remain in the repository's history.
+  public at [repository link]. Its tests of this data use made-up data, and its README screenshots show made-up data.
+- Earlier versions of the repository held small extracts of the files (in tests, and the first few lines of each
+  file in development logs) and screenshots showing stop names, a route line and live arrival times. These were
+  replaced by made-up data or removed in November 2026, but they remain in the repository's history.
+- The repository also holds the expected output of a development benchmark of journey planning. It lists counts and
+  some bus stop codes, service numbers and road names derived from the data. The benchmark's code also lists 12 pairs
+  of bus stop codes that it tests.
 - The app's data credits show "Bus data: busrouter.sg (data © LTA)". I will change this to any wording
   LTA requires.
 - For development only, I have also downloaded the same files to my own computer, to test and to measure the speed of
@@ -118,10 +144,17 @@ From October 2026, ongoing, with no fixed end date. I will stop or change the us
    device, or on showing it on a map?
 5. May I keep downloading the data to my own computer for local development and benchmarking, without publishing
    it?
-6. Is there an officially licensed source for this data? I understand that LTA DataMall's `BusStops` and `BusRoutes`
-   datasets are available under the Singapore Open Data Licence. Is there also an official source for bus route
-   lines?
-7. If the data may not be used in this way, please let me know, and I will stop using it.
+6. Is there an officially licensed source for this data? My understanding is that LTA DataMall's `BusStops` and
+   `BusRoutes` datasets are available under the Singapore Open Data Licence. Is that correct, and is there also an
+   official source for bus route lines?
+7. May the benchmark output and the pairs of stop codes described in §3 remain in the public repository, including
+   in its history? If not, should they be removed?
+8. A question about a different source: the app also shows live bus arrival times from LTA DataMall's Bus Arrival
+   API, obtained through ArriveLah (arrivelah2.busrouter.sg), a community service that relays it. The app does not
+   call DataMall directly. It shows a notice naming LTA DataMall and ArriveLah, with a link to the Singapore Open Data
+   Licence. Does that licence cover arrival data obtained this way? If not, what would LTA require?
+
+If the data may not be used in any of these ways, please let me know, and I will stop using it.
 
 Thank you for your time. I am happy to give any further details.
 
