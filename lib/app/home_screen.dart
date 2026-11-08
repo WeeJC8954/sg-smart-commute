@@ -83,13 +83,22 @@ class HomeScreen extends StatelessWidget {
                       key: Key('arrivals-licence-notice'),
                       linkKey: Key('open-data-licence-link'),
                     ),
-                    Text(
-                      oneMapAttribution,
-                      style: Theme.of(context).textTheme.bodySmall,
+                    // Each its own node, so a screen reader reads it here,
+                    // last, not merged into the section's node before
+                    // "Conditions" (D2).
+                    Semantics(
+                      container: true,
+                      child: Text(
+                        oneMapAttribution,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
-                    Text(
-                      busrouterAttribution,
-                      style: Theme.of(context).textTheme.bodySmall,
+                    Semantics(
+                      container: true,
+                      child: Text(
+                        busrouterAttribution,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
                   ],
                 ),
