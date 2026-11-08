@@ -18,10 +18,22 @@ data is **not** treated as permitted (`docs/runtime-data-rights-assessment.md` �
   - The page does not mention data licensing or permission to use website content, and LTA DataMall's own contact
     was not checked. So the letter's first paragraph asks for the enquiry to be passed to the team that handles
     permission for LTA data, such as a licensing or DataMall team.
-  - The form itself was not opened: its categories, field length and whether it takes attachments are not known.
-    The letter has no table, so it can be pasted as plain text. If the form is too short, send a short summary and
-    attach the letter, or ask the hotline for an address.
-- **Placeholders** are in square brackets: your name and email address only.
+  - **The form was inspected on 2026-11-08** (read only, nothing submitted; `docs/testing.md`, 2026-11-08 terms row):
+    - no category field; the fields are: reply wanted (yes/no), salutation, name (letters, spaces and `_ . ' -`
+      only), contact number (required when a reply is wanted), email entered twice, previous feedback number,
+      subject (at most 150 characters), message (at most 5,000 characters), incident location ("Not Applicable"),
+      attachments, and a CAPTCHA;
+    - the subject and message reject any non-ASCII character other than curly quotes and dashes, so `§` and `©`
+      fail;
+    - attachments: doc, docx, ppt, pptx, xls, xlsx, pdf, txt, img, jpg, jpeg, png, gif or zip; at most 20 MB in
+      total; file names of at most 50 characters;
+    - LTA aims to reply "within 5 working days", or in 14–20 days for complex cases.
+  - The letter (about 6,700 characters, with `§` and `©`) does not fit the message box. **Approved approach
+    (owner, 2026-11-08):** the subject line in the subject field, the approved ASCII cover note (about 750
+    characters) in the message, and this letter attached as a PDF. The send-ready copies are kept outside the
+    repository, because they will carry your details.
+- **Placeholders** are in square brackets: your name and email address only. The form also asks for a contact
+  number if you want a reply; it is not in the letter.
 - **Repository and deployment status** (checked 2026-11-08):
   - the repository is https://github.com/WeeJC8954/sg-smart-commute, public and not archived on GitHub;
   - no public deployment of the app was found: no GitHub Pages site, homepage URL, deployment or release, and no
