@@ -28,8 +28,8 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
   - so the letter describes current personal, non-commercial use, possible limited sharing with family and friends,
     no immediate plans for a public release, and a possible later public release with no committed date, and gives
     no app link. If any of this changes before you send, revise §1, §3, §5 and question 1.
-  - §3's user sentence changed from your earlier wording ("The current number of users is unknown; expected usage is
-    small.") to match personal use; please confirm or restore it.
+  - §3's user sentences are the owner's wording of 2026-11-08, for this proposed revision only. They do not replace the
+    email already sent to SLA, which keeps its own wording (the sent text is to be archived when the owner provides it).
 - **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
   - the endpoints, pacing and cache values (`lib/core/config/app_config.dart`: `OneMapEndpoints`, `PlaceSearchConfig`,
     `OneMapRateLimit`, `BasemapEndpoints`, `MapConfig`);
@@ -92,8 +92,9 @@ The app does not call reverse geocoding, routing or any other OneMap service.
 
 **3. Expected traffic**
 
-The app is used by me, and may be shared with a few family members and friends; expected usage is small. Each
-running copy of the app:
+The application is currently intended for my personal use. I may consider sharing it with a small number of family
+members or friends in the future, but no such sharing or public release is currently scheduled. Each running copy of
+the app:
 
 - searches only after the user types at least 3 characters (or a 6-digit postal code), waits 350 ms after the last
   keystroke, reads page 1 only, and sends **at most one search request per second**;
