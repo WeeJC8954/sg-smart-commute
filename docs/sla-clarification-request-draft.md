@@ -21,11 +21,17 @@ search is **not** treated as permitted. Meanwhile the status quo is accepted and
   - All read raw on 2026-11-07 (`docs/onemap-runtime-assessment.md` §9) and not re-read since. Open the OneMap
     "Contact Us" page again just before sending and check that the address is still there.
 - **Placeholders** are in square brackets: your name and email address only.
-- **Repository and deployment status** (checked 2026-11-08):
+- **Repository and use** (checked 2026-11-08; framing decided by the owner on 2026-11-08):
   - the repository is https://github.com/WeeJC8954/sg-smart-commute, public and not archived on GitHub;
   - no public deployment of the app was found: no GitHub Pages site, homepage URL, deployment or release, and no
-    hosting address in the repository's docs. So the letter calls the app "under development and intended for
-    public release" and gives no app link. If the app is deployed before you send, revise §1, §3, §5 and §6.
+    hosting address in the repository's docs;
+  - so the letter says, with one meaning throughout (owner, 2026-11-08): the application is currently intended for
+    personal use; future sharing with a small number of family members or friends may be considered; no sharing or
+    public release is currently scheduled; there is no committed public-release date. Questions about sharing or a
+    public release are put as hypothetical. It gives no app link. If any of this changes before you send, revise
+    §1, §3, §5 and question 1.
+  - §3's user sentences are the owner's wording of 2026-11-08, for this proposed revision only. They do not replace the
+    email already sent to SLA, which keeps its own wording (the sent text is to be archived when the owner provides it).
 - **Facts in the letter** were rechecked against `main` at `725dc79` (2026-11-08):
   - the endpoints, pacing and cache values (`lib/core/config/app_config.dart`: `OneMapEndpoints`, `PlaceSearchConfig`,
     `OneMapRateLimit`, `BasemapEndpoints`, `MapConfig`);
@@ -69,10 +75,12 @@ endpoints used and the expected traffic. Then come the manner of use, the durati
 
 **1. Name of application**
 
-"Singapore Smart Commute": a personal, non-commercial hobby project, under development and intended for public
-release. It has no advertising, no fees and no sign-in,
-and it has no server, so it collects no user data. It shows current weather and air quality, lets a user search for
-a place, and suggests direct bus journeys with live arrival times, the nearest MRT station and an optional map.
+"Singapore Smart Commute": a personal, non-commercial hobby project. The application is currently intended for my
+personal use. I may consider sharing it with a small number of family members or friends in the future, but no such
+sharing or public release is currently scheduled, and there is no committed public-release date. Its source code is
+public. It has no advertising, no fees and no sign-in, and it has no server, so it collects no user data. It shows
+current weather and air quality, lets a user search for a place, and suggests direct bus journeys with live arrival
+times, the nearest MRT station and an optional map.
 
 **2. Endpoints used**
 
@@ -87,7 +95,9 @@ The app does not call reverse geocoding, routing or any other OneMap service.
 
 **3. Expected traffic**
 
-The current number of users is unknown; expected usage is small. Each running copy of the app:
+The application is currently intended for my personal use. I may consider sharing it with a small number of family
+members or friends in the future, but no such sharing or public release is currently scheduled. Each running copy of
+the app:
 
 - searches only after the user types at least 3 characters (or a 6-digit postal code), waits 350 ms after the last
   keystroke, reads page 1 only, and sends **at most one search request per second**;
@@ -124,8 +134,9 @@ The current number of users is unknown; expected usage is small. Each running co
 
 **5. Duration**
 
-In development and testing: search since October 2026, map tiles since October 2026. Use by the public would begin
-when the app is released, with no fixed end date. I will stop or change the use if SLA asks.
+In personal use and development: search since October 2026, map tiles since October 2026, ongoing, with no fixed end
+date. No sharing or public release is currently scheduled, and there is no committed public-release date. I will stop
+or change the use if SLA asks.
 
 **6. Identity**
 
@@ -133,9 +144,10 @@ when the app is released, with no fixed end date. I will stop or change the use 
 
 **Questions**
 
-1. **Search without a token.** May an app like this, with no server, keep calling the Search API without a token? If
-   not, is there an approach SLA accepts for an app that cannot keep a credential confidential? Or is OneMap search
-   not available to such apps?
+1. **Search without a token.** May an app like this, with no server, keep calling the Search API without a token for
+   my personal use? If not, is there an approach SLA accepts for an app that cannot keep a credential confidential?
+   Or is OneMap search not available to such apps? Hypothetically, if I were later to share the app with a small
+   number of family members or friends, or to release it to the public, would the answer differ?
 2. **Registration.**
    - Your Terms of Use say that anyone who wishes to build web applications "using the API and the Data" must
      complete the online registration and accept the "Developer Agreement". Does this apply to an app that uses only
